@@ -1,0 +1,9 @@
+ise/
+prj/
+doc/
+tool
+*.bak
+*.log
+*.vcd
+simulation/
+.vscode/
