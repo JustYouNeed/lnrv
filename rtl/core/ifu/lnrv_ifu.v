@@ -5,6 +5,8 @@ module	lnrv_ifu
     input                               clk,
     input                               reset_n,
 
+    output                              ifu_active,
+
     // 复位向量
     input[31 : 0]                       reset_vector,
 
@@ -89,5 +91,7 @@ lnrv_ifu_ifetch u_lnrv_ifu_ifetch
     .reset_n                ( reset_n                   )
 );
 
+
+assign      ifu_active = 1'b1;
 
 endmodule

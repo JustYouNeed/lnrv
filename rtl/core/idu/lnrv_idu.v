@@ -1,6 +1,8 @@
 `include "lnrv_def.v"
 module lnrv_idu 
 (
+    output                              idu_active,
+
     input                               ifu_ir_vld,
     output                              ifu_ir_rdy,
     input[31 : 0]                       ifu_ir,
@@ -197,5 +199,8 @@ assign      {
                 dec_ifu_misalgn,
                 dec_ifu_buserr
             } = idu_buf_pop_data;
-    
+
+
+assign      idu_active = 1'b1;
+
 endmodule //lnrv_idu

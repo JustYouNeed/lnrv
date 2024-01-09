@@ -22,7 +22,7 @@ module lnrv_icb2sram#
     output[P_DATA_WIDTH - 1 : 0]        icb_rsp_rdata,
     output                              icb_rsp_err,
 
-
+    output                              ram_clk,
     output                              ram_cs,
     output                              ram_we,
     output[(P_DATA_WIDTH/8) - 1 : 0]    ram_wem,
@@ -70,7 +70,7 @@ assign      ram_we = icb_cmd_write;
 assign      ram_wem = icb_cmd_wstrb;
 assign      ram_addr = icb_cmd_addr[LP_RAM_ADDR_LSB +: P_RAM_ADDR_WIDTH];
 assign      ram_wdata = icb_cmd_wdata;
-
+assign      ram_clk = clk;
 
 
 endmodule

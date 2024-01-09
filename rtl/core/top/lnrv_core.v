@@ -34,16 +34,26 @@ module  lnrv_core
     input                                   ifu_rsp_err,
 
     // 系统访存总线
-    output                                  lsu_cmd_vld,
-    input                                   lsu_cmd_rdy,
-    output                                  lsu_cmd_write,
-    output[31 : 0]                          lsu_cmd_addr,
-    output[31 : 0]                          lsu_cmd_wdata,
-    output[3 : 0]                           lsu_cmd_wstrb,
-    input                                   lsu_rsp_vld,
-    output                                  lsu_rsp_rdy,
-    input[31 : 0]                           lsu_rsp_rdata,
-    input                                   lsu_rsp_err,
+    output                                  exu_cmd_vld,
+    input                                   exu_cmd_rdy,
+    output                                  exu_cmd_write,
+    output[31 : 0]                          exu_cmd_addr,
+    output[31 : 0]                          exu_cmd_wdata,
+    output[3 : 0]                           exu_cmd_wstrb,
+    input                                   exu_rsp_vld,
+    output                                  exu_rsp_rdy,
+    input[31 : 0]                           exu_rsp_rdata,
+    input                                   exu_rsp_err,
+
+    // 
+    input                                   ifu_clk,
+    output                                  ifu_active,
+
+    input                                   idu_clk,
+    output                                  idu_active,
+
+    input                                   exu_clk,
+    input                                   exu_active,
 
     input                                   clk,
     input                                   reset_n
@@ -135,6 +145,8 @@ lnrv_ifu u_lnrv_ifu
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   ),
 
+    .ifu_active                 ( ifu_active                ),
+
     .reset_vector               ( reset_vector              ),
 
     .pipe_flush_req             ( ifu_pipe_flush_req        ),
@@ -169,6 +181,8 @@ assign      idu_pipe_flush_req = pipe_flush_req;
 // 译码模块
 lnrv_idu u_lnrv_idu
 (
+    .idu_active                 ( idu_active                ),
+
     .ifu_ir_vld                 ( ifu_ir_vld                ),
     .ifu_ir_rdy                 ( ifu_ir_rdy                ),
     .ifu_ir                     ( ifu_ir                    ),
@@ -223,6 +237,8 @@ assign      pipe_flush_ack = ifu_pipe_flush_ack & idu_pipe_flush_ack;
 // 指令执行模块
 lnrv_exu u_lnrv_exu
 (
+    .exu_active                 ( exu_active                ),
+
     .dec_rglr_instr             ( dec_rglr_instr            ),
     .dec_lsu_instr              ( dec_lsu_instr             ),
     .dec_brch_instr             ( dec_brch_instr            ),
@@ -306,17 +322,16 @@ lnrv_exu u_lnrv_exu
     .cmt_dpc                    ( cmt_dpc                   ),
     .cmt_dcause                 ( cmt_dcause                ),
 
-
-    .lsu_cmd_vld                ( lsu_cmd_vld               ),
-    .lsu_cmd_rdy                ( lsu_cmd_rdy               ),
-    .lsu_cmd_write              ( lsu_cmd_write             ),
-    .lsu_cmd_addr               ( lsu_cmd_addr              ),
-    .lsu_cmd_wdata              ( lsu_cmd_wdata             ),
-    .lsu_cmd_wstrb              ( lsu_cmd_wstrb             ),
-    .lsu_rsp_vld                ( lsu_rsp_vld               ),
-    .lsu_rsp_rdy                ( lsu_rsp_rdy               ),
-    .lsu_rsp_rdata              ( lsu_rsp_rdata             ),
-    .lsu_rsp_err                ( lsu_rsp_err               ),
+    .exu_cmd_vld                ( exu_cmd_vld               ),
+    .exu_cmd_rdy                ( exu_cmd_rdy               ),
+    .exu_cmd_write              ( exu_cmd_write             ),
+    .exu_cmd_addr               ( exu_cmd_addr              ),
+    .exu_cmd_wdata              ( exu_cmd_wdata             ),
+    .exu_cmd_wstrb              ( exu_cmd_wstrb             ),
+    .exu_rsp_vld                ( exu_rsp_vld               ),
+    .exu_rsp_rdy                ( exu_rsp_rdy               ),
+    .exu_rsp_rdata              ( exu_rsp_rdata             ),
+    .exu_rsp_err                ( exu_rsp_err               ),
 
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   )

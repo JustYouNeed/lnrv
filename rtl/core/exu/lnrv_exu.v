@@ -11,6 +11,8 @@ module  lnrv_exu#
     parameter                               P_BIU_REGION_END = 32'hf000_0000
 )
 (
+    output                                  exu_active,
+
     // 译码信息
     input                                   dec_rglr_instr,
     input                                   dec_lsu_instr,
@@ -106,16 +108,16 @@ module  lnrv_exu#
     output[31 : 0]                          cmt_dpc,
     output[2 : 0]                           cmt_dcause,
 
-    output                                  lsu_cmd_vld,
-    input                                   lsu_cmd_rdy,
-    output                                  lsu_cmd_write,
-    output[31 : 0]                          lsu_cmd_addr,
-    output[31 : 0]                          lsu_cmd_wdata,
-    output[3 : 0]                           lsu_cmd_wstrb,
-    input                                   lsu_rsp_vld,
-    output                                  lsu_rsp_rdy,
-    input[31 : 0]                           lsu_rsp_rdata,
-    input                                   lsu_rsp_err,
+    output                                  exu_cmd_vld,
+    input                                   exu_cmd_rdy,
+    output                                  exu_cmd_write,
+    output[31 : 0]                          exu_cmd_addr,
+    output[31 : 0]                          exu_cmd_wdata,
+    output[3 : 0]                           exu_cmd_wstrb,
+    input                                   exu_rsp_vld,
+    output                                  exu_rsp_rdy,
+    input[31 : 0]                           exu_rsp_rdata,
+    input                                   exu_rsp_err,
 
     input                                   clk,
     input                                   reset_n
@@ -461,16 +463,16 @@ lnrv_exu_lsu u_lnrv_exu_lsu
     .gpr_wbck_rdy           ( lsu2gpr_wbck_rdy              ),
     .gpr_wbck_wdata         ( lsu2gpr_wbck_wdata            ),
 
-    .lsu_cmd_vld            ( lsu_cmd_vld                   ),
-    .lsu_cmd_rdy            ( lsu_cmd_rdy                   ),
-    .lsu_cmd_write          ( lsu_cmd_write                 ),
-    .lsu_cmd_addr           ( lsu_cmd_addr                  ),
-    .lsu_cmd_wdata          ( lsu_cmd_wdata                 ),
-    .lsu_cmd_wstrb          ( lsu_cmd_wstrb                 ),
-    .lsu_rsp_rdy            ( lsu_rsp_rdy                   ),
-    .lsu_rsp_vld            ( lsu_rsp_vld                   ),
-    .lsu_rsp_rdata          ( lsu_rsp_rdata                 ),
-    .lsu_rsp_err            ( lsu_rsp_err                   ),
+    .lsu_cmd_vld            ( exu_cmd_vld                   ),
+    .lsu_cmd_rdy            ( exu_cmd_rdy                   ),
+    .lsu_cmd_write          ( exu_cmd_write                 ),
+    .lsu_cmd_addr           ( exu_cmd_addr                  ),
+    .lsu_cmd_wdata          ( exu_cmd_wdata                 ),
+    .lsu_cmd_wstrb          ( exu_cmd_wstrb                 ),
+    .lsu_rsp_rdy            ( exu_rsp_rdy                   ),
+    .lsu_rsp_vld            ( exu_rsp_vld                   ),
+    .lsu_rsp_rdata          ( exu_rsp_rdata                 ),
+    .lsu_rsp_err            ( exu_rsp_err                   ),
 
     .clk                    ( clk                           ),
     .reset_n                ( reset_n                       )
@@ -733,5 +735,8 @@ lnrv_exu_wbck u_lnrv_exu_wbck
     .gpr_wbck_idx               ( gpr_wbck_idx              ),
     .gpr_wbck_wdata             ( gpr_wbck_wdata            )
 );
+
+
+assign      exu_active = 1'b1;
 
 endmodule

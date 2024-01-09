@@ -17,18 +17,93 @@ module  lnrv_cpu#
     input                                   dbg_halt,
     input                                   dbg_irq,
 
+    // 
     output                                  wfi_mode,
 
-    // output                                  sys_awvalid,
-    // input                                   sys_awready,
-    // output[3 : 0]                           sys_awid,
-    // output[31 : 0]                          sys_awaddr,
-    // output[7 : 0]                           sys_awlen,
-    // output[2 : 0]                           sys_awsize,
-    // output[2 : 0]                           sys_awburst,
-    // output                                  sys_awlock,
-    // output[3 : 0]                           sys_awcache,
-    // out
+    // 固件下载模式
+    input                                   download_mode,
+
+    // 系统总线
+    output                                  sys_awvalid,
+    input                                   sys_awready,
+    output                                  sys_awlock,
+    output[31 : 0]                          sys_awaddr,
+    output[3 : 0]                           sys_awid,
+    output[7 : 0]                           sys_awlen,
+    output[2 : 0]                           sys_awsize,
+    output[1 : 0]                           sys_awburst,
+    output[3 : 0]                           sys_awcache,
+    output[2 : 0]                           sys_awprot,
+
+    output                                  sys_wvalid,
+    input                                   sys_wready,
+    output[31 : 0]                          sys_wdata,
+    output[3 : 0]                           sys_wstrb,
+    output                                  sys_wlast,
+
+    output                                  sys_bready,
+    input                                   sys_bvalid,
+    input[1 : 0]                            sys_bresp,
+    input[3 : 0]                            sys_bid,
+
+    output                                  sys_arvalid,
+    input                                   sys_arready,
+    output                                  sys_arlock,
+    output[31 : 0]                          sys_araddr,
+    output[3 : 0]                           sys_arid,
+    output[7 : 0]                           sys_arlen,
+    output[2 : 0]                           sys_arsize,
+    output[1 : 0]                           sys_arburst,
+    output[3 : 0]                           sys_arcache,
+    output[2 : 0]                           sys_arprot,
+
+    output                                  sys_rready,
+    input                                   sys_rvalid,
+    input[31 : 0]                           sys_rdata,
+    input[1 : 0]                            sys_rresp,
+    input                                   sys_rlast,
+    input[3 : 0]                            sys_rid,
+
+    // Slave Port 
+    input                                   slv_awvalid,
+    output                                  slv_awready,
+    input                                   slv_awlock,
+    input[31 : 0]                           slv_awaddr,
+    input[3 : 0]                            slv_awid,
+    input[7 : 0]                            slv_awlen,
+    input[2 : 0]                            slv_awsize,
+    input[1 : 0]                            slv_awburst,
+    input[3 : 0]                            slv_awcache,
+    input[2 : 0]                            slv_awprot,
+
+    input                                   axi_wvalid,
+    output                                  axi_wready,
+    input[31 : 0]                           axi_wdata,
+    input[31 : 0]                           axi_wstrb,
+    input                                   axi_wlast,
+
+    input                                   axi_bready,
+    output                                  axi_bvalid,
+    output[1 : 0]                           axi_bresp,
+    output[3 : 0]                           axi_bid,
+
+    input                                   axi_arvalid,
+    output                                  axi_arready,
+    input                                   axi_arlock,
+    input[31 : 0]                           axi_araddr,
+    input[3 : 0]                            axi_arid,
+    input[7 : 0]                            axi_arlen,
+    input[2 : 0]                            axi_arsize,
+    input[1 : 0]                            axi_arburst,
+    input[3 : 0]                            axi_arcache,
+    input[2 : 0]                            axi_arprot,
+
+    input                                   axi_rready,
+    output                                  axi_rvalid,
+    output[31 : 0]                          axi_rdata,
+    output[1 : 0]                           axi_rresp,
+    output                                  axi_rlast,
+    output[3 : 0]                           axi_rid,
 
     // ilm接口
     output                                  ilm_clk,
@@ -165,6 +240,7 @@ lnrv_core u_lnrv_core
     .stop_time              ( stop_time                 ),
     .stop_count             ( stop_count                ),
 
+    // ifu访存接口
     .ifu_cmd_vld            ( ifu_cmd_vld               ),
     .ifu_cmd_rdy            ( ifu_cmd_rdy               ),
     .ifu_cmd_write          ( ifu_cmd_write             ),
@@ -176,16 +252,27 @@ lnrv_core u_lnrv_core
     .ifu_rsp_rdata          ( ifu_rsp_rdata             ),
     .ifu_rsp_err            ( ifu_rsp_err               ),
 
-    .lsu_cmd_vld            ( exu_cmd_vld               ),
-    .lsu_cmd_rdy            ( exu_cmd_rdy               ),
-    .lsu_cmd_write          ( exu_cmd_write             ),
-    .lsu_cmd_addr           ( exu_cmd_addr              ),
-    .lsu_cmd_wdata          ( exu_cmd_wdata             ),
-    .lsu_cmd_wstrb          ( exu_cmd_wstrb             ),
-    .lsu_rsp_vld            ( exu_rsp_vld               ),
-    .lsu_rsp_rdy            ( exu_rsp_rdy               ),
-    .lsu_rsp_rdata          ( exu_rsp_rdata             ),
-    .lsu_rsp_err            ( exu_rsp_err               ),
+    // exu访存接口
+    .exu_cmd_vld            ( exu_cmd_vld               ),
+    .exu_cmd_rdy            ( exu_cmd_rdy               ),
+    .exu_cmd_write          ( exu_cmd_write             ),
+    .exu_cmd_addr           ( exu_cmd_addr              ),
+    .exu_cmd_wdata          ( exu_cmd_wdata             ),
+    .exu_cmd_wstrb          ( exu_cmd_wstrb             ),
+    .exu_rsp_vld            ( exu_rsp_vld               ),
+    .exu_rsp_rdy            ( exu_rsp_rdy               ),
+    .exu_rsp_rdata          ( exu_rsp_rdata             ),
+    .exu_rsp_err            ( exu_rsp_err               ),
+
+    .ifu_clk                ( clk                       ),
+    .ifu_active             ( ifu_active                ),
+    
+    .idu_clk                ( clk                       ),
+    .idu_active             ( idu_active                ),
+
+    .exu_clk                ( clk                       ),
+    .exu_active             ( exu_active                ),
+
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   )
 );
@@ -337,17 +424,14 @@ u_dlm_ctrl
 );
 
 
-lnrv_icb2sram#
+// 系统总线，axi4
+lnrv_icb2axi#
 (
-    .P_ICB_ADDR_WIDTH       ( 32                        ),
-    .P_RAM_ADDR_WIDTH       ( 20                        ),
+    .P_ADDR_WIDTH           ( 32                        ),
     .P_DATA_WIDTH           ( 32                        )
-)               
-u_sys_ram_ctrl              
-(               
-    .clk                    ( clk                       ),
-    .reset_n                ( reset_n                   ),
-
+)
+u_lnrv_icb2axi
+(
     .icb_cmd_vld            ( sys_cmd_vld               ),
     .icb_cmd_rdy            ( sys_cmd_rdy               ),
     .icb_cmd_write          ( sys_cmd_write             ),
@@ -356,33 +440,111 @@ u_sys_ram_ctrl
     .icb_cmd_wstrb          ( sys_cmd_wstrb             ),
     .icb_rsp_rdy            ( sys_rsp_rdy               ),
     .icb_rsp_vld            ( sys_rsp_vld               ),
-    .icb_rsp_rdata          ( sys_rsp_rdata             ),
     .icb_rsp_err            ( sys_rsp_err               ),
-        
-    .ram_cs                 ( sys_cs                    ),
-    .ram_we                 ( sys_we                    ),
-    .ram_addr               ( sys_addr                  ),
-    .ram_wdata              ( sys_wdata                 ),
-    .ram_wem                ( sys_wem                   ),
-    .ram_rdata              ( sys_rdata                 )
+    .icb_rsp_rdata          ( sys_rsp_rdata             ),
+
+    .axi_awvalid            ( sys_awvalid               ),
+    .axi_awready            ( sys_awready               ),
+    .axi_awlock             ( sys_awlock                ),
+    .axi_awaddr             ( sys_awaddr                ),
+    .axi_awid               ( sys_awid                  ),
+    .axi_awlen              ( sys_awlen                 ),
+    .axi_awsize             ( sys_awsize                ),
+    .axi_awburst            ( sys_awburst               ),
+    .axi_awcache            ( sys_awcache               ),
+    .axi_awprot             ( sys_awprot                ),
+    .axi_wvalid             ( sys_wvalid                ),
+    .axi_wready             ( sys_wready                ),
+    .axi_wdata              ( sys_wdata                 ),
+    .axi_wstrb              ( sys_wstrb                 ),
+    .axi_wlast              ( sys_wlast                 ),
+    .axi_bready             ( sys_bready                ),
+    .axi_bvalid             ( sys_bvalid                ),
+    .axi_bresp              ( sys_bresp                 ),
+    .axi_bid                ( sys_bid                   ),
+    .axi_arvalid            ( sys_arvalid               ),
+    .axi_arready            ( sys_arready               ),
+    .axi_arlock             ( sys_arlock                ),
+    .axi_awaddr             ( sys_awaddr                ),
+    .axi_arid               ( sys_arid                  ),
+    .axi_arlen              ( sys_arlen                 ),
+    .axi_arsize             ( sys_arsize                ),
+    .axi_arburst            ( sys_arburst               ),
+    .axi_arcache            ( sys_arcache               ),
+    .axi_arprot             ( sys_arprot                ),
+    .axi_rready             ( sys_rready                ),
+    .axi_rvalid             ( sys_rvalid                ),
+    .axi_rdata              ( sys_rdata                 ),
+    .axi_rresp              ( sys_rresp                 ),
+    .axi_rlast              ( sys_rlast                 ),
+    .axi_rid                ( sys_rid                   ),
+
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   )
 );
 
 
-lnrv_gen_ram#
+lnrv_axi2icb#
 (
-    .P_ADDR_WIDTH       ( 20                    ),
-    .P_DATA_WIDTH       ( 32                    )
+    .P_ADDR_WIDTH           ( 32  ),
+    .P_DATA_WIDTH           ( 32  )
 )
-u_sys_ram
+u_lnrv_axi2icb
 (
-    .ram_cs             ( sys_cs                ),
-    .ram_we             ( sys_we                ),
-    .ram_wem            ( sys_wem               ),
-    .ram_addr           ( sys_addr              ),
-    .ram_wdata          ( sys_wdata             ),
-    .ram_rdata          ( sys_rdata             ),
+    .icb_cmd_vld            ( slv_cmd_vld               ),
+    .icb_cmd_rdy            ( slv_cmd_rdy               ),
+    .icb_cmd_write          ( slv_cmd_write             ),
+    .icb_cmd_addr           ( slv_cmd_addr              ),
+    .icb_cmd_wdata          ( slv_cmd_wdata             ),
+    .icb_cmd_wstrb          ( slv_cmd_wstrb             ),
+    .icb_rsp_rdy            ( slv_rsp_rdy               ),
+    .icb_rsp_vld            ( slv_rsp_vld               ),
+    .icb_rsp_err            ( slv_rsp_err               ),
+    .icb_rsp_rdata          ( slv_rsp_rdata             ),
 
-    .clk                ( clk                   )
+    .axi_awvalid            ( slv_awvalid               ),
+    .axi_awready            ( slv_awready               ),
+    .axi_awlock             ( slv_awlock                ),
+    .axi_awaddr             ( slv_awaddr                ),
+    .axi_awid               ( slv_awid                  ),
+    .axi_awlen              ( slv_awlen                 ),
+    .axi_awsize             ( slv_awsize                ),
+    .axi_awburst            ( slv_awburst               ),
+    .axi_awcache            ( slv_awcache               ),
+    .axi_awprot             ( slv_awprot                ),
+
+    .axi_wvalid             ( slv_wvalid                ),
+    .axi_wready             ( slv_wready                ),
+    .axi_wdata              ( slv_wdata                 ),
+    .axi_wstrb              ( slv_wstrb                 ),
+    .axi_wlast              ( slv_wlast                 ),
+
+    .axi_bready             ( slv_bready                ),
+    .axi_bvalid             ( slv_bvalid                ),
+    .axi_bresp              ( slv_bresp                 ),
+    .axi_bid                ( slv_bid                   ),
+
+    .axi_arvalid            ( slv_arvalid               ),
+    .axi_arready            ( slv_arready               ),
+    .axi_arlock             ( slv_arlock                ),
+    .axi_araddr             ( slv_araddr                ),
+    .axi_arid               ( slv_arid                  ),
+    .axi_arlen              ( slv_arlen                 ),
+    .axi_arsize             ( slv_arsize                ),
+    .axi_arburst            ( slv_arburst               ),
+    .axi_arcache            ( slv_arcache               ),
+    .axi_arprot             ( slv_arprot                ),
+
+    .axi_rready             ( slv_rready                ),
+    .axi_rvalid             ( slv_rvalid                ),
+    .axi_rdata              ( slv_rdata                 ),
+    .axi_rresp              ( slv_rresp                 ),
+    .axi_rlast              ( slv_rlast                 ),
+    .axi_rid                ( slv_rid                   ),
+
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   )
 );
+
 
 endmodule
