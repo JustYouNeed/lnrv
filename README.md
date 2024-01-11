@@ -1,0 +1,2 @@
+# lnrv
+learn risc-v 
