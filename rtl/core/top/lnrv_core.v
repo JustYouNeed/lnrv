@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 `include	"lnrv_def.v"
 module  lnrv_core
 (
@@ -28,6 +27,7 @@ module  lnrv_core
     output[31 : 0]                          ifu_cmd_addr,
     output[31 : 0]                          ifu_cmd_wdata,
     output[3 : 0]                           ifu_cmd_wstrb,
+    output[2 : 0]                           ifu_cmd_size,
     input                                   ifu_rsp_vld,
     output                                  ifu_rsp_rdy,
     input[31 : 0]                           ifu_rsp_rdata,
@@ -40,6 +40,7 @@ module  lnrv_core
     output[31 : 0]                          exu_cmd_addr,
     output[31 : 0]                          exu_cmd_wdata,
     output[3 : 0]                           exu_cmd_wstrb,
+    output[2 : 0]                           exu_cmd_size,
     input                                   exu_rsp_vld,
     output                                  exu_rsp_rdy,
     input[31 : 0]                           exu_rsp_rdata,
@@ -74,6 +75,7 @@ wire                                    idu_pipe_halt_ack;
 wire                                    idu_pipe_flush_req;
 wire                                    idu_pipe_flush_ack;
 wire                                    dec_op_vld;
+wire                                    dec_op_rdy;
 wire[31 : 0]                            dec_ir;
 wire[31 : 0]                            dec_pc;
 wire                                    dec_idu_instr_ilegl;
@@ -86,6 +88,7 @@ wire[4 : 0]                             dec_rd_idx;
 wire[31 : 0]                            dec_imm;
 wire                                    dec_rglr_instr;
 wire                                    dec_lsu_instr;
+wire                                    dec_csr_instr;
 wire                                    dec_brch_instr;
 wire                                    dec_mdv_instr;
 wire                                    dec_sys_instr;
@@ -94,6 +97,9 @@ wire                                    dec_fpu_instr;
 wire[`DEC_OP_BUS_WIDTH - 1 : 0]         dec_op_bus;
 wire                                    dec_rv32;
 wire                                    dec_rv16;
+
+wire                                    pipe_halt_req;
+wire                                    pipe_halt_ack;
 
 wire                                    pipe_flush_req;
 wire                                    pipe_flush_ack;
@@ -126,7 +132,14 @@ wire                                    csr_wbck_rdy;
 wire[11 : 0]                            csr_wbck_idx;
 wire[31 : 0]                            csr_wbck_wdata;
 
-// outports wire
+
+wire                                    dcsr_ebreakm;
+wire                                    dcsr_stepie;
+wire                                    dcsr_step;
+wire                                    dcsr_stopcount;
+wire                                    dcsr_stoptime;
+
+
 wire [31 : 0]                           mepc;
 wire[31 : 0]                            dpc;
 wire [31 : 0]                           mtvec;
@@ -134,6 +147,7 @@ wire                                    sft_irq_en;
 wire                                    tmr_irq_en;
 wire                                    ext_irq_en;
 wire                                    mstatus_mie;
+
 
 
 assign      ifu_pipe_halt_req = pipe_halt_req;
@@ -169,6 +183,7 @@ lnrv_ifu u_lnrv_ifu
     .ifu_cmd_addr               ( ifu_cmd_addr              ),
     .ifu_cmd_wdata              ( ifu_cmd_wdata             ),
     .ifu_cmd_wstrb              ( ifu_cmd_wstrb             ),
+    .ifu_cmd_size               ( ifu_cmd_size              ),
     .ifu_rsp_vld                ( ifu_rsp_vld               ),
     .ifu_rsp_rdy                ( ifu_rsp_rdy               ),
     .ifu_rsp_rdata              ( ifu_rsp_rdata             ),
@@ -285,7 +300,7 @@ lnrv_exu u_lnrv_exu
     .tmr_irq_en                 ( tmr_irq_en                ),
 
     .d_mode                     ( d_mode                    ),
-    .m_mode                     ( m_mode                    ),
+    .m_mode                     ( 1'b1                      ),
 
     .dbg_halt                   ( dbg_halt                  ),
     .dbg_irq                    ( dbg_irq                   ),
@@ -328,6 +343,7 @@ lnrv_exu u_lnrv_exu
     .exu_cmd_addr               ( exu_cmd_addr              ),
     .exu_cmd_wdata              ( exu_cmd_wdata             ),
     .exu_cmd_wstrb              ( exu_cmd_wstrb             ),
+    .exu_cmd_size               ( exu_cmd_size              ),
     .exu_rsp_vld                ( exu_rsp_vld               ),
     .exu_rsp_rdy                ( exu_rsp_rdy               ),
     .exu_rsp_rdata              ( exu_rsp_rdata             ),

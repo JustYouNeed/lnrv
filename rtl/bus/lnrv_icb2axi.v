@@ -10,6 +10,7 @@ module lnrv_icb2axi#
     input[P_ADDR_WIDTH - 1 : 0]         icb_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]         icb_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]     icb_cmd_wstrb,
+    input[2 : 0]                        icb_cmd_size,
     input                               icb_rsp_rdy,
     output                              icb_rsp_vld,
     output                              icb_rsp_err,
@@ -66,6 +67,7 @@ wire                                s_icb_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]          s_icb_cmd_addr;
 wire[P_DATA_WIDTH - 1 : 0]          s_icb_cmd_wdata;
 wire[(P_DATA_WIDTH/8) - 1 : 0]      s_icb_cmd_wstrb;
+wire[2: 0]                          s_icb_cmd_size;
 wire                                s_icb_rsp_vld;
 wire                                s_icb_rsp_rdy;
 wire[P_DATA_WIDTH - 1 : 0]          s_icb_rsp_rdata;
@@ -97,6 +99,12 @@ wire                                ar_hsked_clr;
 wire                                ar_hsked_rld;
 wire                                ar_hsked_d;
 
+wire                                axi_ar_hsked;
+wire                                axi_aw_hsked;
+wire                                axi_b_hsked;
+wire                                axi_r_hsked;
+wire                                axi_w_hsked;
+
 wire                                no_aw_ots;
 wire                                no_w_ots;
 wire                                no_ar_ots;
@@ -107,7 +115,57 @@ assign      no_aw_ots = (~aw_hsked_q) | aw_hsked_clr;
 assign      no_w_ots = (~w_hsked_q) | w_hsked_clr;
 assign      no_ar_ots = (~ar_hsked_q) | axi_r_hsked;
 
+// 先在icb路径上插入一个buff
+lnrv_icb_buf#
+(
+    .P_ADDR_WIDTH               ( P_DATA_WIDTH          ),
+    .P_DATA_WIDTH               ( P_ADDR_WIDTH          ),
+    .P_CMD_BUFF_ENABLE          ( "true"                ),
+    .P_CMD_BUFF_CUT_READY       ( "true"                ),
+    .P_CMD_BUFF_BYPASS          ( "false"               ),
+    .P_RSP_BUFF_ENABLE          ( "true"                ),
+    .P_RSP_BUFF_CUT_READY       ( "true"                ),
+    .P_RSP_BUFF_BYPASS          ( "false"               ),
+    .P_OTS_COUNT                ( 1                     )
+)
+u_lnrv_icb_buf
+(
+    .m_icb_cmd_vld              ( icb_cmd_vld           ),
+    .m_icb_cmd_rdy              ( icb_cmd_rdy           ),
+    .m_icb_cmd_write            ( icb_cmd_write         ),
+    .m_icb_cmd_addr             ( icb_cmd_addr          ),
+    .m_icb_cmd_wdata            ( icb_cmd_wdata         ),
+    .m_icb_cmd_wstrb            ( icb_cmd_wstrb         ),
+    .m_icb_cmd_size             ( icb_cmd_size          ),
+    .m_icb_rsp_vld              ( icb_rsp_vld           ),
+    .m_icb_rsp_rdy              ( icb_rsp_rdy           ),
+    .m_icb_rsp_rdata            ( icb_rsp_rdata         ),
+    .m_icb_rsp_err              ( icb_rsp_err           ),
 
+    .s_icb_cmd_vld              ( s_icb_cmd_vld         ),
+    .s_icb_cmd_rdy              ( s_icb_cmd_rdy         ),
+    .s_icb_cmd_write            ( s_icb_cmd_write       ),
+    .s_icb_cmd_addr             ( s_icb_cmd_addr        ),
+    .s_icb_cmd_wdata            ( s_icb_cmd_wdata       ),
+    .s_icb_cmd_wstrb            ( s_icb_cmd_wstrb       ),
+    .s_icb_cmd_size             ( s_icb_cmd_size        ),
+    .s_icb_rsp_vld              ( s_icb_rsp_vld         ),
+    .s_icb_rsp_rdy              ( s_icb_rsp_rdy         ),
+    .s_icb_rsp_rdata            ( s_icb_rsp_rdata       ),
+    .s_icb_rsp_err              ( s_icb_rsp_err         ),
+
+    .clk                        ( clk                   ),
+    .reset_n                    ( reset_n               )
+);
+
+
+assign      axi_aw_hsked = axi_awvalid & axi_awready;
+assign      axi_ar_hsked = axi_arvalid & axi_arready;
+assign      axi_w_hsked = axi_wvalid & axi_wready;
+assign      axi_b_hsked = axi_bvalid & axi_bready;
+assign      axi_r_hsked = axi_rvalid & axi_rready;
+
+// 保存aw通道的握手信息
 assign      aw_hsekd_set = axi_aw_hsked;
 assign      aw_hsked_clr = axi_b_hsked;
 assign      aw_hsked_rld = aw_hsekd_set | aw_hsked_clr;
@@ -145,80 +203,37 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 
-lnrv_icb_buf#
-(
-    .P_ADDR_WIDTH               ( P_DATA_WIDTH          ),
-    .P_DATA_WIDTH               ( P_ADDR_WIDTH          ),
-    .P_CMD_BUFF_ENABLE          ( "true"                ),
-    .P_CMD_BUFF_CUT_READY       ( "true"                ),
-    .P_CMD_BUFF_BYPASS          ( "false"               ),
-    .P_RSP_BUFF_ENABLE          ( "true"                ),
-    .P_RSP_BUFF_CUT_READY       ( "true"                ),
-    .P_RSP_BUFF_BYPASS          ( "false"               ),
-    .P_OTS_COUNT                ( 1                     )
-)
-u_lnrv_icb_buf
-(
-    .m_icb_cmd_vld              ( icb_cmd_vld           ),
-    .m_icb_cmd_rdy              ( icb_cmd_rdy           ),
-    .m_icb_cmd_write            ( icb_cmd_write         ),
-    .m_icb_cmd_addr             ( icb_cmd_addr          ),
-    .m_icb_cmd_wdata            ( icb_cmd_wdata         ),
-    .m_icb_cmd_wstrb            ( icb_cmd_wstrb         ),
-    .m_icb_rsp_vld              ( icb_rsp_vld           ),
-    .m_icb_rsp_rdy              ( icb_rsp_rdy           ),
-    .m_icb_rsp_rdata            ( icb_rsp_rdata         ),
-    .m_icb_rsp_err              ( icb_rsp_err           ),
-
-    .s_icb_cmd_vld              ( s_icb_cmd_vld         ),
-    .s_icb_cmd_rdy              ( s_icb_cmd_rdy         ),
-    .s_icb_cmd_write            ( s_icb_cmd_write       ),
-    .s_icb_cmd_addr             ( s_icb_cmd_addr        ),
-    .s_icb_cmd_wdata            ( s_icb_cmd_wdata       ),
-    .s_icb_cmd_wstrb            ( s_icb_cmd_wstrb       ),
-    .s_icb_rsp_vld              ( s_icb_rsp_vld         ),
-    .s_icb_rsp_rdy              ( s_icb_rsp_rdy         ),
-    .s_icb_rsp_rdata            ( s_icb_rsp_rdata       ),
-    .s_icb_rsp_err              ( s_icb_rsp_err         ),
-
-    .clk                        ( clk                   ),
-    .reset_n                    ( reset_n               )
-);
-
 assign      icb_write = s_icb_cmd_vld & s_icb_cmd_write;
 assign      axi_read_ots = ar_hsked_q;
-assign      axi_write_ots = aw_hsked_q & w_hsekd_q;
+assign      axi_write_ots = aw_hsked_q & w_hsked_q;
 
-assign      axi_awvalid = icb_write & no_aw_ots;
-// 固定为INCR传输
-assign      axi_awburst = 2'b01;
-assign      axi_awsize = s_icb_cmd_size;
-assign      axi_awlen = 0;
-assign      axi_awaddr = s_icb_cmd_addr;
-assign      axi_awcache = 4'b0000;
-assign      axi_awlock = 1'b0;
-assign      axi_awprot = 3'b000;
-assign      axi_awid = 4'd0;
-
-
-assign      axi_wvalid = icb_write & no_w_ots;
-assign      axi_wdata = s_icb_cmd_wdata;
-assign      axi_wstrb = s_icb_cmd_wstrb;
-assign      axi_wlast = axi_wvalid;
-
-assign      axi_bready = axi_write_ots & s_icb_rsp_rdy;
+assign      axi_awvalid     = icb_write & no_aw_ots;
+assign      axi_awburst     = 2'b01;                    // 固定为INCR传输
+assign      axi_awsize      = s_icb_cmd_size;
+assign      axi_awlen       = 8'd0;                     // 单笔传输
+assign      axi_awaddr      = s_icb_cmd_addr;
+assign      axi_awcache     = 4'b0000;
+assign      axi_awlock      = 1'b0;
+assign      axi_awprot      = 3'b000;
+assign      axi_awid        = 4'd0;
 
 
-assign      axi_arvalid = icb_read & no_ar_ots;
-// 固定为INCR传输
-assign      axi_arburst = 2'b01;
-assign      axi_arsize = s_icb_cmd_size;
-assign      axi_arlen = 0;
-assign      axi_araddr = s_icb_cmd_addr;
-assign      axi_arcache = 4'b0000;
-assign      axi_arlock = 1'b0;
-assign      axi_arprot = 3'b000;
-assign      axi_arid = 4'd0;
+assign      axi_wvalid      = icb_write & no_w_ots;
+assign      axi_wdata       = s_icb_cmd_wdata;
+assign      axi_wstrb       = s_icb_cmd_wstrb;
+assign      axi_wlast       = axi_wvalid;
+
+assign      axi_bready      = axi_write_ots & s_icb_rsp_rdy;
+
+assign      axi_arvalid     = icb_read & no_ar_ots;
+assign      axi_arburst     = 2'b01;
+assign      axi_arsize      = s_icb_cmd_size;
+assign      axi_arlen       = 8'd0;
+assign      axi_araddr      = s_icb_cmd_addr;
+assign      axi_arcache     = 4'b0000;
+assign      axi_arlock      = 1'b0;
+assign      axi_arprot      = 3'b000;
+assign      axi_arid        = 4'd0;
 
 
 assign      axi_rready = axi_read_ots & s_icb_rsp_rdy;

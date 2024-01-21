@@ -15,6 +15,7 @@ module lnrv_icb_cmd_buf#
     input[P_ADDR_WIDTH - 1 : 0]         m_icb_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]         m_icb_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]     m_icb_cmd_wstrb,
+    input[2 : 0]                        m_icb_cmd_size,
 
     output                              s_icb_cmd_vld,
     input                               s_icb_cmd_rdy,
@@ -22,6 +23,7 @@ module lnrv_icb_cmd_buf#
     output[P_ADDR_WIDTH - 1 : 0]        s_icb_cmd_addr,
     output[P_DATA_WIDTH - 1 : 0]        s_icb_cmd_wdata,
     output[(P_DATA_WIDTH/8) - 1 : 0]    s_icb_cmd_wstrb,
+    output[2 : 0]                       s_icb_cmd_size,
 
     input                               clk,
     input                               reset_n
@@ -29,7 +31,7 @@ module lnrv_icb_cmd_buf#
 
 
 localparam                  LP_WSTRB_WIDTH = P_DATA_WIDTH/8;
-localparam                  LP_BUF_WIDTH = P_ADDR_WIDTH + P_DATA_WIDTH + LP_WSTRB_WIDTH + 1;
+localparam                  LP_BUF_WIDTH = P_ADDR_WIDTH + P_DATA_WIDTH + LP_WSTRB_WIDTH + 1 + 3;
 
 
 generate
@@ -48,6 +50,7 @@ generate
                                         m_icb_cmd_write,
                                         m_icb_cmd_wdata,
                                         m_icb_cmd_wstrb,
+                                        m_icb_cmd_size,
                                         m_icb_cmd_addr
                                     };
         assign      m_icb_cmd_rdy = buf_push_rdy;
@@ -57,6 +60,7 @@ generate
                         s_icb_cmd_write,
                         s_icb_cmd_wdata,
                         s_icb_cmd_wstrb,
+                        s_icb_cmd_size,
                         s_icb_cmd_addr
                     } = buf_pop_data;
         assign      s_icb_cmd_vld = buf_pop_vld;
@@ -90,7 +94,8 @@ generate
         assign      s_icb_cmd_addr  = m_icb_cmd_addr;
         assign      s_icb_cmd_wdata = m_icb_cmd_wdata;
         assign      s_icb_cmd_wstrb = m_icb_cmd_wstrb;
-
+        assign      s_icb_cmd_size  = m_icb_cmd_size;
+        
         assign      m_icb_cmd_rdy   = s_icb_cmd_rdy;
     end
 endgenerate

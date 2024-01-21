@@ -16,6 +16,7 @@ module lnrv_biu#
     input[P_ADDR_WIDTH - 1 : 0]             ifu_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]             ifu_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]         ifu_cmd_wstrb,
+    input[2 : 0]                            ifu_cmd_size,
     output                                  ifu_rsp_vld,
     input                                   ifu_rsp_rdy,
     output[P_DATA_WIDTH - 1 : 0]            ifu_rsp_rdata,
@@ -27,6 +28,7 @@ module lnrv_biu#
     input[P_ADDR_WIDTH - 1 : 0]             exu_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]             exu_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]         exu_cmd_wstrb,
+    input[2 : 0]                            exu_cmd_size,
     output                                  exu_rsp_vld,
     input                                   exu_rsp_rdy,
     output[P_DATA_WIDTH - 1 : 0]            exu_rsp_rdata,
@@ -38,6 +40,7 @@ module lnrv_biu#
     input[P_ADDR_WIDTH - 1 : 0]             slv_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]             slv_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]         slv_cmd_wstrb,
+    input[2 : 0]                            slv_cmd_size,
     output                                  slv_rsp_vld,
     input                                   slv_rsp_rdy,
     output[P_DATA_WIDTH - 1 : 0]            slv_rsp_rdata,
@@ -50,6 +53,7 @@ module lnrv_biu#
     output[P_ADDR_WIDTH - 1 : 0]            ilm_cmd_addr,
     output[P_DATA_WIDTH - 1 : 0]            ilm_cmd_wdata,
     output[(P_DATA_WIDTH/8) - 1 : 0]        ilm_cmd_wstrb,
+    output[2 : 0]                           ilm_cmd_size,
     input                                   ilm_rsp_vld,
     output                                  ilm_rsp_rdy,
     input[P_DATA_WIDTH - 1 : 0]             ilm_rsp_rdata,
@@ -61,6 +65,7 @@ module lnrv_biu#
     output[P_ADDR_WIDTH - 1 : 0]            dlm_cmd_addr,
     output[P_DATA_WIDTH - 1 : 0]            dlm_cmd_wdata,
     output[(P_DATA_WIDTH/8) - 1 : 0]        dlm_cmd_wstrb,
+    output[2 : 0]                           dlm_cmd_size,
     input                                   dlm_rsp_vld,
     output                                  dlm_rsp_rdy,
     input[P_DATA_WIDTH - 1 : 0]             dlm_rsp_rdata,
@@ -72,6 +77,7 @@ module lnrv_biu#
     output[P_ADDR_WIDTH - 1 : 0]            sys_cmd_addr,
     output[P_DATA_WIDTH - 1 : 0]            sys_cmd_wdata,
     output[(P_DATA_WIDTH/8) - 1 : 0]        sys_cmd_wstrb,
+    output[2 : 0]                           sys_cmd_size,
     input                                   sys_rsp_vld,
     output                                  sys_rsp_rdy,
     input[P_DATA_WIDTH - 1 : 0]             sys_rsp_rdata,
@@ -84,34 +90,40 @@ module lnrv_biu#
 localparam                                  LP_IFU_ICB_COUNT = 3;
 localparam                                  LP_IFU_SN_ADDR_WIDTH = LP_IFU_ICB_COUNT * P_ADDR_WIDTH;
 localparam                                  LP_IFU_SN_DATA_WIDTH = LP_IFU_ICB_COUNT * P_DATA_WIDTH;
+localparam                                  LP_IFU_SN_SIZE_WIDTH = LP_IFU_ICB_COUNT * 3;
 localparam                                  LP_IFU_SN_WSTRB_WIDTH = LP_IFU_ICB_COUNT * (P_DATA_WIDTH/8);
 
 localparam                                  LP_EXU_ICB_COUNT = 3;
 localparam                                  LP_EXU_SN_ADDR_WIDTH = LP_EXU_ICB_COUNT * P_ADDR_WIDTH;
 localparam                                  LP_EXU_SN_DATA_WIDTH = LP_EXU_ICB_COUNT * P_DATA_WIDTH;
+localparam                                  LP_EXU_SN_SIZE_WIDTH = LP_EXU_ICB_COUNT * 3;
 localparam                                  LP_EXU_SN_WSTRB_WIDTH = LP_EXU_ICB_COUNT * (P_DATA_WIDTH/8);
 
 
 localparam                                  LP_SLV_ICB_COUNT = 2;
 localparam                                  LP_SLV_SN_ADDR_WIDTH = LP_SLV_ICB_COUNT * P_ADDR_WIDTH;
 localparam                                  LP_SLV_SN_DATA_WIDTH = LP_SLV_ICB_COUNT * P_DATA_WIDTH;
+localparam                                  LP_SLV_SN_SIZE_WIDTH = LP_SLV_ICB_COUNT * 3;
 localparam                                  LP_SLV_SN_WSTRB_WIDTH = LP_SLV_ICB_COUNT * (P_DATA_WIDTH/8);
 
 
 localparam                                  LP_ILM_ICB_COUNT = 3;
 localparam                                  LP_ILM_MN_ADDR_WIDTH = LP_ILM_ICB_COUNT * P_ADDR_WIDTH;
 localparam                                  LP_ILM_MN_DATA_WIDTH = LP_ILM_ICB_COUNT * P_DATA_WIDTH;
+localparam                                  LP_ILM_MN_SIZE_WIDTH = LP_ILM_ICB_COUNT * 3;
 localparam                                  LP_ILM_MN_WSTRB_WIDTH = LP_ILM_ICB_COUNT * (P_DATA_WIDTH/8);
 
 localparam                                  LP_DLM_ICB_COUNT = 3;
 localparam                                  LP_DLM_MN_ADDR_WIDTH = LP_DLM_ICB_COUNT * P_ADDR_WIDTH;
 localparam                                  LP_DLM_MN_DATA_WIDTH = LP_DLM_ICB_COUNT * P_DATA_WIDTH;
+localparam                                  LP_DLM_MN_SIZE_WIDTH = LP_DLM_ICB_COUNT * 3;
 localparam                                  LP_DLM_MN_WSTRB_WIDTH = LP_DLM_ICB_COUNT * (P_DATA_WIDTH/8);
 
 
 localparam                                  LP_SYS_ICB_COUNT = 2;
 localparam                                  LP_SYS_MN_ADDR_WIDTH = LP_SYS_ICB_COUNT * P_ADDR_WIDTH;
 localparam                                  LP_SYS_MN_DATA_WIDTH = LP_SYS_ICB_COUNT * P_DATA_WIDTH;
+localparam                                  LP_SYS_MN_SIZE_WIDTH = LP_SYS_ICB_COUNT * 3;
 localparam                                  LP_SYS_MN_WSTRB_WIDTH = LP_SYS_ICB_COUNT * (P_DATA_WIDTH/8);
 
 
@@ -122,6 +134,7 @@ wire[LP_IFU_ICB_COUNT - 1 : 0]              ifu_sn_icb_cmd_write;
 wire[LP_IFU_SN_ADDR_WIDTH - 1 : 0]          ifu_sn_icb_cmd_addr;
 wire[LP_IFU_SN_DATA_WIDTH - 1 : 0]          ifu_sn_icb_cmd_wdata;
 wire[LP_IFU_SN_WSTRB_WIDTH - 1 : 0]         ifu_sn_icb_cmd_wstrb;
+wire[LP_IFU_SN_SIZE_WIDTH - 1 : 0]          ifu_sn_icb_cmd_size;
 wire[LP_IFU_ICB_COUNT - 1 : 0]              ifu_sn_icb_rsp_vld;
 wire[LP_IFU_ICB_COUNT - 1 : 0]              ifu_sn_icb_rsp_rdy;
 wire[LP_IFU_SN_DATA_WIDTH - 1 : 0]          ifu_sn_icb_rsp_rdata;
@@ -136,6 +149,7 @@ wire[LP_EXU_ICB_COUNT - 1 : 0]              exu_sn_icb_cmd_write;
 wire[LP_EXU_SN_ADDR_WIDTH - 1 : 0]          exu_sn_icb_cmd_addr;
 wire[LP_EXU_SN_DATA_WIDTH - 1 : 0]          exu_sn_icb_cmd_wdata;
 wire[LP_EXU_SN_WSTRB_WIDTH - 1 : 0]         exu_sn_icb_cmd_wstrb;
+wire[LP_EXU_SN_SIZE_WIDTH - 1 : 0]          exu_sn_icb_cmd_size;
 wire[LP_EXU_ICB_COUNT - 1 : 0]              exu_sn_icb_rsp_vld;
 wire[LP_EXU_ICB_COUNT - 1 : 0]              exu_sn_icb_rsp_rdy;
 wire[LP_EXU_SN_DATA_WIDTH - 1 : 0]          exu_sn_icb_rsp_rdata;
@@ -150,6 +164,7 @@ wire[LP_SLV_ICB_COUNT - 1 : 0]              slv_sn_icb_cmd_write;
 wire[LP_SLV_SN_ADDR_WIDTH - 1 : 0]          slv_sn_icb_cmd_addr;
 wire[LP_SLV_SN_DATA_WIDTH - 1 : 0]          slv_sn_icb_cmd_wdata;
 wire[LP_SLV_SN_WSTRB_WIDTH - 1 : 0]         slv_sn_icb_cmd_wstrb;
+wire[LP_SLV_SN_SIZE_WIDTH - 1 : 0]          slv_sn_icb_cmd_size;
 wire[LP_SLV_ICB_COUNT - 1 : 0]              slv_sn_icb_rsp_vld;
 wire[LP_SLV_ICB_COUNT - 1 : 0]              slv_sn_icb_rsp_rdy;
 wire[LP_SLV_SN_DATA_WIDTH - 1 : 0]          slv_sn_icb_rsp_rdata;
@@ -164,6 +179,7 @@ wire[LP_ILM_ICB_COUNT - 1 : 0]              ilm_mn_icb_cmd_write;
 wire[LP_ILM_MN_ADDR_WIDTH - 1 : 0]          ilm_mn_icb_cmd_addr;
 wire[LP_ILM_MN_DATA_WIDTH - 1 : 0]          ilm_mn_icb_cmd_wdata;
 wire[LP_ILM_MN_WSTRB_WIDTH - 1 : 0]         ilm_mn_icb_cmd_wstrb;
+wire[LP_ILM_MN_SIZE_WIDTH - 1 : 0]          ilm_mn_icb_cmd_size;
 wire[LP_ILM_ICB_COUNT - 1 : 0]              ilm_mn_icb_rsp_rdy;
 wire[LP_ILM_ICB_COUNT - 1 : 0]              ilm_mn_icb_rsp_vld;
 wire[LP_ILM_MN_DATA_WIDTH - 1 : 0]          ilm_mn_icb_rsp_rdata;
@@ -175,6 +191,7 @@ wire[LP_DLM_ICB_COUNT - 1 : 0]              dlm_mn_icb_cmd_write;
 wire[LP_DLM_MN_ADDR_WIDTH - 1 : 0]          dlm_mn_icb_cmd_addr;
 wire[LP_DLM_MN_DATA_WIDTH - 1 : 0]          dlm_mn_icb_cmd_wdata;
 wire[LP_DLM_MN_WSTRB_WIDTH - 1 : 0]         dlm_mn_icb_cmd_wstrb;
+wire[LP_DLM_MN_SIZE_WIDTH - 1 : 0]          dlm_mn_icb_cmd_size;
 wire[LP_DLM_ICB_COUNT - 1 : 0]              dlm_mn_icb_rsp_rdy;
 wire[LP_DLM_ICB_COUNT - 1 : 0]              dlm_mn_icb_rsp_vld;
 wire[LP_DLM_MN_DATA_WIDTH - 1 : 0]          dlm_mn_icb_rsp_rdata;
@@ -186,6 +203,7 @@ wire[LP_SYS_ICB_COUNT - 1 : 0]              sys_mn_icb_cmd_write;
 wire[LP_SYS_MN_ADDR_WIDTH - 1 : 0]          sys_mn_icb_cmd_addr;
 wire[LP_SYS_MN_DATA_WIDTH - 1 : 0]          sys_mn_icb_cmd_wdata;
 wire[LP_SYS_MN_WSTRB_WIDTH - 1 : 0]         sys_mn_icb_cmd_wstrb;
+wire[LP_SYS_MN_SIZE_WIDTH - 1 : 0]          sys_mn_icb_cmd_size;
 wire[LP_SYS_ICB_COUNT - 1 : 0]              sys_mn_icb_rsp_rdy;
 wire[LP_SYS_ICB_COUNT - 1 : 0]              sys_mn_icb_rsp_vld;
 wire[LP_SYS_MN_DATA_WIDTH - 1 : 0]          sys_mn_icb_rsp_rdata;
@@ -198,8 +216,10 @@ wire                                        ifu2ilm_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]                  ifu2ilm_cmd_addr;
 wire[P_DATA_WIDTH - 1 : 0]                  ifu2ilm_cmd_wdata;
 wire[(P_DATA_WIDTH/8) - 1 : 0]              ifu2ilm_cmd_wstrb;
+wire[2 : 0]                                 ifu2ilm_cmd_size;
 wire                                        ifu2ilm_rsp_vld;
 wire                                        ifu2ilm_rsp_rdy;
+wire                                        ifu2ilm_rsp_err;
 wire[P_DATA_WIDTH - 1 : 0]                  ifu2ilm_rsp_rdata;
 
 
@@ -209,8 +229,10 @@ wire                                        ifu2dlm_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]                  ifu2dlm_cmd_addr;
 wire[P_DATA_WIDTH - 1 : 0]                  ifu2dlm_cmd_wdata;
 wire[(P_DATA_WIDTH/8) - 1 : 0]              ifu2dlm_cmd_wstrb;
+wire[2 : 0]                                 ifu2dlm_cmd_size;
 wire                                        ifu2dlm_rsp_vld;
 wire                                        ifu2dlm_rsp_rdy;
+wire                                        ifu2dlm_rsp_err;
 wire[P_DATA_WIDTH - 1 : 0]                  ifu2dlm_rsp_rdata;
 
 wire                                        ifu2sys_cmd_vld;
@@ -219,8 +241,10 @@ wire                                        ifu2sys_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]                  ifu2sys_cmd_addr;
 wire[P_DATA_WIDTH - 1 : 0]                  ifu2sys_cmd_wdata;
 wire[(P_DATA_WIDTH/8) - 1 : 0]              ifu2sys_cmd_wstrb;
+wire[2 : 0]                                 ifu2sys_cmd_size;
 wire                                        ifu2sys_rsp_vld;
 wire                                        ifu2sys_rsp_rdy;
+wire                                        ifu2sys_rsp_err;
 wire[P_DATA_WIDTH - 1 : 0]                  ifu2sys_rsp_rdata;
 
 
@@ -230,8 +254,10 @@ wire                                        lsu2ilm_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]                  lsu2ilm_cmd_addr;
 wire[P_DATA_WIDTH - 1 : 0]                  lsu2ilm_cmd_wdata;
 wire[(P_DATA_WIDTH/8) - 1 : 0]              lsu2ilm_cmd_wstrb;
+wire[2 : 0]                                 lsu2ilm_cmd_size;
 wire                                        lsu2ilm_rsp_vld;
 wire                                        lsu2ilm_rsp_rdy;
+wire                                        lsu2ilm_rsp_err;
 wire[P_DATA_WIDTH - 1 : 0]                  lsu2ilm_rsp_rdata;
 
 
@@ -241,8 +267,10 @@ wire                                        lsu2dlm_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]                  lsu2dlm_cmd_addr;
 wire[P_DATA_WIDTH - 1 : 0]                  lsu2dlm_cmd_wdata;
 wire[(P_DATA_WIDTH/8) - 1 : 0]              lsu2dlm_cmd_wstrb;
+wire[2 : 0]                                 lsu2dlm_cmd_size;
 wire                                        lsu2dlm_rsp_vld;
 wire                                        lsu2dlm_rsp_rdy;
+wire                                        lsu2dlm_rsp_err;
 wire[P_DATA_WIDTH - 1 : 0]                  lsu2dlm_rsp_rdata;
 
 wire                                        lsu2sys_cmd_vld;
@@ -251,8 +279,10 @@ wire                                        lsu2sys_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]                  lsu2sys_cmd_addr;
 wire[P_DATA_WIDTH - 1 : 0]                  lsu2sys_cmd_wdata;
 wire[(P_DATA_WIDTH/8) - 1 : 0]              lsu2sys_cmd_wstrb;
+wire[2 : 0]                                 lsu2sys_cmd_size;
 wire                                        lsu2sys_rsp_vld;
 wire                                        lsu2sys_rsp_rdy;
+wire                                        lsu2sys_rsp_err;
 wire[P_DATA_WIDTH - 1 : 0]                  lsu2sys_rsp_rdata;
 
 
@@ -262,8 +292,10 @@ wire                                        slv2ilm_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]                  slv2ilm_cmd_addr;
 wire[P_DATA_WIDTH - 1 : 0]                  slv2ilm_cmd_wdata;
 wire[(P_DATA_WIDTH/8) - 1 : 0]              slv2ilm_cmd_wstrb;
+wire[2 : 0]                                 slv2ilm_cmd_size;
 wire                                        slv2ilm_rsp_vld;
 wire                                        slv2ilm_rsp_rdy;
+wire                                        slv2ilm_rsp_err;
 wire[P_DATA_WIDTH - 1 : 0]                  slv2ilm_rsp_rdata;
 
 
@@ -273,8 +305,10 @@ wire                                        slv2dlm_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]                  slv2dlm_cmd_addr;
 wire[P_DATA_WIDTH - 1 : 0]                  slv2dlm_cmd_wdata;
 wire[(P_DATA_WIDTH/8) - 1 : 0]              slv2dlm_cmd_wstrb;
+wire[2 : 0]                                 slv2dlm_cmd_size;
 wire                                        slv2dlm_rsp_vld;
 wire                                        slv2dlm_rsp_rdy;
+wire                                        slv2dlm_rsp_err;
 wire[P_DATA_WIDTH - 1 : 0]                  slv2dlm_rsp_rdata;
 
 
@@ -313,6 +347,12 @@ assign      {
                 ifu2ilm_cmd_wstrb,
                 ifu2dlm_cmd_wstrb
             } = ifu_sn_icb_cmd_wstrb;
+
+assign      {
+                ifu2sys_cmd_size,
+                ifu2ilm_cmd_size,
+                ifu2dlm_cmd_size
+            } = ifu_sn_icb_cmd_size;
 
 assign      ifu_sn_icb_rsp_vld =    {
                                         ifu2sys_rsp_vld,
@@ -378,6 +418,7 @@ u_ifu_bus_demux
     .m_icb_cmd_addr         ( ifu_cmd_addr              ),
     .m_icb_cmd_wdata        ( ifu_cmd_wdata             ),
     .m_icb_cmd_wstrb        ( ifu_cmd_wstrb             ),
+    .m_icb_cmd_size         ( ifu_cmd_size              ),
     .m_icb_rsp_rdy          ( ifu_rsp_rdy               ),
     .m_icb_rsp_vld          ( ifu_rsp_vld               ),
     .m_icb_rsp_rdata        ( ifu_rsp_rdata             ),
@@ -389,6 +430,7 @@ u_ifu_bus_demux
     .sn_icb_cmd_addr        ( ifu_sn_icb_cmd_addr       ),
     .sn_icb_cmd_wdata       ( ifu_sn_icb_cmd_wdata      ),
     .sn_icb_cmd_wstrb       ( ifu_sn_icb_cmd_wstrb      ),
+    .sn_icb_cmd_size        ( ifu_sn_icb_cmd_size       ),
     .sn_icb_rsp_vld         ( ifu_sn_icb_rsp_vld        ),
     .sn_icb_rsp_rdy         ( ifu_sn_icb_rsp_rdy        ),
     .sn_icb_rsp_rdata       ( ifu_sn_icb_rsp_rdata      ),
@@ -434,6 +476,12 @@ assign      {
                 lsu2ilm_cmd_wstrb,
                 lsu2dlm_cmd_wstrb
             } = exu_sn_icb_cmd_wstrb;
+
+assign      {
+                lsu2sys_cmd_size,
+                lsu2ilm_cmd_size,
+                lsu2dlm_cmd_size
+            } = exu_sn_icb_cmd_size;
 
 assign      exu_sn_icb_rsp_vld =    {
                                         lsu2sys_rsp_vld,
@@ -498,6 +546,7 @@ u_exu_bus_demux
     .m_icb_cmd_addr         ( exu_cmd_addr              ),
     .m_icb_cmd_wdata        ( exu_cmd_wdata             ),
     .m_icb_cmd_wstrb        ( exu_cmd_wstrb             ),
+    .m_icb_cmd_size         ( exu_cmd_size              ),
     .m_icb_rsp_rdy          ( exu_rsp_rdy               ),
     .m_icb_rsp_vld          ( exu_rsp_vld               ),
     .m_icb_rsp_rdata        ( exu_rsp_rdata             ),
@@ -509,6 +558,7 @@ u_exu_bus_demux
     .sn_icb_cmd_addr        ( exu_sn_icb_cmd_addr       ),
     .sn_icb_cmd_wdata       ( exu_sn_icb_cmd_wdata      ),
     .sn_icb_cmd_wstrb       ( exu_sn_icb_cmd_wstrb      ),
+    .sn_icb_cmd_size        ( exu_sn_icb_cmd_size       ),
     .sn_icb_rsp_vld         ( exu_sn_icb_rsp_vld        ),
     .sn_icb_rsp_rdy         ( exu_sn_icb_rsp_rdy        ),
     .sn_icb_rsp_rdata       ( exu_sn_icb_rsp_rdata      ),
@@ -548,6 +598,11 @@ assign      {
                 slv2ilm_cmd_wstrb,
                 slv2dlm_cmd_wstrb
             } = slv_sn_icb_cmd_wstrb;
+
+assign      {
+                slv2ilm_cmd_size,
+                slv2dlm_cmd_size
+            } = slv_sn_icb_cmd_size;
 
 assign      slv_sn_icb_rsp_vld =    {
                                         slv2ilm_rsp_vld,
@@ -606,6 +661,7 @@ u_slv_bus_demux
     .m_icb_cmd_addr         ( slv_cmd_addr              ),
     .m_icb_cmd_wdata        ( slv_cmd_wdata             ),
     .m_icb_cmd_wstrb        ( slv_cmd_wstrb             ),
+    .m_icb_cmd_size         ( slv_cmd_size              ),
     .m_icb_rsp_rdy          ( slv_rsp_rdy               ),
     .m_icb_rsp_vld          ( slv_rsp_vld               ),
     .m_icb_rsp_rdata        ( slv_rsp_rdata             ),
@@ -617,6 +673,7 @@ u_slv_bus_demux
     .sn_icb_cmd_addr        ( slv_sn_icb_cmd_addr       ),
     .sn_icb_cmd_wdata       ( slv_sn_icb_cmd_wdata      ),
     .sn_icb_cmd_wstrb       ( slv_sn_icb_cmd_wstrb      ),
+    .sn_icb_cmd_size        ( slv_sn_icb_cmd_size       ),
     .sn_icb_rsp_vld         ( slv_sn_icb_rsp_vld        ),
     .sn_icb_rsp_rdy         ( slv_sn_icb_rsp_rdy        ),
     .sn_icb_rsp_rdata       ( slv_sn_icb_rsp_rdata      ),
@@ -660,6 +717,12 @@ assign      ilm_mn_icb_cmd_wstrb =  {
                                         slv2ilm_cmd_wstrb,
                                         ifu2ilm_cmd_wstrb,
                                         lsu2ilm_cmd_wstrb
+                                    };
+
+assign      ilm_mn_icb_cmd_size =   {
+                                        slv2ilm_cmd_size,
+                                        ifu2ilm_cmd_size,
+                                        lsu2ilm_cmd_size
                                     };
 
 assign      {
@@ -713,6 +776,7 @@ u_ilm_bus_mux
     .mn_icb_cmd_addr        ( ilm_mn_icb_cmd_addr       ),
     .mn_icb_cmd_wdata       ( ilm_mn_icb_cmd_wdata      ),
     .mn_icb_cmd_wstrb       ( ilm_mn_icb_cmd_wstrb      ),
+    .mn_icb_cmd_size        ( ilm_mn_icb_cmd_size       ),
     .mn_icb_rsp_rdy         ( ilm_mn_icb_rsp_rdy        ),
     .mn_icb_rsp_vld         ( ilm_mn_icb_rsp_vld        ),
     .mn_icb_rsp_rdata       ( ilm_mn_icb_rsp_rdata      ),
@@ -724,6 +788,7 @@ u_ilm_bus_mux
     .s_icb_cmd_addr         ( ilm_cmd_addr              ),
     .s_icb_cmd_wdata        ( ilm_cmd_wdata             ),
     .s_icb_cmd_wstrb        ( ilm_cmd_wstrb             ),
+    .s_icb_cmd_size         ( ilm_cmd_size              ),
     .s_icb_rsp_vld          ( ilm_rsp_vld               ),
     .s_icb_rsp_rdy          ( ilm_rsp_rdy               ),
     .s_icb_rsp_rdata        ( ilm_rsp_rdata             ),
@@ -765,6 +830,11 @@ assign      dlm_mn_icb_cmd_wstrb =  {
                                         slv2dlm_cmd_wstrb,
                                         ifu2dlm_cmd_wstrb,
                                         lsu2dlm_cmd_wstrb
+                                    };
+assign      dlm_mn_icb_cmd_size =   {
+                                        slv2dlm_cmd_size,
+                                        ifu2dlm_cmd_size,
+                                        lsu2dlm_cmd_size
                                     };
 
 assign      {
@@ -817,6 +887,7 @@ u_dlm_bus_mux
     .mn_icb_cmd_addr        ( dlm_mn_icb_cmd_addr       ),
     .mn_icb_cmd_wdata       ( dlm_mn_icb_cmd_wdata      ),
     .mn_icb_cmd_wstrb       ( dlm_mn_icb_cmd_wstrb      ),
+    .mn_icb_cmd_size        ( dlm_mn_icb_cmd_size       ),
     .mn_icb_rsp_rdy         ( dlm_mn_icb_rsp_rdy        ),
     .mn_icb_rsp_vld         ( dlm_mn_icb_rsp_vld        ),
     .mn_icb_rsp_rdata       ( dlm_mn_icb_rsp_rdata      ),
@@ -828,6 +899,7 @@ u_dlm_bus_mux
     .s_icb_cmd_addr         ( dlm_cmd_addr              ),
     .s_icb_cmd_wdata        ( dlm_cmd_wdata             ),
     .s_icb_cmd_wstrb        ( dlm_cmd_wstrb             ),
+    .s_icb_cmd_size         ( dlm_cmd_size              ),
     .s_icb_rsp_vld          ( dlm_rsp_vld               ),
     .s_icb_rsp_rdy          ( dlm_rsp_rdy               ),
     .s_icb_rsp_rdata        ( dlm_rsp_rdata             ),
@@ -862,6 +934,11 @@ assign      sys_mn_icb_cmd_wdata =  {
 assign      sys_mn_icb_cmd_wstrb =  {
                                         ifu2sys_cmd_wstrb,
                                         lsu2sys_cmd_wstrb
+                                    };
+
+assign      sys_mn_icb_cmd_size =   {
+                                        ifu2sys_cmd_size,
+                                        lsu2sys_cmd_size
                                     };
 
 assign      {
@@ -911,6 +988,7 @@ u_sys_bus_mux
     .mn_icb_cmd_addr        ( sys_mn_icb_cmd_addr       ),
     .mn_icb_cmd_wdata       ( sys_mn_icb_cmd_wdata      ),
     .mn_icb_cmd_wstrb       ( sys_mn_icb_cmd_wstrb      ),
+    .mn_icb_cmd_size        ( sys_mn_icb_cmd_size       ),
     .mn_icb_rsp_rdy         ( sys_mn_icb_rsp_rdy        ),
     .mn_icb_rsp_vld         ( sys_mn_icb_rsp_vld        ),
     .mn_icb_rsp_rdata       ( sys_mn_icb_rsp_rdata      ),
@@ -922,6 +1000,7 @@ u_sys_bus_mux
     .s_icb_cmd_addr         ( sys_cmd_addr              ),
     .s_icb_cmd_wdata        ( sys_cmd_wdata             ),
     .s_icb_cmd_wstrb        ( sys_cmd_wstrb             ),
+    .s_icb_cmd_size         ( sys_cmd_size              ),
     .s_icb_rsp_vld          ( sys_rsp_vld               ),
     .s_icb_rsp_rdy          ( sys_rsp_rdy               ),
     .s_icb_rsp_rdata        ( sys_rsp_rdata             ),

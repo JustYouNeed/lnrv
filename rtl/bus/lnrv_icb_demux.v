@@ -26,6 +26,7 @@ module lnrv_icb_demux#
     input[P_ADDR_WIDTH - 1 : 0]                         m_icb_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]                         m_icb_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]                     m_icb_cmd_wstrb,
+    input[2 : 0]                                        m_icb_cmd_size,
     input                                               m_icb_rsp_rdy,
     output                                              m_icb_rsp_vld,
     output[P_DATA_WIDTH - 1 : 0]                        m_icb_rsp_rdata,
@@ -38,6 +39,7 @@ module lnrv_icb_demux#
     output[(P_ADDR_WIDTH * P_ICB_COUNT) - 1 : 0]        sn_icb_cmd_addr,
     output[(P_DATA_WIDTH * P_ICB_COUNT) - 1 : 0]        sn_icb_cmd_wdata,
     output[((P_DATA_WIDTH/8) * P_ICB_COUNT) - 1 : 0]    sn_icb_cmd_wstrb,
+    output[(P_ICB_COUNT * 3) - 1 : 0]                   sn_icb_cmd_size,
     input[P_ICB_COUNT - 1 : 0]                          sn_icb_rsp_vld,
     output[P_ICB_COUNT - 1 : 0]                         sn_icb_rsp_rdy,
     input[(P_DATA_WIDTH * P_ICB_COUNT) - 1 : 0]         sn_icb_rsp_rdata,
@@ -64,6 +66,7 @@ wire                                        m_icb_cmd_write_bufed;
 wire[P_ADDR_WIDTH - 1 : 0]                  m_icb_cmd_addr_bufed;
 wire[P_DATA_WIDTH - 1 : 0]                  m_icb_cmd_wdata_bufed;
 wire[(P_DATA_WIDTH/8) - 1 : 0]              m_icb_cmd_wstrb_bufed;
+wire[2 : 0]                                 m_icb_cmd_size_bufed;
 
 wire                                        m_icb_rsp_vld_bufed;
 wire                                        m_icb_rsp_rdy_bufed;
@@ -77,6 +80,7 @@ wire[P_ICB_COUNT - 1 : 0]                   slv_icb_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]                  slv_icb_cmd_addr[P_ICB_COUNT - 1 : 0];
 wire[P_DATA_WIDTH - 1 : 0]                  slv_icb_cmd_wdata[P_ICB_COUNT - 1 : 0];
 wire[(P_DATA_WIDTH/8) - 1 : 0]              slv_icb_cmd_wstrb[P_ICB_COUNT - 1 : 0];
+wire[2 : 0]                                 slv_icb_cmd_size[P_ICB_COUNT - 1 : 0];
 wire[P_ICB_COUNT - 1 : 0]                   slv_icb_rsp_vld;
 wire[P_ICB_COUNT - 1 : 0]                   slv_icb_rsp_rdy;
 wire[P_DATA_WIDTH - 1 : 0]                  slv_icb_rsp_rdata[P_ICB_COUNT - 1 : 0];
@@ -134,6 +138,7 @@ u_lnrv_icb_buf
     .m_icb_cmd_addr         ( m_icb_cmd_addr            ),
     .m_icb_cmd_wdata        ( m_icb_cmd_wdata           ),
     .m_icb_cmd_wstrb        ( m_icb_cmd_wstrb           ),
+    .m_icb_cmd_size         ( m_icb_cmd_size            ),
     .m_icb_rsp_vld          ( m_icb_rsp_vld             ),
     .m_icb_rsp_rdy          ( m_icb_rsp_rdy             ),
     .m_icb_rsp_rdata        ( m_icb_rsp_rdata           ),
@@ -145,6 +150,7 @@ u_lnrv_icb_buf
     .s_icb_cmd_addr         ( m_icb_cmd_addr_bufed      ),
     .s_icb_cmd_wdata        ( m_icb_cmd_wdata_bufed     ),
     .s_icb_cmd_wstrb        ( m_icb_cmd_wstrb_bufed     ),
+    .s_icb_cmd_size         ( m_icb_cmd_size_bufed      ),
     .s_icb_rsp_vld          ( m_icb_rsp_vld_bufed       ),
     .s_icb_rsp_rdy          ( m_icb_rsp_rdy_bufed       ),
     .s_icb_rsp_rdata        ( m_icb_rsp_rdata_bufed     ),
@@ -221,6 +227,7 @@ generate
         assign      slv_icb_cmd_addr[i]     = {P_ADDR_WIDTH{slv_region_match[i]}} & m_icb_cmd_addr_bufed;
         assign      slv_icb_cmd_wdata[i]    = {P_DATA_WIDTH{slv_region_match[i]}} & m_icb_cmd_wdata_bufed;
         assign      slv_icb_cmd_wstrb[i]    = {(P_DATA_WIDTH/8){slv_region_match[i]}} & m_icb_cmd_wstrb_bufed;
+        assign      slv_icb_cmd_size[i]     = {3{slv_region_match[i]}} & m_icb_cmd_size_bufed;
         assign      slv_icb_cmd_rdy[i]      = slv_region_match[i] & sn_icb_cmd_rdy[i];
 
         assign      slv_icb_rsp_rdy[i]      = slv_region_match_bufed[i] & m_icb_rsp_rdy_bufed;
@@ -235,6 +242,7 @@ generate
         assign      sn_icb_cmd_write[i]                                         = slv_icb_cmd_write[i];
         assign      sn_icb_cmd_wdata[i * P_DATA_WIDTH +: P_DATA_WIDTH]          = slv_icb_cmd_wdata[i];
         assign      sn_icb_cmd_wstrb[i * (P_DATA_WIDTH/8) +: (P_DATA_WIDTH/8)]  = slv_icb_cmd_wstrb[i];
+        assign      sn_icb_cmd_size[i * 3 +: 3]                                 = slv_icb_cmd_size[i];
 
         assign      sn_icb_rsp_rdy[i] = slv_icb_rsp_rdy[i];
     end

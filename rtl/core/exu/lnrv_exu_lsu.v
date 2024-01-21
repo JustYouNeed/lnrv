@@ -18,6 +18,7 @@ module lnrv_exu_lsu
     output                              lsu_st_access_fault,
     output[31 : 0]                      lsu_bad_addr,
 
+    // alu
     output                              alu_op_vld,
     input                               alu_op_rdy,
     output[`ALU_OP_BUS_WIDTH - 1 : 0]   alu_op_bus,
@@ -25,17 +26,19 @@ module lnrv_exu_lsu
     output[31 : 0]                      alu_in2,
     input[31 : 0]                       alu_res,
 
+    // 通用寄存器写回
     output                              gpr_wbck_vld,
     input                               gpr_wbck_rdy,
     output[31 : 0]                      gpr_wbck_wdata,
 
-
+    // 系统总线
     output                              lsu_cmd_vld,
     input                               lsu_cmd_rdy,
     output                              lsu_cmd_write,
     output[31 : 0]                      lsu_cmd_addr,
     output[31 : 0]                      lsu_cmd_wdata,
     output[3 : 0]                       lsu_cmd_wstrb,
+    output[2 : 0]                       lsu_cmd_size,
     output                              lsu_rsp_rdy,
     input                               lsu_rsp_vld,
     input[31 : 0]                       lsu_rsp_rdata,
@@ -219,11 +222,6 @@ assign      lsu_ld_addr_misalgn = addr_misalgn & instr_is_load;
 assign      lsu_st_addr_misalgn = addr_misalgn & instr_is_store;
 assign      lsu_bad_addr = alu_res;
 
-// 请求lsu模块完成访存操作
-assign      lsu_cmd_vld     = cmd_vld_q;
-assign      lsu_cmd_addr    = alu_res;
-assign      lsu_cmd_write   = instr_is_store;
-
 // 根据当前地址以及访问模式决定输出数据
 assign      store_byte =    (lsu_cmd_addr[1 : 0] == 2'b00) ? {24'd0, rs2_rdata[7 : 0]} : 
                             (lsu_cmd_addr[1 : 0] == 2'b01) ? {16'd0, rs2_rdata[7 : 0], 8'd0}: 
@@ -232,15 +230,19 @@ assign      store_byte =    (lsu_cmd_addr[1 : 0] == 2'b00) ? {24'd0, rs2_rdata[7
 assign      store_half = lsu_cmd_addr[1] ? {rs2_rdata[15 : 0], 16'd0} : {16'd0, rs2_rdata[15 : 0]};
 assign      store_word = rs2_rdata;
 
+// 请求lsu模块完成访存操作
+assign      lsu_cmd_vld     = cmd_vld_q;
+assign      lsu_cmd_addr    = alu_res;
+assign      lsu_cmd_write   = instr_is_store;
+assign      lsu_cmd_size    = ls_size;
+assign      lsu_cmd_wstrb   = cmd_wstrb_q;
 assign      lsu_cmd_wdata   =   byte_access ? store_byte : 
                                 half_access ? store_half : 
                                 store_word;
 
-assign      lsu_cmd_wstrb   = cmd_wstrb_q;
-
 // 如果有异常发生，则需要请求处理异常，否则直接写回即可
 assign      lsu_rsp_rdy =   lsu_excp_vld ? lsu_excp_rdy: 
-                                gpr_wbck_rdy;
+                            gpr_wbck_rdy;
 
 assign      load_byte = (lsu_cmd_addr[1 : 0] == 2'b00) ? lsu_rsp_rdata[7 : 0] : 
                         (lsu_cmd_addr[1 : 0] == 2'b01) ? lsu_rsp_rdata[15 : 8] : 
@@ -274,12 +276,12 @@ assign      alu_op_bus[`ALU_GTE_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_GTEU_LOC]   = 1'b0;
 assign      alu_op_bus[`ALU_NEQ_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_EQ_LOC]     = 1'b0;
-assign      alu_in1 = rs1_rdata;
-assign      alu_in2 = imm;
+assign      alu_in1                     = rs1_rdata;
+assign      alu_in2                     = imm;
 
 // 在没有发生异常的情况下才可以写回
-assign      gpr_wbck_vld = lsu_rsp_vld & (~lsu_excp_vld) & instr_is_load;
-assign      gpr_wbck_wdata =    byte_access ? ext_byte : 
+assign      gpr_wbck_vld    = lsu_rsp_vld & (~lsu_excp_vld) & instr_is_load;
+assign      gpr_wbck_wdata  =   byte_access ? ext_byte : 
                                 half_access ? ext_half : 
                                 lsu_rsp_rdata;
 

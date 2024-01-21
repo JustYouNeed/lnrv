@@ -20,6 +20,9 @@ module  lnrv_cpu#
     // 
     output                                  wfi_mode,
 
+    output                                  stop_time,
+    output                                  stop_count,
+
     // 固件下载模式
     input                                   download_mode,
 
@@ -206,12 +209,12 @@ wire[31 : 0]                    sys_rsp_rdata;
 wire                            sys_rsp_err;
 
 
-wire                            sys_cs;
-wire                            sys_we;
-wire[3 : 0]                     sys_wem;
-wire[19 : 0]                    sys_addr;
-wire[31 : 0]                    sys_rdata;
-wire[31 : 0]                    sys_wdata;
+// wire                            sys_cs;
+// wire                            sys_we;
+// wire[3 : 0]                     sys_wem;
+// wire[19 : 0]                    sys_addr;
+// wire[31 : 0]                    sys_rdata;
+// wire[31 : 0]                    sys_wdata;
 
 
 assign      slv_cmd_vld = 1'b0;
@@ -247,6 +250,7 @@ lnrv_core u_lnrv_core
     .ifu_cmd_addr           ( ifu_cmd_addr              ),
     .ifu_cmd_wdata          ( ifu_cmd_wdata             ),
     .ifu_cmd_wstrb          ( ifu_cmd_wstrb             ),
+    .ifu_cmd_size           ( ifu_cmd_size              ),
     .ifu_rsp_vld            ( ifu_rsp_vld               ),
     .ifu_rsp_rdy            ( ifu_rsp_rdy               ),
     .ifu_rsp_rdata          ( ifu_rsp_rdata             ),
@@ -259,6 +263,7 @@ lnrv_core u_lnrv_core
     .exu_cmd_addr           ( exu_cmd_addr              ),
     .exu_cmd_wdata          ( exu_cmd_wdata             ),
     .exu_cmd_wstrb          ( exu_cmd_wstrb             ),
+    .exu_cmd_size           ( exu_cmd_size              ),
     .exu_rsp_vld            ( exu_rsp_vld               ),
     .exu_rsp_rdy            ( exu_rsp_rdy               ),
     .exu_rsp_rdata          ( exu_rsp_rdata             ),

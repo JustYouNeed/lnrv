@@ -67,6 +67,7 @@ module lnrv_exu_excp
 wire                    lsu_excp_taken;
 wire                    idu_excp_taken;
 wire                    sys_excp_taken;
+wire                    excp_taken;
 
 wire                    m_mode_ecall;
 wire                    u_mode_ecall;

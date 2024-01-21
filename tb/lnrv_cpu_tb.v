@@ -130,11 +130,23 @@ initial begin
     $finish;
 end
 
-initial begin            
-    $dumpfile("wave.vcd");        //生成的vcd文件名称
-    $dumpvars(0, lnrv_cpu_tb);    //tb模块名称
-end
+integer dumpwave;
+initial begin
+    if($value$plusargs("DUMPWAVE=%d",dumpwave)) begin
+      if(dumpwave != 0) begin
 
+        $display("VCS used");
+        $fsdbDumpfile("lnrv_cpu_tb.fsdb");
+        $fsdbDumpvars(0, lnrv_cpu_tb, "+mda");
+
+	//  `ifdef iverilog
+    //         $display("iverlog used");
+	//     $dumpfile("tb_top.vcd");
+    //         $dumpvars(0, tb_top);
+    //      `endif
+      end
+    end
+end
 always #10 clk = ~clk;
 
 initial begin
@@ -190,24 +202,22 @@ reg [7:0] itcm_mem [0 : (LP_ILM_SIZE * 8)-1];
 initial begin
     fireware_load_cplt = 1'b0;
     
-    // $readmemh("../simulation/isa/generated/rv32ui-p-lb.verilog", itcm_mem);
+    $readmemh({testcase, ".verilog"}, itcm_mem);
     // $readmemh("../simulation/riscv-compliance/build_generated/rv32Zicsr/I-CSRRC-01.elf.bin", itcm_mem);
     // F:\CPU\lnrsv\simulation\riscv-compliance\build_generated\rv32Zicsr\I-CSRRC-01.elf.bin
 
-    bin = $fopen("../simulation/riscv-compliance/build_generated/rv32Zicsr/I-CSRRC-01.elf.bin", "rb");
+    // bin = $fopen("../simulation/riscv-compliance/build_generated/rv32Zicsr/I-CSRRC-01.elf.bin", "rb");
 
-    while(!$feof(bin)) begin
-        for (i=0;i<LP_ILM_SIZE;i=i+1) begin
-            u_lnrv_ilm.mem_q[i][7 : 0] = $fgetc(bin);
-            u_lnrv_ilm.mem_q[i][15 : 8] = $fgetc(bin);
-            u_lnrv_ilm.mem_q[i][23 : 16] = $fgetc(bin);
-            u_lnrv_ilm.mem_q[i][31 : 24] = $fgetc(bin);
-        end
+    for (i=0;i<LP_ILM_SIZE;i=i+1) begin
+        u_lnrv_ilm.mem_q[i][7 : 0] = itcm_mem[i * 4 + 0];
+        u_lnrv_ilm.mem_q[i][15 : 8] = itcm_mem[i * 4 + 1];
+        u_lnrv_ilm.mem_q[i][23 : 16] = itcm_mem[i * 4 + 2];
+        u_lnrv_ilm.mem_q[i][31 : 24] = itcm_mem[i * 4 + 3];
     end
 
-    for (i=0;i<100;i=i+1) begin
-         $display("ilm mem[%d]: %x", i, u_lnrv_ilm.mem_q[i]);
-    end
+    // for (i=0;i<100;i=i+1) begin
+    //      $display("ilm mem[%d]: %x", i, u_lnrv_ilm.mem_q[i]);
+    // end
     @(posedge clk) begin
         fireware_load_cplt <= 1'b1;
     end

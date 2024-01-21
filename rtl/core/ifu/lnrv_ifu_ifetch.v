@@ -35,6 +35,7 @@ module	lnrv_ifu_ifetch
     output[31 : 0]                      ifu_cmd_addr,
     output[31 : 0]                      ifu_cmd_wdata,
     output[3 : 0]                       ifu_cmd_wstrb,
+    output[2 : 0]                       ifu_cmd_size,
 
     // 指令应答通道
     input                               ifu_rsp_vld,
@@ -321,12 +322,12 @@ u_ifu_buffer
 
 
 // 只要没有滞外请求，且没有halt请求，就可以发出新的指令请求
-assign      ifu_cmd_vld = no_cmd_ots & (~pipe_halt_req);
-assign      ifu_cmd_addr = instr_addr_d;
-assign      ifu_cmd_write = 1'b0;
-assign      ifu_cmd_wdata = 32'd0;
-assign      ifu_cmd_wstrb = 4'd0;
-
+assign      ifu_cmd_vld     = no_cmd_ots & (~pipe_halt_req);
+assign      ifu_cmd_addr    = instr_addr_d;
+assign      ifu_cmd_write   = 1'b0;
+assign      ifu_cmd_wdata   = 32'd0;
+assign      ifu_cmd_wstrb   = 4'd0;
+assign      ifu_cmd_size    = 3'd2;
 // 如果当前有流水线冲刷请求，则可以接收新的指令，
 // 或者当前指令已经执行完成，也可以接收新的指令。
 assign      ifu_rsp_rdy = pipe_flush_vld | ifu_buf_push_rdy;

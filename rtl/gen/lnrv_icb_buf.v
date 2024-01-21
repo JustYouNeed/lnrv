@@ -20,6 +20,7 @@ module lnrv_icb_buf#
     input[P_ADDR_WIDTH - 1 : 0]         m_icb_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]         m_icb_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]     m_icb_cmd_wstrb,
+    input[2 : 0]                        m_icb_cmd_size,
 
     output                              m_icb_rsp_vld,
     input                               m_icb_rsp_rdy,
@@ -32,6 +33,7 @@ module lnrv_icb_buf#
     output[P_ADDR_WIDTH - 1 : 0]        s_icb_cmd_addr,
     output[P_DATA_WIDTH - 1 : 0]        s_icb_cmd_wdata,
     output[(P_DATA_WIDTH/8) - 1 : 0]    s_icb_cmd_wstrb,
+    output[2 : 0]                       s_icb_cmd_size,
 
     input                               s_icb_rsp_vld,
     output                              s_icb_rsp_rdy,
@@ -60,6 +62,7 @@ u_lnrv_icb_cmd_buf
     .m_icb_cmd_addr         ( m_icb_cmd_addr            ),
     .m_icb_cmd_wdata        ( m_icb_cmd_wdata           ),
     .m_icb_cmd_wstrb        ( m_icb_cmd_wstrb           ),
+    .m_icb_cmd_size         ( m_icb_cmd_size            ),
 
     .s_icb_cmd_vld          ( s_icb_cmd_vld             ),
     .s_icb_cmd_rdy          ( s_icb_cmd_rdy             ),
@@ -67,6 +70,7 @@ u_lnrv_icb_cmd_buf
     .s_icb_cmd_addr         ( s_icb_cmd_addr            ),
     .s_icb_cmd_wdata        ( s_icb_cmd_wdata           ),
     .s_icb_cmd_wstrb        ( s_icb_cmd_wstrb           ),
+    .s_icb_cmd_size         ( s_icb_cmd_size            ),
 
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   )

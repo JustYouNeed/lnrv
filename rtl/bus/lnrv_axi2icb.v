@@ -4,6 +4,7 @@ module lnrv_axi2icb#
     parameter                           P_DATA_WIDTH = 32
 )
 (
+    // icb
     output                              icb_cmd_vld,
     input                               icb_cmd_rdy,
     output                              icb_cmd_write,
@@ -16,6 +17,7 @@ module lnrv_axi2icb#
     input                               icb_rsp_err,
     input[P_DATA_WIDTH - 1 : 0]         icb_rsp_rdata,
 
+    // axi4
     input                               axi_awvalid,
     output                              axi_awready,
     input                               axi_awlock,
@@ -60,6 +62,7 @@ module lnrv_axi2icb#
     input                               reset_n
 );
 
+// addr + write/read + id + len + size + burst + cache + prot + lock
 localparam                              LP_AXI_XFR_BUF_WIDTH = P_ADDR_WIDTH + 1 + 4 + 8 + 3 + 2 + 4 + 3 + 1;
 
 wire[1 : 0]                             arbt_request;
@@ -165,6 +168,7 @@ assign      {
 
 assign      axi_xfr_buf_push_hsked = axi_xfr_buf_push_vld & axi_xfr_buf_push_rdy;
 assign      axi_xfr_buf_pop_hsked = axi_xfr_buf_pop_vld & axi_xfr_buf_pop_rdy;
+
 
 // 保存aw/ar通道的控制信息
 lnrv_gnrl_buffer#

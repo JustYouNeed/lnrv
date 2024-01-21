@@ -1,0 +1,2 @@
+export  PROJ_DIR=$PWD
+export  LNRV_DE_DIR=$PROJ_DIR

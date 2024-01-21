@@ -77,7 +77,7 @@ wire                            decode_rv32;
 wire                            decode_rv16;
 wire                            decode_ilegl_instr;
 wire[`DEC_OP_BUS_WIDTH - 1 : 0] decode_op_bus;
-wire                            decode_rglr_instr;
+wire                            decode_gnrl_instr;
 wire                            decode_lsu_instr;
 wire                            decode_brch_instr;
 wire                            decode_mdv_instr;

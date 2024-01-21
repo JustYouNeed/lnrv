@@ -27,6 +27,7 @@ module  lnrv_icb_mux#
     input[(P_ADDR_WIDTH * P_ICB_COUNT) - 1 : 0]     mn_icb_cmd_addr,
     input[(P_DATA_WIDTH * P_ICB_COUNT) - 1 : 0]     mn_icb_cmd_wdata,
     input[((P_DATA_WIDTH/8) * P_ICB_COUNT) - 1 : 0] mn_icb_cmd_wstrb,
+    input[(P_ICB_COUNT * 3) - 1 : 0]                mn_icb_cmd_size,
 
     input[P_ICB_COUNT - 1 : 0]                      mn_icb_rsp_rdy,
     output[P_ICB_COUNT - 1 : 0]                     mn_icb_rsp_vld,
@@ -40,6 +41,7 @@ module  lnrv_icb_mux#
     output[P_ADDR_WIDTH - 1 : 0]                    s_icb_cmd_addr,
     output[P_DATA_WIDTH - 1 : 0]                    s_icb_cmd_wdata,
     output[(P_DATA_WIDTH / 8) - 1 : 0]              s_icb_cmd_wstrb,
+    output[2 : 0]                                   s_icb_cmd_size,
 
     input                                           s_icb_rsp_vld,
     output                                          s_icb_rsp_rdy,
@@ -68,6 +70,7 @@ wire[P_ICB_COUNT - 1 : 0]       mst_icb_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]      mst_icb_cmd_addr[P_ICB_COUNT - 1 : 0];
 wire[P_DATA_WIDTH - 1 : 0]      mst_icb_cmd_wdata[P_ICB_COUNT - 1 : 0];
 wire[(P_DATA_WIDTH/8) - 1 : 0]  mst_icb_cmd_wstrb[P_ICB_COUNT - 1 : 0];
+wire[2 : 0]                     mst_icb_cmd_size[P_ICB_COUNT - 1 : 0];
 
 wire[P_ICB_COUNT - 1 : 0]       mst_icb_rsp_vld;
 wire[P_ICB_COUNT - 1 : 0]       mst_icb_rsp_rdy;
@@ -80,6 +83,7 @@ reg                             mst_icb_cmd_write_mux;
 reg[P_ADDR_WIDTH - 1 : 0]       mst_icb_cmd_addr_mux;
 reg[P_DATA_WIDTH - 1 : 0]       mst_icb_cmd_wdata_mux;
 reg[(P_DATA_WIDTH/8) - 1 : 0]   mst_icb_cmd_wstrb_mux;
+reg[2 : 0]                      mst_icb_cmd_size_mux;
 
 reg                             mst_icb_rsp_rdy_mux;
 
@@ -89,6 +93,7 @@ wire                            m_icb_cmd_write;
 wire[P_ADDR_WIDTH - 1 : 0]      m_icb_cmd_addr;
 wire[P_DATA_WIDTH - 1 : 0]      m_icb_cmd_wdata;
 wire[(P_DATA_WIDTH/8) - 1 : 0]  m_icb_cmd_wstrb;
+wire[2 : 0]                     m_icb_cmd_size;
 
 wire                            m_icb_rsp_vld;
 wire                            m_icb_rsp_rdy;
@@ -96,17 +101,7 @@ wire[P_DATA_WIDTH - 1 : 0]      m_icb_rsp_rdata;
 wire                            m_icb_rsp_err;
 
 
-wire                            m_icb_cmd_vld_bufed;
-wire                            m_icb_cmd_rdy_bufed;
-wire                            m_icb_cmd_write_bufed;
-wire[P_ADDR_WIDTH - 1 : 0]      m_icb_cmd_addr_bufed;
-wire[P_DATA_WIDTH - 1 : 0]      m_icb_cmd_wdata_bufed;
-wire[(P_DATA_WIDTH/8) - 1 : 0]  m_icb_cmd_wstrb_bufed;
-
-wire                            m_icb_rsp_vld_bufed;
-wire                            m_icb_rsp_rdy_bufed;
-wire[P_DATA_WIDTH - 1 : 0]      m_icb_rsp_rdata_bufed;
-wire                            m_icb_rsp_err_bufed;
+wire                            m_icb_rsp_vld_real;
 
 genvar                          i;
 integer                         j;
@@ -139,6 +134,7 @@ generate
         assign      mst_icb_cmd_addr[i] = {P_ADDR_WIDTH{mst_icb_grant[i]}} & mn_icb_cmd_addr[i * P_ADDR_WIDTH +: P_ADDR_WIDTH];
         assign      mst_icb_cmd_wdata[i] = {P_DATA_WIDTH{mst_icb_grant[i]}} & mn_icb_cmd_wdata[i * P_DATA_WIDTH +: P_DATA_WIDTH];
         assign      mst_icb_cmd_wstrb[i] = {(P_DATA_WIDTH/8){mst_icb_grant[i]}} & mn_icb_cmd_wstrb[i * (P_DATA_WIDTH/8) +: (P_DATA_WIDTH/8)];
+        assign      mst_icb_cmd_size[i] = {3{mst_icb_grant[i]}} & mn_icb_cmd_size[i * 3 +: 3];
         assign      mst_icb_cmd_rdy[i] = mst_icb_grant[i] & m_icb_cmd_rdy;
 
         assign      mst_icb_rsp_rdy[i] = mst_icb_grant_bufed[i] & mn_icb_rsp_rdy[i];
@@ -155,13 +151,15 @@ always@(*) begin
     mst_icb_cmd_addr_mux = {P_ADDR_WIDTH{1'b0}};
     mst_icb_cmd_wdata_mux = {P_DATA_WIDTH{1'b0}};
     mst_icb_cmd_wstrb_mux = {(P_DATA_WIDTH/8){1'b0}};
+    mst_icb_cmd_size = {3{1'b0}};
 
     for(j = 0; j < P_ICB_COUNT; j = j + 1) begin
-        mst_icb_cmd_vld_mux   = mst_icb_cmd_vld_mux | mst_icb_cmd_vld[j];
-        mst_icb_cmd_write_mux = mst_icb_cmd_write_mux | mst_icb_cmd_write[j];
-        mst_icb_cmd_addr_mux  = mst_icb_cmd_addr_mux | mst_icb_cmd_addr[j];
-        mst_icb_cmd_wdata_mux = mst_icb_cmd_wdata_mux | mst_icb_cmd_wdata[j];
-        mst_icb_cmd_wstrb_mux  = mst_icb_cmd_wstrb_mux | mst_icb_cmd_wstrb[j];
+        mst_icb_cmd_vld_mux     = mst_icb_cmd_vld_mux | mst_icb_cmd_vld[j];
+        mst_icb_cmd_write_mux   = mst_icb_cmd_write_mux | mst_icb_cmd_write[j];
+        mst_icb_cmd_addr_mux    = mst_icb_cmd_addr_mux | mst_icb_cmd_addr[j];
+        mst_icb_cmd_wdata_mux   = mst_icb_cmd_wdata_mux | mst_icb_cmd_wdata[j];
+        mst_icb_cmd_wstrb_mux   = mst_icb_cmd_wstrb_mux | mst_icb_cmd_wstrb[j];
+        mst_icb_cmd_size_mux    = mst_icb_cmd_size_mux | mst_icb_cmd_size[j];
     end
 end
 
@@ -180,7 +178,7 @@ assign      m_icb_cmd_write = mst_icb_cmd_write_mux;
 assign      m_icb_cmd_addr  = mst_icb_cmd_addr_mux;
 assign      m_icb_cmd_wdata = mst_icb_cmd_wdata_mux;
 assign      m_icb_cmd_wstrb = mst_icb_cmd_wstrb_mux;
-
+assign      m_icb_cmd_size  = mst_icb_cmd_size_mux;
 
 
 // 只有分发fifo中有分发信息就表示rsp通道真正就绪
@@ -243,6 +241,7 @@ u_lnrv_icb_buf
     .m_icb_cmd_addr                 ( m_icb_cmd_addr            ),
     .m_icb_cmd_wdata                ( m_icb_cmd_wdata           ),
     .m_icb_cmd_wstrb                ( m_icb_cmd_wstrb           ),
+    .m_icb_cmd_size                 ( m_icb_cmd_size            ),
 
     .m_icb_rsp_vld                  ( m_icb_rsp_vld             ),
     .m_icb_rsp_rdy                  ( m_icb_rsp_rdy             ),
@@ -255,6 +254,7 @@ u_lnrv_icb_buf
     .s_icb_cmd_addr                 ( s_icb_cmd_addr            ),
     .s_icb_cmd_wdata                ( s_icb_cmd_wdata           ),
     .s_icb_cmd_wstrb                ( s_icb_cmd_wstrb           ),
+    .s_icb_cmd_size                 ( s_icb_cmd_size            ),
     .s_icb_rsp_vld                  ( s_icb_rsp_vld             ),
     .s_icb_rsp_rdy                  ( s_icb_rsp_rdy             ),
     .s_icb_rsp_rdata                ( s_icb_rsp_rdata           ),

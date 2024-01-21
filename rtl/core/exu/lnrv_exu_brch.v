@@ -60,6 +60,7 @@ wire                        op2_is_imm;
 
 wire                        brch_must_taken;
 wire                        brch_cond_taken;
+wire                        brch_taken;
 
 wire                        need_wbck;
 wire                        need_alu;
