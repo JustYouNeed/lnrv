@@ -248,42 +248,42 @@ wire                                        ifu2sys_rsp_err;
 wire[P_DATA_WIDTH - 1 : 0]                  ifu2sys_rsp_rdata;
 
 
-wire                                        lsu2ilm_cmd_vld;
-wire                                        lsu2ilm_cmd_rdy;
-wire                                        lsu2ilm_cmd_write;
-wire[P_ADDR_WIDTH - 1 : 0]                  lsu2ilm_cmd_addr;
-wire[P_DATA_WIDTH - 1 : 0]                  lsu2ilm_cmd_wdata;
-wire[(P_DATA_WIDTH/8) - 1 : 0]              lsu2ilm_cmd_wstrb;
-wire[2 : 0]                                 lsu2ilm_cmd_size;
-wire                                        lsu2ilm_rsp_vld;
-wire                                        lsu2ilm_rsp_rdy;
-wire                                        lsu2ilm_rsp_err;
-wire[P_DATA_WIDTH - 1 : 0]                  lsu2ilm_rsp_rdata;
+wire                                        exu2ilm_cmd_vld;
+wire                                        exu2ilm_cmd_rdy;
+wire                                        exu2ilm_cmd_write;
+wire[P_ADDR_WIDTH - 1 : 0]                  exu2ilm_cmd_addr;
+wire[P_DATA_WIDTH - 1 : 0]                  exu2ilm_cmd_wdata;
+wire[(P_DATA_WIDTH/8) - 1 : 0]              exu2ilm_cmd_wstrb;
+wire[2 : 0]                                 exu2ilm_cmd_size;
+wire                                        exu2ilm_rsp_vld;
+wire                                        exu2ilm_rsp_rdy;
+wire                                        exu2ilm_rsp_err;
+wire[P_DATA_WIDTH - 1 : 0]                  exu2ilm_rsp_rdata;
 
 
-wire                                        lsu2dlm_cmd_vld;
-wire                                        lsu2dlm_cmd_rdy;
-wire                                        lsu2dlm_cmd_write;
-wire[P_ADDR_WIDTH - 1 : 0]                  lsu2dlm_cmd_addr;
-wire[P_DATA_WIDTH - 1 : 0]                  lsu2dlm_cmd_wdata;
-wire[(P_DATA_WIDTH/8) - 1 : 0]              lsu2dlm_cmd_wstrb;
-wire[2 : 0]                                 lsu2dlm_cmd_size;
-wire                                        lsu2dlm_rsp_vld;
-wire                                        lsu2dlm_rsp_rdy;
-wire                                        lsu2dlm_rsp_err;
-wire[P_DATA_WIDTH - 1 : 0]                  lsu2dlm_rsp_rdata;
+wire                                        exu2dlm_cmd_vld;
+wire                                        exu2dlm_cmd_rdy;
+wire                                        exu2dlm_cmd_write;
+wire[P_ADDR_WIDTH - 1 : 0]                  exu2dlm_cmd_addr;
+wire[P_DATA_WIDTH - 1 : 0]                  exu2dlm_cmd_wdata;
+wire[(P_DATA_WIDTH/8) - 1 : 0]              exu2dlm_cmd_wstrb;
+wire[2 : 0]                                 exu2dlm_cmd_size;
+wire                                        exu2dlm_rsp_vld;
+wire                                        exu2dlm_rsp_rdy;
+wire                                        exu2dlm_rsp_err;
+wire[P_DATA_WIDTH - 1 : 0]                  exu2dlm_rsp_rdata;
 
-wire                                        lsu2sys_cmd_vld;
-wire                                        lsu2sys_cmd_rdy;
-wire                                        lsu2sys_cmd_write;
-wire[P_ADDR_WIDTH - 1 : 0]                  lsu2sys_cmd_addr;
-wire[P_DATA_WIDTH - 1 : 0]                  lsu2sys_cmd_wdata;
-wire[(P_DATA_WIDTH/8) - 1 : 0]              lsu2sys_cmd_wstrb;
-wire[2 : 0]                                 lsu2sys_cmd_size;
-wire                                        lsu2sys_rsp_vld;
-wire                                        lsu2sys_rsp_rdy;
-wire                                        lsu2sys_rsp_err;
-wire[P_DATA_WIDTH - 1 : 0]                  lsu2sys_rsp_rdata;
+wire                                        exu2sys_cmd_vld;
+wire                                        exu2sys_cmd_rdy;
+wire                                        exu2sys_cmd_write;
+wire[P_ADDR_WIDTH - 1 : 0]                  exu2sys_cmd_addr;
+wire[P_DATA_WIDTH - 1 : 0]                  exu2sys_cmd_wdata;
+wire[(P_DATA_WIDTH/8) - 1 : 0]              exu2sys_cmd_wstrb;
+wire[2 : 0]                                 exu2sys_cmd_size;
+wire                                        exu2sys_rsp_vld;
+wire                                        exu2sys_rsp_rdy;
+wire                                        exu2sys_rsp_err;
+wire[P_DATA_WIDTH - 1 : 0]                  exu2sys_rsp_rdata;
 
 
 wire                                        slv2ilm_cmd_vld;
@@ -442,69 +442,69 @@ u_ifu_bus_demux
 
 
 assign      {
-                lsu2sys_cmd_vld,
-                lsu2ilm_cmd_vld,
-                lsu2dlm_cmd_vld
+                exu2sys_cmd_vld,
+                exu2ilm_cmd_vld,
+                exu2dlm_cmd_vld
             } = exu_sn_icb_cmd_vld;
 
 assign      exu_sn_icb_cmd_rdy =    {
-                                        lsu2sys_cmd_rdy,
-                                        lsu2ilm_cmd_rdy,
-                                        lsu2dlm_cmd_rdy
+                                        exu2sys_cmd_rdy,
+                                        exu2ilm_cmd_rdy,
+                                        exu2dlm_cmd_rdy
                                     };
 
 assign      {
-                lsu2sys_cmd_write,
-                lsu2ilm_cmd_write,
-                lsu2dlm_cmd_write
+                exu2sys_cmd_write,
+                exu2ilm_cmd_write,
+                exu2dlm_cmd_write
             } = exu_sn_icb_cmd_write;
 
 assign      {
-                lsu2sys_cmd_addr,
-                lsu2ilm_cmd_addr,
-                lsu2dlm_cmd_addr
+                exu2sys_cmd_addr,
+                exu2ilm_cmd_addr,
+                exu2dlm_cmd_addr
             } = exu_sn_icb_cmd_addr;
 
 assign      {
-                lsu2sys_cmd_wdata,
-                lsu2ilm_cmd_wdata,
-                lsu2dlm_cmd_wdata
+                exu2sys_cmd_wdata,
+                exu2ilm_cmd_wdata,
+                exu2dlm_cmd_wdata
             } = exu_sn_icb_cmd_wdata;
 
 assign      {
-                lsu2sys_cmd_wstrb,
-                lsu2ilm_cmd_wstrb,
-                lsu2dlm_cmd_wstrb
+                exu2sys_cmd_wstrb,
+                exu2ilm_cmd_wstrb,
+                exu2dlm_cmd_wstrb
             } = exu_sn_icb_cmd_wstrb;
 
 assign      {
-                lsu2sys_cmd_size,
-                lsu2ilm_cmd_size,
-                lsu2dlm_cmd_size
+                exu2sys_cmd_size,
+                exu2ilm_cmd_size,
+                exu2dlm_cmd_size
             } = exu_sn_icb_cmd_size;
 
 assign      exu_sn_icb_rsp_vld =    {
-                                        lsu2sys_rsp_vld,
-                                        lsu2ilm_rsp_vld,
-                                        lsu2dlm_rsp_vld
+                                        exu2sys_rsp_vld,
+                                        exu2ilm_rsp_vld,
+                                        exu2dlm_rsp_vld
                                     };
 
 assign      {
-                lsu2sys_rsp_rdy,
-                lsu2ilm_rsp_rdy,
-                lsu2dlm_rsp_rdy
+                exu2sys_rsp_rdy,
+                exu2ilm_rsp_rdy,
+                exu2dlm_rsp_rdy
             } = exu_sn_icb_rsp_rdy;
 
 assign      exu_sn_icb_rsp_rdata =  {
-                                        lsu2sys_rsp_rdata,
-                                        lsu2ilm_rsp_rdata,
-                                        lsu2dlm_rsp_rdata
+                                        exu2sys_rsp_rdata,
+                                        exu2ilm_rsp_rdata,
+                                        exu2dlm_rsp_rdata
                                     };
 
 assign      exu_sn_icb_rsp_err =    {
-                                        lsu2sys_rsp_err,
-                                        lsu2ilm_rsp_err,
-                                        lsu2dlm_rsp_err
+                                        exu2sys_rsp_err,
+                                        exu2ilm_rsp_err,
+                                        exu2dlm_rsp_err
                                     };
 
 assign      exu_sn_region_base =    {
@@ -686,67 +686,67 @@ u_slv_bus_demux
 assign      ilm_mn_icb_cmd_vld =    {
                                         slv2ilm_cmd_vld,
                                         ifu2ilm_cmd_vld,
-                                        lsu2ilm_cmd_vld
+                                        exu2ilm_cmd_vld
                                     };
 
 assign      {
                 slv2ilm_cmd_rdy,
                 ifu2ilm_cmd_rdy,
-                lsu2ilm_cmd_rdy
+                exu2ilm_cmd_rdy
             } = ilm_mn_icb_cmd_rdy;
 
 assign      ilm_mn_icb_cmd_write =  {
                                         slv2ilm_cmd_write,
                                         ifu2ilm_cmd_write,
-                                        lsu2ilm_cmd_write
+                                        exu2ilm_cmd_write
                                     };
 
 assign      ilm_mn_icb_cmd_addr =   {
                                         slv2ilm_cmd_addr,
                                         ifu2ilm_cmd_addr,
-                                        lsu2ilm_cmd_addr
+                                        exu2ilm_cmd_addr
                                     };
 
 assign      ilm_mn_icb_cmd_wdata =  {
                                         slv2ilm_cmd_wdata,
                                         ifu2ilm_cmd_wdata,
-                                        lsu2ilm_cmd_wdata
+                                        exu2ilm_cmd_wdata
                                     };
 
 assign      ilm_mn_icb_cmd_wstrb =  {
                                         slv2ilm_cmd_wstrb,
                                         ifu2ilm_cmd_wstrb,
-                                        lsu2ilm_cmd_wstrb
+                                        exu2ilm_cmd_wstrb
                                     };
 
 assign      ilm_mn_icb_cmd_size =   {
                                         slv2ilm_cmd_size,
                                         ifu2ilm_cmd_size,
-                                        lsu2ilm_cmd_size
+                                        exu2ilm_cmd_size
                                     };
 
 assign      {
                 slv2ilm_rsp_vld,
                 ifu2ilm_rsp_vld,
-                lsu2ilm_rsp_vld
+                exu2ilm_rsp_vld
             } = ilm_mn_icb_rsp_vld;
 
 assign      ilm_mn_icb_rsp_rdy =    {
                                         slv2ilm_rsp_rdy,
                                         ifu2ilm_rsp_rdy,
-                                        lsu2ilm_rsp_rdy
+                                        exu2ilm_rsp_rdy
                                     };
 
 assign      {
                 slv2ilm_rsp_rdata,
                 ifu2ilm_rsp_rdata,
-                lsu2ilm_rsp_rdata
+                exu2ilm_rsp_rdata
             } = ilm_mn_icb_rsp_rdata;
 
 assign      {
                 slv2ilm_rsp_err,
                 ifu2ilm_rsp_err,
-                lsu2ilm_rsp_err
+                exu2ilm_rsp_err
             } = ilm_mn_icb_rsp_err;
 
 // ifu\lsu\slv都有可能访问ilm
@@ -799,66 +799,66 @@ u_ilm_bus_mux
 assign      dlm_mn_icb_cmd_vld =    {
                                         slv2dlm_cmd_vld,
                                         ifu2dlm_cmd_vld,
-                                        lsu2dlm_cmd_vld
+                                        exu2dlm_cmd_vld
                                     };
 
 assign      {
                 slv2dlm_cmd_rdy,
                 ifu2dlm_cmd_rdy,
-                lsu2dlm_cmd_rdy
+                exu2dlm_cmd_rdy
             } = dlm_mn_icb_cmd_rdy;
 
 assign      dlm_mn_icb_cmd_write =  {
                                         slv2dlm_cmd_write,
                                         ifu2dlm_cmd_write,
-                                        lsu2dlm_cmd_write
+                                        exu2dlm_cmd_write
                                     };
 
 assign      dlm_mn_icb_cmd_addr =   {
                                         slv2dlm_cmd_addr,
                                         ifu2dlm_cmd_addr,
-                                        lsu2dlm_cmd_addr
+                                        exu2dlm_cmd_addr
                                     };
 
 assign      dlm_mn_icb_cmd_wdata =  {
                                         slv2dlm_cmd_wdata,
                                         ifu2dlm_cmd_wdata,
-                                        lsu2dlm_cmd_wdata
+                                        exu2dlm_cmd_wdata
                                     };
 
 assign      dlm_mn_icb_cmd_wstrb =  {
                                         slv2dlm_cmd_wstrb,
                                         ifu2dlm_cmd_wstrb,
-                                        lsu2dlm_cmd_wstrb
+                                        exu2dlm_cmd_wstrb
                                     };
 assign      dlm_mn_icb_cmd_size =   {
                                         slv2dlm_cmd_size,
                                         ifu2dlm_cmd_size,
-                                        lsu2dlm_cmd_size
+                                        exu2dlm_cmd_size
                                     };
 
 assign      {
                 slv2dlm_rsp_vld,
                 ifu2dlm_rsp_vld,
-                lsu2dlm_rsp_vld
+                exu2dlm_rsp_vld
             } = dlm_mn_icb_rsp_vld;
 
 assign      dlm_mn_icb_rsp_rdy =    {
                                         slv2dlm_rsp_rdy,
                                         ifu2dlm_rsp_rdy,
-                                        lsu2dlm_rsp_rdy
+                                        exu2dlm_rsp_rdy
                                     };
 
 assign      {
                 slv2dlm_rsp_rdata,
                 ifu2dlm_rsp_rdata,
-                lsu2dlm_rsp_rdata
+                exu2dlm_rsp_rdata
             } = dlm_mn_icb_rsp_rdata;
 
 assign      {
                 slv2dlm_rsp_err,
                 ifu2dlm_rsp_err,
-                lsu2dlm_rsp_err
+                exu2dlm_rsp_err
             } = dlm_mn_icb_rsp_err;
 
 // slv\ifu\lsu都有可能访问dlm
@@ -908,57 +908,57 @@ u_dlm_bus_mux
 
 assign      sys_mn_icb_cmd_vld =    {
                                         ifu2sys_cmd_vld,
-                                        lsu2sys_cmd_vld
+                                        exu2sys_cmd_vld
                                     };
 
 assign      {
                 ifu2sys_cmd_rdy,
-                lsu2sys_cmd_rdy
+                exu2sys_cmd_rdy
             } = sys_mn_icb_cmd_rdy;
 
 assign      sys_mn_icb_cmd_write =  {
                                         ifu2sys_cmd_write,
-                                        lsu2sys_cmd_write
+                                        exu2sys_cmd_write
                                     };
 
 assign      sys_mn_icb_cmd_addr =   {
                                         ifu2sys_cmd_addr,
-                                        lsu2sys_cmd_addr
+                                        exu2sys_cmd_addr
                                     };
 
 assign      sys_mn_icb_cmd_wdata =  {
                                         ifu2sys_cmd_wdata,
-                                        lsu2sys_cmd_wdata
+                                        exu2sys_cmd_wdata
                                     };
 
 assign      sys_mn_icb_cmd_wstrb =  {
                                         ifu2sys_cmd_wstrb,
-                                        lsu2sys_cmd_wstrb
+                                        exu2sys_cmd_wstrb
                                     };
 
 assign      sys_mn_icb_cmd_size =   {
                                         ifu2sys_cmd_size,
-                                        lsu2sys_cmd_size
+                                        exu2sys_cmd_size
                                     };
 
 assign      {
                 ifu2sys_rsp_vld,
-                lsu2sys_rsp_vld
+                exu2sys_rsp_vld
             } = sys_mn_icb_rsp_vld;
 
 assign      sys_mn_icb_rsp_rdy =    {
                                         ifu2sys_rsp_rdy,
-                                        lsu2sys_rsp_rdy
+                                        exu2sys_rsp_rdy
                                     };
 
 assign      {
                 ifu2sys_rsp_rdata,
-                lsu2sys_rsp_rdata
+                exu2sys_rsp_rdata
             } = sys_mn_icb_rsp_rdata;
 
 assign      {
                 ifu2sys_rsp_err,
-                lsu2sys_rsp_err
+                exu2sys_rsp_err
             } = sys_mn_icb_rsp_err;
 
 // ifu\lsu可能访问系统总线

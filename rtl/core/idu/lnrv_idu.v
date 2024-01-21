@@ -77,7 +77,7 @@ wire                            decode_rv32;
 wire                            decode_rv16;
 wire                            decode_ilegl_instr;
 wire[`DEC_OP_BUS_WIDTH - 1 : 0] decode_op_bus;
-wire                            decode_gnrl_instr;
+wire                            decode_rglr_instr;
 wire                            decode_lsu_instr;
 wire                            decode_brch_instr;
 wire                            decode_mdv_instr;
@@ -109,7 +109,7 @@ lnrv_idu_decode u_lnrv_idu_decode
 
     .dec_ilegl_instr    ( decode_ilegl_instr        ),
     .dec_op_bus         ( decode_op_bus             ),
-    .dec_rglr_instr     ( decode_gnrl_instr         ),
+    .dec_rglr_instr     ( decode_rglr_instr         ),
     .dec_lsu_instr      ( decode_lsu_instr          ),
     .dec_csr_instr      ( decode_csr_instr          ),
     .dec_brch_instr     ( decode_brch_instr         ),
@@ -130,7 +130,7 @@ assign      idu_buf_push_data = {
                                     decode_imm,
                                     // 如果ifu模块发生错误，则ir本身不可信，不需要在idu再产生一次解析错误
                                     decode_ilegl_instr & ifu_no_err,
-                                    decode_gnrl_instr,
+                                    decode_rglr_instr,
                                     decode_lsu_instr,
                                     decode_csr_instr,
                                     decode_brch_instr,

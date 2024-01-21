@@ -302,6 +302,7 @@ u_lnrv_biu
     .ifu_cmd_addr           ( ifu_cmd_addr              ),
     .ifu_cmd_wdata          ( ifu_cmd_wdata             ),
     .ifu_cmd_wstrb          ( ifu_cmd_wstrb             ),
+    .ifu_cmd_size           ( ifu_cmd_size              ),
     .ifu_rsp_vld            ( ifu_rsp_vld               ),
     .ifu_rsp_rdy            ( ifu_rsp_rdy               ),
     .ifu_rsp_rdata          ( ifu_rsp_rdata             ),
@@ -313,6 +314,7 @@ u_lnrv_biu
     .exu_cmd_addr           ( exu_cmd_addr              ),
     .exu_cmd_wdata          ( exu_cmd_wdata             ),
     .exu_cmd_wstrb          ( exu_cmd_wstrb             ),
+    .exu_cmd_size           ( exu_cmd_size              ),
     .exu_rsp_vld            ( exu_rsp_vld               ),
     .exu_rsp_rdy            ( exu_rsp_rdy               ),
     .exu_rsp_rdata          ( exu_rsp_rdata             ),
@@ -324,6 +326,7 @@ u_lnrv_biu
     .slv_cmd_addr           ( slv_cmd_addr              ),
     .slv_cmd_wdata          ( slv_cmd_wdata             ),
     .slv_cmd_wstrb          ( slv_cmd_wstrb             ),
+    .slv_cmd_size           ( slv_cmd_size              ),
     .slv_rsp_vld            ( slv_rsp_vld               ),
     .slv_rsp_rdy            ( slv_rsp_rdy               ),
     .slv_rsp_rdata          ( slv_rsp_rdata             ),
@@ -335,6 +338,7 @@ u_lnrv_biu
     .ilm_cmd_addr           ( ilm_cmd_addr              ),
     .ilm_cmd_wdata          ( ilm_cmd_wdata             ),
     .ilm_cmd_wstrb          ( ilm_cmd_wstrb             ),
+    .ilm_cmd_size           ( ilm_cmd_size              ),
     .ilm_rsp_vld            ( ilm_rsp_vld               ),
     .ilm_rsp_rdy            ( ilm_rsp_rdy               ),
     .ilm_rsp_rdata          ( ilm_rsp_rdata             ),
@@ -346,6 +350,7 @@ u_lnrv_biu
     .dlm_cmd_addr           ( dlm_cmd_addr              ),
     .dlm_cmd_wdata          ( dlm_cmd_wdata             ),
     .dlm_cmd_wstrb          ( dlm_cmd_wstrb             ),
+    .dlm_cmd_size           ( dlm_cmd_size              ),
     .dlm_rsp_vld            ( dlm_rsp_vld               ),
     .dlm_rsp_rdy            ( dlm_rsp_rdy               ),
     .dlm_rsp_rdata          ( dlm_rsp_rdata             ),
@@ -357,6 +362,7 @@ u_lnrv_biu
     .sys_cmd_addr           ( sys_cmd_addr              ),
     .sys_cmd_wdata          ( sys_cmd_wdata             ),
     .sys_cmd_wstrb          ( sys_cmd_wstrb             ),
+    .sys_cmd_size           ( sys_cmd_size              ),
     .sys_rsp_vld            ( sys_rsp_vld               ),
     .sys_rsp_rdy            ( sys_rsp_rdy               ),
     .sys_rsp_rdata          ( sys_rsp_rdata             ),
@@ -384,6 +390,7 @@ u_ilm_ctrl
     .icb_cmd_addr           ( ilm_cmd_addr              ),
     .icb_cmd_wdata          ( ilm_cmd_wdata             ),
     .icb_cmd_wstrb          ( ilm_cmd_wstrb             ),
+    .icb_cmd_size           ( ilm_cmd_size              ),
     .icb_rsp_rdy            ( ilm_rsp_rdy               ),
     .icb_rsp_vld            ( ilm_rsp_vld               ),
     .icb_rsp_rdata          ( ilm_rsp_rdata             ),
@@ -415,6 +422,7 @@ u_dlm_ctrl
     .icb_cmd_addr           ( dlm_cmd_addr              ),
     .icb_cmd_wdata          ( dlm_cmd_wdata             ),
     .icb_cmd_wstrb          ( dlm_cmd_wstrb             ),
+    .icb_cmd_size           ( icb_cmd_size              ),
     .icb_rsp_rdy            ( dlm_rsp_rdy               ),
     .icb_rsp_vld            ( dlm_rsp_vld               ),
     .icb_rsp_rdata          ( dlm_rsp_rdata             ),
@@ -443,6 +451,7 @@ u_lnrv_icb2axi
     .icb_cmd_addr           ( sys_cmd_addr              ),
     .icb_cmd_wdata          ( sys_cmd_wdata             ),
     .icb_cmd_wstrb          ( sys_cmd_wstrb             ),
+    .icb_cmd_size           ( sys_cmd_size              ),
     .icb_rsp_rdy            ( sys_rsp_rdy               ),
     .icb_rsp_vld            ( sys_rsp_vld               ),
     .icb_rsp_err            ( sys_rsp_err               ),
@@ -491,8 +500,8 @@ u_lnrv_icb2axi
 
 lnrv_axi2icb#
 (
-    .P_ADDR_WIDTH           ( 32  ),
-    .P_DATA_WIDTH           ( 32  )
+    .P_ADDR_WIDTH           ( 32                        ),
+    .P_DATA_WIDTH           ( 32                        )
 )
 u_lnrv_axi2icb
 (
@@ -502,6 +511,7 @@ u_lnrv_axi2icb
     .icb_cmd_addr           ( slv_cmd_addr              ),
     .icb_cmd_wdata          ( slv_cmd_wdata             ),
     .icb_cmd_wstrb          ( slv_cmd_wstrb             ),
+    .icb_cmd_size           ( slv_cmd_size              ),
     .icb_rsp_rdy            ( slv_rsp_rdy               ),
     .icb_rsp_vld            ( slv_rsp_vld               ),
     .icb_rsp_err            ( slv_rsp_err               ),

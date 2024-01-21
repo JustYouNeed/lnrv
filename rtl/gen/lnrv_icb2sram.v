@@ -16,6 +16,7 @@ module lnrv_icb2sram#
     input[P_ICB_ADDR_WIDTH - 1 : 0]     icb_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]         icb_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]     icb_cmd_wstrb,
+    input[2 : 0]                        icb_cmd_size,
 
     input                               icb_rsp_rdy,
     output                              icb_rsp_vld,

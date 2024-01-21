@@ -38,7 +38,7 @@
 ~/proj/lnrv/rtl/bus/lnrv_icb2axi.v
 ~/proj/lnrv/rtl/bus/lnrv_icb_mux.v
 ~/proj/lnrv/rtl/bus/lnrv_icb_demux.v
-#~/proj/lnrv/rtl/bus/lnrv_axi2icb.v
+~/proj/lnrv/rtl/bus/lnrv_axi2icb.v
 #~/proj/lnrv/rtl/bus/lnrv_ahb2icb.v
 #~/proj/lnrv/rtl/bus/lnrv_icb2ahb.v
 #~/proj/lnrv/rtl/bus/lnrv_apb2icb.v

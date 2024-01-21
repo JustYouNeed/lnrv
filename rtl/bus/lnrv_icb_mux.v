@@ -151,7 +151,7 @@ always@(*) begin
     mst_icb_cmd_addr_mux = {P_ADDR_WIDTH{1'b0}};
     mst_icb_cmd_wdata_mux = {P_DATA_WIDTH{1'b0}};
     mst_icb_cmd_wstrb_mux = {(P_DATA_WIDTH/8){1'b0}};
-    mst_icb_cmd_size = {3{1'b0}};
+    mst_icb_cmd_size_mux = {3{1'b0}};
 
     for(j = 0; j < P_ICB_COUNT; j = j + 1) begin
         mst_icb_cmd_vld_mux     = mst_icb_cmd_vld_mux | mst_icb_cmd_vld[j];

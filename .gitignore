@@ -5,5 +5,5 @@ tool
 *.bak
 *.log
 *.vcd
-simulation/
+sim/run/
 .vscode/
