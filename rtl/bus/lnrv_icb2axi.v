@@ -1,7 +1,7 @@
 module lnrv_icb2axi#
 (
-    parameter                   P_ADDR_WIDTH = 32,
-    parameter                   P_DATA_WIDTH = 32
+    parameter                           P_ADDR_WIDTH = 32,
+    parameter                           P_DATA_WIDTH = 32
 )
 (
     input                               icb_cmd_vld,
@@ -204,6 +204,8 @@ end
 
 
 assign      icb_write = s_icb_cmd_vld & s_icb_cmd_write;
+assign      icb_read = s_icb_cmd_vld & (~s_icb_cmd_write);
+
 assign      axi_read_ots = ar_hsked_q;
 assign      axi_write_ots = aw_hsked_q & w_hsked_q;
 
@@ -238,6 +240,7 @@ assign      axi_arid        = 4'd0;
 
 assign      axi_rready = axi_read_ots & s_icb_rsp_rdy;
 
+// icb总线的response通道，如果是写操作，则需要等bvalid
 assign      s_icb_rsp_vld = (axi_write_ots & axi_bvalid) | 
                             (axi_read_ots & axi_rvalid);
 

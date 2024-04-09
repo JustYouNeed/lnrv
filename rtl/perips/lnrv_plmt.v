@@ -1,10 +1,17 @@
 module lnrv_plmt
 (
-    output                              irq_req,
-    input                               irq_ack,
+    // 定时器中断
+    output                              tmr_irq,
+
+    // 软件中断
+    input                               sft_irq,
+
+    input                               stop_timer,
 
 
     // 寄存器访问接口
+    input                               pclk,
+    input                               preset_n,
     input                               psel,
     input                               penable,
     input                               pwrite,
@@ -14,9 +21,13 @@ module lnrv_plmt
     output                              pslverr,
     output                              pready,
 
-    input                               clk,
-    input                               reset_n
+    input                               tclk,
+    input                               treset_n
 );
+
+
+
+
 
 
 endmodule

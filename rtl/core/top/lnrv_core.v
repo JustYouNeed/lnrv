@@ -2,6 +2,7 @@
 module  lnrv_core
 (
     input[31 : 0]                           reset_vector,
+    input[31 : 0]                           reset_mtvec,
 
     // 中断信号
     input                                   sft_irq,
@@ -378,7 +379,7 @@ u_lnrv_gpr
 // control and status regter
 lnrv_csr u_lnrv_csr
 (
-    .reset_mtvec                ( 32'd0                     ),
+    .reset_mtvec                ( reset_mtvec               ),
     
     .mepc                       ( mepc                      ),
     .mtvec                      ( mtvec                     ),

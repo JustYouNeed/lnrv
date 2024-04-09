@@ -126,7 +126,7 @@ initial begin
         reset_n <= 1'b1;
     end
 
-    #200000;
+    #20000000;
     $finish;
 end
 
@@ -213,6 +213,13 @@ initial begin
         u_lnrv_ilm.mem_q[i][15 : 8] = itcm_mem[i * 4 + 1];
         u_lnrv_ilm.mem_q[i][23 : 16] = itcm_mem[i * 4 + 2];
         u_lnrv_ilm.mem_q[i][31 : 24] = itcm_mem[i * 4 + 3];
+    end
+
+    for (i=0;i<LP_DLM_SIZE;i=i+1) begin
+        u_lnrv_dlm.mem_q[i][7 : 0] = 0;
+        u_lnrv_dlm.mem_q[i][15 : 8] = 0;
+        u_lnrv_dlm.mem_q[i][23 : 16] = 0;
+        u_lnrv_dlm.mem_q[i][31 : 24] = 0;
     end
 
     // for (i=0;i<100;i=i+1) begin

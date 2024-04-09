@@ -9,6 +9,7 @@ module  lnrv_cpu#
 )
 (
     input[31 : 0]                           reset_vector,
+    input[31 : 0]                           reset_mtvec,
 
     input                                   sft_irq,
     input                                   tmr_irq,
@@ -24,7 +25,7 @@ module  lnrv_cpu#
     output                                  stop_count,
 
     // 固件下载模式
-    input                                   download_mode,
+    input                                   dlod_mode,
 
     // 系统总线
     output                                  sys_awvalid,
@@ -79,34 +80,34 @@ module  lnrv_cpu#
     input[3 : 0]                            slv_awcache,
     input[2 : 0]                            slv_awprot,
 
-    input                                   axi_wvalid,
-    output                                  axi_wready,
-    input[31 : 0]                           axi_wdata,
-    input[31 : 0]                           axi_wstrb,
-    input                                   axi_wlast,
+    input                                   slv_wvalid,
+    output                                  slv_wready,
+    input[31 : 0]                           slv_wdata,
+    input[31 : 0]                           slv_wstrb,
+    input                                   slv_wlast,
 
-    input                                   axi_bready,
-    output                                  axi_bvalid,
-    output[1 : 0]                           axi_bresp,
-    output[3 : 0]                           axi_bid,
+    input                                   slv_bready,
+    output                                  slv_bvalid,
+    output[1 : 0]                           slv_bresp,
+    output[3 : 0]                           slv_bid,
 
-    input                                   axi_arvalid,
-    output                                  axi_arready,
-    input                                   axi_arlock,
-    input[31 : 0]                           axi_araddr,
-    input[3 : 0]                            axi_arid,
-    input[7 : 0]                            axi_arlen,
-    input[2 : 0]                            axi_arsize,
-    input[1 : 0]                            axi_arburst,
-    input[3 : 0]                            axi_arcache,
-    input[2 : 0]                            axi_arprot,
+    input                                   slv_arvalid,
+    output                                  slv_arready,
+    input                                   slv_arlock,
+    input[31 : 0]                           slv_araddr,
+    input[3 : 0]                            slv_arid,
+    input[7 : 0]                            slv_arlen,
+    input[2 : 0]                            slv_arsize,
+    input[1 : 0]                            slv_arburst,
+    input[3 : 0]                            slv_arcache,
+    input[2 : 0]                            slv_arprot,
 
-    input                                   axi_rready,
-    output                                  axi_rvalid,
-    output[31 : 0]                          axi_rdata,
-    output[1 : 0]                           axi_rresp,
-    output                                  axi_rlast,
-    output[3 : 0]                           axi_rid,
+    input                                   slv_rready,
+    output                                  slv_rvalid,
+    output[31 : 0]                          slv_rdata,
+    output[1 : 0]                           slv_rresp,
+    output                                  slv_rlast,
+    output[3 : 0]                           slv_rid,
 
     // ilm接口
     output                                  ilm_clk,
@@ -209,27 +210,12 @@ wire[31 : 0]                    sys_rsp_rdata;
 wire                            sys_rsp_err;
 
 
-// wire                            sys_cs;
-// wire                            sys_we;
-// wire[3 : 0]                     sys_wem;
-// wire[19 : 0]                    sys_addr;
-// wire[31 : 0]                    sys_rdata;
-// wire[31 : 0]                    sys_wdata;
-
-
-assign      slv_cmd_vld = 1'b0;
-assign      slv_cmd_write = 1'b0;
-assign      slv_cmd_addr = 32'd0;
-assign      slv_cmd_wdata = 32'd0;
-assign      slv_cmd_wstrb = 4'd0;
-
-assign      slv_rsp_rdy = 1'b1;
-
 
 // 
 lnrv_core u_lnrv_core
 (           
     .reset_vector           ( reset_vector              ),
+    .reset_mtvec            ( reset_mtvec               ),
 
     .sft_irq                ( sft_irq                   ),
     .ext_irq                ( ext_irq                   ),

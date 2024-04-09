@@ -998,6 +998,7 @@ assign      dec_brch_instr  = opcode_is_1100011 |
                                 instr_is_jal |
                                 instr_is_jalr | 
                                 instr_is_mret | 
+								instr_is_fencei | instr_is_fence |
                                 legl_dret;
 
 

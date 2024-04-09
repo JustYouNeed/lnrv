@@ -7,3 +7,4 @@ tool
 *.vcd
 sim/run/
 .vscode/
+riscv-tools/riscv-tests/

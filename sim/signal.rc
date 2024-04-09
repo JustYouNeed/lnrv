@@ -1,0 +1,128 @@
+Magic 271485
+Revision Verdi3_L-2016.06-1
+
+; Window Layout <x> <y> <width> <height> <signalwidth> <valuewidth>
+viewPort 60 19 1850 1016 191 65
+
+; File list:
+; openDirFile [-d delimiter] [-s time_offset] [-rf auto_bus_rule_file] path_name file_name
+openDirFile -d / "" "/home/pluto/proj/lnrv/sim/run/rv32ui-p-add/lnrv_cpu_tb.fsdb"
+
+; file time scale:
+; fileTimeScale ### s|ms|us|ns|ps
+
+; signal spacing:
+signalSpacing 5
+
+; windowTimeUnit is used for zoom, cursor & marker
+; waveform viewport range
+zoom 14746597.755102 17595372.321429
+cursor 0.000000
+marker 0.000000
+
+; user define markers
+; userMarker time_pos marker_name color linestyle
+; visible top row signal index
+top 0
+; marker line index
+markerPos 74
+
+; event list
+; addEvent event_name event_expression
+; curEvent event_name
+
+
+
+COMPLEX_EVENT_BEGIN
+
+
+COMPLEX_EVENT_END
+
+
+
+; toolbar current search type
+; curSTATUS search_type
+curSTATUS ByChange
+
+
+addGroup "G1"
+activeDirFile "" "/home/pluto/proj/lnrv/sim/run/rv32ui-p-add/lnrv_cpu_tb.fsdb"
+addSignal -h 15 /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_idu/dec_idu_instr_ilegl
+addSignal -h 15 -UNSIGNED -HEX /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_exu/dec_pc[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope dec_ir[31:0]
+addSignal -h 15 -holdScope dec_op_vld
+addSignal -h 15 /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_exu/u_lnrv_exu_lsu/op_vld
+addSignal -h 15 -holdScope instr_is_load
+addGroup "G2" -e FALSE
+addSignal -h 15 /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_exu/u_lnrv_exu_lsu/lsu_cmd_vld
+addSignal -h 15 -holdScope lsu_cmd_rdy
+addSignal -h 15 -holdScope lsu_cmd_write
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_cmd_addr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_cmd_wdata[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_cmd_wstrb[3:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_cmd_size[2:0]
+addSignal -h 15 -holdScope lsu_rsp_rdy
+addSignal -h 15 -holdScope lsu_rsp_vld
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_rsp_rdata[31:0]
+addSignal -h 15 -holdScope lsu_rsp_err
+addGroup "G3" -e FALSE
+addSignal -h 15 /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_biu/exu_cmd_vld
+addSignal -h 15 -holdScope exu_cmd_rdy
+addSignal -h 15 -holdScope exu_cmd_write
+addSignal -h 15 -UNSIGNED -HEX -holdScope exu_cmd_addr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope exu_cmd_wstrb[3:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope exu_cmd_wdata[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope exu_cmd_size[2:0]
+addSignal -h 15 -holdScope exu_rsp_vld
+addSignal -h 15 -holdScope exu_rsp_rdy
+addSignal -h 15 -UNSIGNED -HEX -holdScope exu_rsp_rdata[31:0]
+addSignal -h 15 -holdScope exu_rsp_err
+addGroup "G4" -e FALSE
+addSignal -h 15 /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_biu/sys_cmd_vld
+addSignal -h 15 -holdScope sys_cmd_rdy
+addSignal -h 15 -holdScope sys_cmd_write
+addSignal -h 15 -UNSIGNED -HEX -holdScope sys_cmd_addr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope sys_cmd_wdata[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope sys_cmd_wstrb[3:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope sys_cmd_size[2:0]
+addSignal -h 15 -holdScope sys_rsp_vld
+addSignal -h 15 -UNSIGNED -HEX -holdScope sys_rsp_rdata[31:0]
+addSignal -h 15 -holdScope sys_rsp_rdy
+addSignal -h 15 -holdScope sys_rsp_err
+addGroup "G5"
+addSignal -h 15 -UNSIGNED -HEX /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_icb2axi/icb_cmd_addr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope icb_cmd_wdata[31:0]
+addSignal -h 15 -holdScope icb_cmd_write
+addSignal -h 15 -holdScope icb_cmd_rdy
+addSignal -h 15 -holdScope icb_cmd_vld
+addSignal -h 15 -UNSIGNED -HEX -holdScope icb_cmd_wstrb[3:0]
+addSignal -h 15 -holdScope icb_rsp_rdy
+addSignal -h 15 -UNSIGNED -HEX -holdScope icb_cmd_size[2:0]
+addSignal -h 15 -holdScope icb_rsp_vld
+addSignal -h 15 -holdScope icb_rsp_err
+addSignal -h 15 -UNSIGNED -HEX -holdScope icb_rsp_rdata[31:0]
+addGroup "G6"
+addSignal -h 15 /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_icb2axi/axi_awvalid
+addSignal -h 15 -holdScope axi_awready
+addSignal -h 15 -holdScope axi_awlock
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_awaddr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_awid[3:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_awlen[7:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_awsize[2:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_awburst[1:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_awcache[3:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_awprot[2:0]
+addSignal -h 15 -holdScope icb_write
+addSignal -h 15 -holdScope no_aw_ots
+addSignal -h 15 -holdScope s_icb_cmd_vld
+addSignal -h 15 -holdScope s_icb_cmd_write
+addSignal -h 15 -holdScope axi_arvalid
+addSignal -h 15 -holdScope no_ar_ots
+addSignal -h 15 -holdScope icb_read
+addSignal -h 15 -holdScope s_icb_cmd_vld
+addSignal -h 15 -holdScope s_icb_cmd_write
+addGroup "G7"
+
+; getSignalForm Scope Hierarchy Status
+; active file of getSignalForm
+

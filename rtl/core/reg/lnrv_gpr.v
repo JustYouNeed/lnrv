@@ -23,7 +23,7 @@ module	lnrv_gpr#
     input                           reset_n
 );
 
-localparam                      LP_REG_COUNT = (2 << P_ADDR_WIDTH);
+localparam                      LP_REG_COUNT = (1 << P_ADDR_WIDTH);
 
 // 第0个寄存器固定为0
 reg[`CPU_DATA_WIDTH - 1 : 0]    gpr_q[LP_REG_COUNT - 1 : 1];

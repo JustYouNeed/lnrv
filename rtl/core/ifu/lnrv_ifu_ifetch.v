@@ -47,6 +47,8 @@ module	lnrv_ifu_ifetch
     input                               reset_n
 );
 
+localparam                      LP_IFU_BUF_WIDTH = 32 + 32 + 1;
+
 wire                            ifu_cmd_hsked;
 wire                            ifu_rsp_hsked;
 wire                            ifu_ir_hsked;
@@ -112,11 +114,11 @@ wire                            cmd_ots_d;
 
 wire                            ifu_buf_push_vld;
 wire                            ifu_buf_push_rdy;
-wire[64 : 0]                    ifu_buf_push_data;
+wire[LP_IFU_BUF_WIDTH - 1 : 0]  ifu_buf_push_data;
 
 wire                            ifu_buf_pop_vld;
 wire                            ifu_buf_pop_rdy;
-wire[64 : 0]                    ifu_buf_pop_data;
+wire[LP_IFU_BUF_WIDTH - 1 : 0]  ifu_buf_pop_data;
 
 // 没有滞外请求
 wire                            no_cmd_ots;
@@ -262,9 +264,9 @@ assign      ifu_ir_vld = ifu_buf_pop_vld;
 
 lnrv_gnrl_buffer#
 (
-    .P_DATA_WIDTH       ( 65                        ),
+    .P_DATA_WIDTH       ( LP_IFU_BUF_WIDTH          ),
     .P_DEEPTH           ( 1                         ),
-    .P_CUT_READY        ( "false"                   ),
+    .P_CUT_READY        ( "true"                    ),
     .P_BYPASS           ( "true"                    )
 )       
 u_ifu_buffer        
@@ -284,43 +286,6 @@ u_ifu_buffer
     .pop_data           ( ifu_buf_pop_data          )
 );
 
-// // 清除条件成立以及标志为低都认为ir无效
-// assign      ifu_ir_invalid = ifu_ir_vld_clr | (~ifu_ir_vld_q);
-
-// // 每次成功发出一次指令请求，或者收到一次流水线冲刷请求，就需要更新PC
-// assign      ifu_pc_rld = ifu_cmd_hsked;
-// assign      ifu_pc_d = instr_addr_q;
-// always@(posedge clk or negedge reset_n) begin
-//     if(reset_n == 1'b0) begin
-//         ifu_pc_q <= reset_vector;
-//     end else if(ifu_pc_rld) begin
-//         ifu_pc_q <= ifu_pc_d;
-//     end
-// end
-
-// ir
-// assign      ifu_ir_rld = ifu_ir_vld_rld;
-// assign      ifu_ir_d = ifu_rsp_rdata;
-// always@(posedge clk or negedge reset_n) begin
-//     if(reset_n == 1'b0) begin
-//         ifu_ir_q <= 32'd0;
-//     end else if(ifu_ir_rld) begin
-//         ifu_ir_q <= ifu_ir_d;
-//     end
-// end
-
-// 总线错误标志
-// assign      ifu_buserr_rld = ifu_ir_vld_rld;
-// assign      ifu_buserr_d = ifu_rsp_err;
-// always@(posedge clk or negedge reset_n) begin
-//     if(reset_n == 1'b0) begin
-//         ifu_buserr_q <= 1'b0;
-//     end else if(ifu_buserr_rld) begin
-//         ifu_buserr_q <= ifu_buserr_d;
-//     end
-// end
-
-
 // 只要没有滞外请求，且没有halt请求，就可以发出新的指令请求
 assign      ifu_cmd_vld     = no_cmd_ots & (~pipe_halt_req);
 assign      ifu_cmd_addr    = instr_addr_d;
@@ -331,10 +296,6 @@ assign      ifu_cmd_size    = 3'd2;
 // 如果当前有流水线冲刷请求，则可以接收新的指令，
 // 或者当前指令已经执行完成，也可以接收新的指令。
 assign      ifu_rsp_rdy = pipe_flush_vld | ifu_buf_push_rdy;
-
-// assign      ifu_ir = ifu_ir_q;
-// assign      ifu_pc = ifu_pc_q;
-// assign      ifu_ir_vld = ifu_ir_vld_q;
 
 // 无论什么时候都会接收流水线冲刷请求
 assign      pipe_flush_ack = 1'b1;
