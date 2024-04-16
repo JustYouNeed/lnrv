@@ -1,9 +1,12 @@
-module  lnrv_exu_debug
+module  lnrv_exu_dbg
 (
     input                       dbg_irq,
     input                       dbg_halt,
     input                       dbg_step,
     input                       dbg_trig,
+
+    input                       sys_excp_vld,
+    input                       sys_excp
 
     input                       d_mode,
 
@@ -57,11 +60,11 @@ assign      debug_request = disp_idle &
 assign      dbg_taken = step_pipe_flush_req | 
                         debug_request;
 
-assign      pipe_flush_req = dbg_taken;
-assign      pipe_flush_pc_op1 = 32'h800;
-assign      pipe_flush_pc_op2 = 32'd0;
+assign      pipe_flush_req      = dbg_taken;
+assign      pipe_flush_pc_op1   = 32'h800;
+assign      pipe_flush_pc_op2   = 32'd0;
 
-assign      cmt_dcsr   = pipe_flush_hsked;
+assign      cmt_dcsr    = pipe_flush_hsked;
 assign      cmt_dpc     = ifu_pc;
 assign      cmt_dcause  =   dbg_trig ? 3'd2 : 
                             dbg_halt ? 3'd3 : 

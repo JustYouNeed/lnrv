@@ -36,7 +36,7 @@ module  lnrv_exu#
     // 前级模块产生的异常信息
     input                                   dec_ifu_misalgn,        // 地址非对齐
     input                                   dec_ifu_buserr,         // 总线错误
-    input                                   dec_ilegal_instr,    // 非法指令
+    input                                   dec_idu_ilegal_instr,   // 非法指令
 
     input                                   ifu_pc_vld,
     input[31 : 0]                           ifu_pc,
@@ -273,6 +273,9 @@ lnrv_exu_disp u_lnrv_exu_disp
     .dec_op_bus                 ( dec_op_bus                ),
     .dec_op_vld                 ( dec_op_vld                ),
     .dec_op_rdy                 ( dec_op_rdy                ),
+    .dec_idu_ilegal_instr       ( dec_idu_ilegal_instr      ),
+    .dec_ifu_buserr             ( dec_ifu_buserr            ),
+    .dec_ifu_misalgn            ( dec_ifu_misalgn           ),
 
     .rglr_op_vld                ( rglr_op_vld               ),
     .rglr_op_rdy                ( rglr_op_rdy               ),
@@ -306,31 +309,32 @@ lnrv_exu_disp u_lnrv_exu_disp
 // 常规指令执行模块
 lnrv_exu_rglr u_lnrv_exu_rglr
 (
-    .op_vld                     ( rglr_op_vld               ),
-    .op_rdy                     ( rglr_op_rdy               ),
-    .op_bus                     ( rglr_op_bus               ),
+    .rglr_op_vld                ( rglr_op_vld               ),
+    .rglr_op_rdy                ( rglr_op_rdy               ),
+    .rglr_op_bus                ( rglr_op_bus               ),
 
     .rs1_rdata                  ( rs1_rdata                 ),
     .rs2_rdata                  ( rs2_rdata                 ),
     .imm                        ( dec_imm                   ),
     .pc                         ( dec_pc                    ),
 
-    .alu_op_vld                 ( rglr2alu_op_vld           ),
-    .alu_op_rdy                 ( rglr2alu_op_rdy           ),
-    .alu_op_bus                 ( rglr2alu_op_bus           ),
-    .alu_in1                    ( rglr2alu_in1              ),
-    .alu_in2                    ( rglr2alu_in2              ),
+    .rglr2alu_op_vld            ( rglr2alu_op_vld           ),
+    .rglr2alu_op_rdy            ( rglr2alu_op_rdy           ),
+    .rglr2alu_op_bus            ( rglr2alu_op_bus           ),
+    .rglr2alu_in1               ( rglr2alu_in1              ),
+    .rglr2alu_in2               ( rglr2alu_in2              ),
 
-    .gpr_wbck_vld               ( rglr2gpr_wbck_vld         ),
-    .gpr_wbck_rdy               ( rglr2gpr_wbck_rdy         )
+    .rglr2gpr_wbck_vld          ( rglr2gpr_wbck_vld         ),
+    .rglr2gpr_wbck_rdy          ( rglr2gpr_wbck_rdy         )
 );
 
 // csr指令处理模块 
 lnrv_exu_csr u_lnrv_exu_csr
 (
-    .op_vld                     ( csr_op_vld                ),
-    .op_rdy                     ( csr_op_rdy                ),
-    .op_bus                     ( csr_op_bus                ),
+    .csr_op_vld                 ( csr_op_vld                ),
+    .csr_op_rdy                 ( csr_op_rdy                ),
+    .csr_op_bus                 ( csr_op_bus                ),
+
     .imm                        ( dec_imm                   ),
 
     .csr_idx                    ( dec_csr_idx               ),
@@ -344,9 +348,9 @@ lnrv_exu_csr u_lnrv_exu_csr
     .alu_in2                    ( csr2alu_in2               ),
     .alu_res                    ( alu_res                   ),
 
-    .gpr_wbck_vld               ( csr2gpr_wbck_vld          ),
-    .gpr_wbck_rdy               ( csr2gpr_wbck_rdy          ),
-    .gpr_wbck_wdata             ( csr2gpr_wbck_wdata        ),
+    .csr2gpr_wbck_vld           ( csr2gpr_wbck_vld          ),
+    .csr2gpr_wbck_rdy           ( csr2gpr_wbck_rdy          ),
+    .csr2gpr_wbck_wdata         ( csr2gpr_wbck_wdata        ),
 
     .csr_wbck_vld               ( csr_wbck_vld              ),
     .csr_wbck_rdy               ( csr_wbck_rdy              ),
@@ -357,9 +361,9 @@ lnrv_exu_csr u_lnrv_exu_csr
 // 分支相关指令执行模块
 lnrv_exu_brch u_lnrv_exu_brch
 (
-    .op_vld                     ( brch_op_vld               ),
-    .op_rdy                     ( brch_op_rdy               ),
-    .op_bus                     ( brch_op_bus               ),
+    .brch_op_vld                ( brch_op_vld               ),
+    .brch_op_rdy                ( brch_op_rdy               ),
+    .brch_op_bus                ( brch_op_bus               ),
     
     .rs1_rdata                  ( rs1_rdata                 ),
     .rs2_rdata                  ( rs2_rdata                 ),
@@ -384,17 +388,18 @@ lnrv_exu_brch u_lnrv_exu_brch
     .pipe_flush_pc_op1          ( brch_pipe_flush_pc_op1    ),
     .pipe_flush_pc_op2          ( brch_pipe_flush_pc_op2    ),
 
-    .gpr_wbck_vld               ( brch2gpr_wbck_vld         ),
-    .gpr_wbck_rdy               ( brch2gpr_wbck_rdy         )
+    .brch2gpr_wbck_vld          ( brch2gpr_wbck_vld         ),
+    .brch2gpr_wbck_rdy          ( brch2gpr_wbck_rdy         )
 );
 
 
 // 乘除法指令执行模块
 lnrv_exu_mdv u_lnrv_exu_mdv
 (
-    .op_vld                     ( mdv_op_vld                ),
-    .op_rdy                     ( mdv_op_rdy                ),
-    .op_bus                     ( mdv_op_bus                ),
+    .mdv_op_vld                 ( mdv_op_vld                ),
+    .mdv_op_rdy                 ( mdv_op_rdy                ),
+    .mdv_op_bus                 ( mdv_op_bus                ),
+
     .gpr_wbck_vld               ( mdv2gpr_wbck_vld          ),
     .gpr_wbck_rdy               ( mdv2gpr_wbck_rdy          ),
     .gpr_wbck_wdata             ( mdv2gpr_wbck_wdata        ),
@@ -409,9 +414,9 @@ lnrv_exu_mdv u_lnrv_exu_mdv
 // 系统相关指令处理模块 
 lnrv_exu_sys u_lnrv_exu_sys
 (
-    .op_vld                     ( sys_op_vld                ),
-    .op_rdy                     ( sys_op_rdy                ),
-    .op_bus                     ( sys_op_bus                ),
+    .sys_op_vld                 ( sys_op_vld                ),
+    .sys_op_rdy                 ( sys_op_rdy                ),
+    .sys_op_bus                 ( sys_op_bus                ),
 
     .pc                         ( dec_pc                    ),
     .imm                        ( dec_imm                   ),
@@ -460,9 +465,9 @@ lnrv_exu_lsu u_lnrv_exu_lsu
     .alu_in2                ( lsu2alu_in2                   ),
     .alu_res                ( alu_res                       ),
 
-    .gpr_wbck_vld           ( lsu2gpr_wbck_vld              ),
-    .gpr_wbck_rdy           ( lsu2gpr_wbck_rdy              ),
-    .gpr_wbck_wdata         ( lsu2gpr_wbck_wdata            ),
+    .lsu2gpr_wbck_vld       ( lsu2gpr_wbck_vld              ),
+    .lsu2gpr_wbck_rdy       ( lsu2gpr_wbck_rdy              ),
+    .lsu2gpr_wbck_wdata     ( lsu2gpr_wbck_wdata            ),
 
     .lsu_cmd_vld            ( exu_cmd_vld                   ),
     .lsu_cmd_rdy            ( exu_cmd_rdy                   ),
@@ -570,7 +575,7 @@ lnrv_exu_excp u_lnrv_exu_excp
 );
 
 // 调试相关请求处理模块
-lnrv_exu_debug u_lnrv_exu_debug
+lnrv_exu_dbg u_lnrv_exu_dbg
 (
     .dbg_irq                    ( dbg_irq                   ),
     .dbg_halt                   ( dbg_halt                  ),

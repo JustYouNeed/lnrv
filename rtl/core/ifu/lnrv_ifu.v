@@ -10,8 +10,6 @@ module	lnrv_ifu
     // 复位向量
     input[31 : 0]                       reset_vector,
 
-    
-
     // 流水线冲刷请求
     input                               pipe_flush_req,
     output                              pipe_flush_ack,

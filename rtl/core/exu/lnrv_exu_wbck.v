@@ -14,10 +14,12 @@ module  lnrv_exu_wbck
     output                  lsu2gpr_wbck_rdy,
     input[31 : 0]           lsu2gpr_wbck_wdata,
 
+    // csr相关指令
     input                   csr2gpr_wbck_vld,
     output                  csr2gpr_wbck_rdy,
     input[31 : 0]           csr2gpr_wbck_wdata,
 
+    // 乘除法相关指令
     input                   mdv2gpr_wbck_vld,
     output                  mdv2gpr_wbck_rdy,
     input[31 : 0]           mdv2gpr_wbck_wdata,
@@ -32,6 +34,7 @@ module  lnrv_exu_wbck
     output[31 : 0]          gpr_wbck_wdata
 );
 
+// 这些指令不会同时产生写回请求
 assign      gpr_wbck_vld =  rglr2gpr_wbck_vld | 
                             csr2gpr_wbck_vld | 
                             brch2gpr_wbck_vld | 
@@ -40,15 +43,15 @@ assign      gpr_wbck_vld =  rglr2gpr_wbck_vld |
 
 assign      gpr_wbck_idx = rd_idx;
 
-assign      gpr_wbck_wdata =   lsu2gpr_wbck_vld ? lsu2gpr_wbck_wdata : 
-                            mdv2gpr_wbck_vld ? mdv2gpr_wbck_wdata : 
-                            csr2gpr_wbck_vld ? csr2gpr_wbck_wdata : 
-                            alu_res;
+assign      gpr_wbck_wdata =    ({32{lsu2gpr_wbck_vld}} & lsu2gpr_wbck_wdata) | 
+                                ({32{mdv2gpr_wbck_vld}} & mdv2gpr_wbck_wdata) | 
+                                ({32{csr2gpr_wbck_vld}} & csr2gpr_wbck_wdata) | 
+                                ({32{brch2gpr_wbck_vld | rglr2gpr_wbck_vld}} & alu_res);
 
-assign      rglr2gpr_wbck_rdy = gpr_wbck_rdy;
-assign      brch2gpr_wbck_rdy = gpr_wbck_rdy;
-assign      lsu2gpr_wbck_rdy = gpr_wbck_rdy;
-assign      mdv2gpr_wbck_rdy = gpr_wbck_rdy;
-assign      csr2gpr_wbck_rdy = gpr_wbck_rdy;
+assign      rglr2gpr_wbck_rdy   = gpr_wbck_rdy;
+assign      brch2gpr_wbck_rdy   = gpr_wbck_rdy;
+assign      lsu2gpr_wbck_rdy    = gpr_wbck_rdy;
+assign      mdv2gpr_wbck_rdy    = gpr_wbck_rdy;
+assign      csr2gpr_wbck_rdy    = gpr_wbck_rdy;
 
 endmodule
