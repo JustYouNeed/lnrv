@@ -7,11 +7,11 @@ module	lnrv_exu_sys
     input[31 : 0]                       pc,
     input[31 : 0]                       imm,
 
-
-    output                              sys_excp_vld,
-    input                               sys_excp_rdy,
-    output                              sys_excp_ecall,
-    output                              sys_excp_ebreak,
+    output                              sys_cmt_vld,
+    input                               sys_cmt_rdy,
+    output                              sys_cmt_ebreak,
+    output                              sys_cmt_ecall,
+    output                              sys_cmt_wfi,
 
     // 流水线暂停请求
     output                              pipe_halt_req,

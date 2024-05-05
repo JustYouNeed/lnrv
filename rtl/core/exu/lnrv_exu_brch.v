@@ -15,18 +15,19 @@ module lnrv_exu_brch
     output[`ALU_OP_BUS_WIDTH - 1 : 0]       alu_op_bus,
     output[31 : 0]                          alu_in1,
     output[31 : 0]                          alu_in2,
-    input[31 : 0]                           alu_res,
+    input[31 : 0]                           alu_add_res,
+    input                                   alu_cmp_res,
 
     input[31 : 0]                           dpc,
     input[31 : 0]                           mepc,
 
-    output                                  cmt_mret,
-    output                                  cmt_dret,
-
-    output                                  brch_pipe_flush_req,
-    input                                   brch_pipe_flush_ack,
-    output[31 : 0]                          brch_pipe_flush_pc_op1,
-    output[31 : 0]                          brch_pipe_flush_pc_op2,
+    output                                  brch_cmt_vld,
+    input                                   brch_cmt_rdy,
+    output                                  brch_cmt_dret,
+    output                                  brch_cmt_mret,
+    output                                  brch_cmt_fence,
+    output                                  brch_cmt_bjp,
+    output                                  brch_cmt_bjp_res,
 
     output                                  gpr_wbck_vld,
     input                                   gpr_wbck_rdy
@@ -54,6 +55,7 @@ wire                        instr_is_mret;
 wire                        instr_is_dret;
 // wire                        instr_is_fencei;
 wire                        instr_is_fence;
+wire                        instr_is_bxx;
 
 wire                        op1_is_pc;
 wire                        op2_is_imm;
@@ -85,19 +87,8 @@ assign      instr_is_fence  = brch_op_bus[`BRCH_FENCE_LOC];
 assign      op1_is_pc       = brch_op_bus[`BRCH_OP1_IS_PC];
 assign      op2_is_imm      = brch_op_bus[`BRCH_OP2_IS_IMM];
 
-// 以下指令一定会跳转
-assign      brch_must_taken =   instr_is_jalr | 
-                                instr_is_jal | 
-                                instr_is_dret | 
-                                instr_is_mret | 
-                                instr_is_fence;
+assign      alu_op_vld = brch_op_vld;
 
-// 当条件成立的时候跳转
-assign      brch_cond_taken = alu_res[0] & alu_hsked;
-assign      brch_taken      = brch_must_taken | brch_cond_taken;
-
-
-//如果是直接跳转指令，需要执行pc + 4，否则就是比较x[rs1]和x[rs2]两个寄存器中的值
 assign      alu_op_bus[`ALU_ADD_LOC]    = instr_is_jal | instr_is_jalr;
 assign      alu_op_bus[`ALU_SLL_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_SUB_LOC]    = 1'b0;
@@ -113,32 +104,42 @@ assign      alu_op_bus[`ALU_EQ_LOC]     = instr_is_beq;
 assign      alu_op_bus[`ALU_GTEU_LOC]   = instr_is_bgeu;
 assign      alu_op_bus[`ALU_GTE_LOC]    = instr_is_bge;
 
+// 如果是直接跳转指令，需要执行pc + 4，否则就是比较x[rs1]和x[rs2]两个寄存器中的值
 assign      alu_in1 = op1_is_pc ? pc : rs1_rdata;
 assign      alu_in2 = op2_is_imm ? 32'd4 : rs2_rdata;
 
-// 只有mret和dret不需要使用alu
-assign      need_alu = ~(instr_is_dret | instr_is_mret);
+// 以下指令一定会跳转
+assign      brch_must_taken =   instr_is_jalr | 
+                                instr_is_jal | 
+                                instr_is_dret | 
+                                instr_is_mret | 
+                                instr_is_fence;
 
-// mret 和dret指令不需要使用alu
-assign      alu_op_vld = need_alu & brch_op_vld;
+// 当条件成立的时候跳转
+assign      brch_cond_taken = alu_cmp_res;
+assign      brch_taken      = brch_must_taken | brch_cond_taken;
 
-// 请求冲刷流水线
-assign      brch_pipe_flush_req = brch_taken;
 
-assign      brch_pipe_flush_pc_op1 =    instr_is_dret ? dpc : 
-                                        instr_is_mret ? mepc : 
-                                        instr_is_jalr ? rs1_rdata : 
-                                        pc;
-assign      brch_pipe_flush_pc_op2 =    instr_is_dret ? 32'd0 : 
-                                        instr_is_mret ? 32'd0 : 
-                                        instr_is_fence ? 32'd4 : 
-                                        imm;
+assign      brch_cmt_bjp    =   instr_is_blt | 
+                                instr_is_bltu | 
+                                instr_is_bne | 
+                                instr_is_beq | 
+                                instr_is_bge | 
+                                instr_is_bgeu;
 
-// jal和jalr这两条指令需要将pc写回寄存器
-assign      need_wbck = instr_is_jal | instr_is_jalr;
+assign      brch_cmt_dret   = instr_is_dret;
+assign      brch_cmt_mret   = instr_is_mret;
+assign      brch_cmt_fence  = instr_is_fence;
+assign      brch_cmt_jal    = instr_is_jal;
+assign      brch_cmt_jalr   = instr_is_jalr;
+
+assign      brch_cmt_vld    = brch_op_vld;
+
+// 分支结果
+assign      brch_cmt_bjp_res = brch_must_taken | brch_cond_taken;
 
 // jal和jalr指令需要写回
-assign      gpr_wbck_vld = need_wbck & alu_hsked;
+assign      gpr_wbck_vld = instr_is_jal | instr_is_jalr & alu_hsked;
 
 assign      brch_op_rdy = brch_pipe_flush_req ? brch_pipe_flush_ack : gpr_wbck_rdy;
 

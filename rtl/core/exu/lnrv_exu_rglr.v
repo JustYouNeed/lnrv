@@ -16,9 +16,8 @@ module	lnrv_exu_rglr
     output[31 : 0]                              rglr2alu_in1,
     output[31 : 0]                              rglr2alu_in1,
 
-    // 通用寄存器写回接口
-    output                                      rglr2gpr_wbck_vld,
-    input                                       rglr2gpr_wbck_rdy
+    output                                      rglr_cmt_vld,
+    input                                       rglr_cmt_rdy
 );
 
 // 该模块处理以下指令:
@@ -107,11 +106,9 @@ assign      rglr2alu_in1 =  op1_is_pc ? pc :
 assign      rglr2alu_in2 = op2_is_imm ? imm : rs2_rdata;
 
 
-// assign      gpr_wbck_data =   op_slt ? {{31{1'b0}}, alu_cmp_res} : 
-//                             alu_logic_res;
-assign      rglr2gpr_wbck_vld = alu_hsked;
+assign      rglr_cmt_vld = alu_hsked;
 
-assign      rglr_op_rdy = rglr2gpr_wbck_rdy;
+assign      rglr_op_rdy = rglr_cmt_rdy;
 
 endmodule
 

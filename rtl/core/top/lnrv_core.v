@@ -65,12 +65,12 @@ wire                                    ifu_pipe_halt_req;
 wire                                    ifu_pipe_halt_ack;
 wire                                    ifu_pipe_flush_req;
 wire                                    ifu_pipe_flush_ack;
-wire                                    ifu_ir_vld;
+wire                                    ifu_pc_vld;
 wire[`CPU_ADDR_WIDTH - 1 : 0]           ifu_pc;
 wire[`CPU_DATA_WIDTH - 1 : 0]           ifu_ir;
 
 
-wire                                    ifu_ir_rdy;
+wire                                    ifu_pc_rdy;
 wire                                    idu_pipe_halt_req;
 wire                                    idu_pipe_halt_ack;
 wire                                    idu_pipe_flush_req;
@@ -173,8 +173,8 @@ lnrv_ifu u_lnrv_ifu
     .pipe_halt_req              ( ifu_pipe_halt_req         ),
     .pipe_halt_ack              ( ifu_pipe_halt_ack         ),
 
-    .ifu_ir_vld                 ( ifu_ir_vld                ),
-    .ifu_ir_rdy                 ( ifu_ir_rdy                ),
+    .ifu_pc_vld                 ( ifu_pc_vld                ),
+    .ifu_pc_rdy                 ( ifu_pc_rdy                ),
     .ifu_pc                     ( ifu_pc                    ),
     .ifu_ir                     ( ifu_ir                    ),
 
@@ -199,8 +199,8 @@ lnrv_idu u_lnrv_idu
 (
     .idu_active                 ( idu_active                ),
 
-    .ifu_ir_vld                 ( ifu_ir_vld                ),
-    .ifu_ir_rdy                 ( ifu_ir_rdy                ),
+    .ifu_pc_vld                 ( ifu_pc_vld                ),
+    .ifu_pc_rdy                 ( ifu_pc_rdy                ),
     .ifu_ir                     ( ifu_ir                    ),
     .ifu_pc                     ( ifu_pc                    ),
     .ifu_misalgn                ( 1'b0                      ),
@@ -277,7 +277,7 @@ lnrv_exu u_lnrv_exu
     .dec_ifu_buserr             ( dec_ifu_buserr            ),
     .dec_ilegal_instr           ( dec_idu_instr_ilegl       ),
 
-    .ifu_pc_vld                 ( ifu_ir_vld                ),
+    .ifu_pc_vld                 ( ifu_pc_vld                ),
     .ifu_pc                     ( ifu_pc                    ),
 
     .rs1_rdata                  ( rs1_rdata                 ),

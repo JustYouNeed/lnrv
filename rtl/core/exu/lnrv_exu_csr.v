@@ -19,6 +19,11 @@ module lnrv_exu_csr
     output[31 : 0]                      alu_in2,
     input[31 : 0]                       alu_res,
 
+
+    output                              csr_cmt_vld,
+    input                               csr_cmt_rdy,
+    output                              csr_cmt_idxerr,
+
     // 通用寄存器写回接口
     output                              gpr_wbck_vld,
     input                               gpr_wbck_rdy,

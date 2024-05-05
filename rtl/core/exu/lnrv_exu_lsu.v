@@ -1,35 +1,31 @@
 `include "lnrv_def.v"
 module lnrv_exu_lsu
 (
-    input                               op_vld,
-    output                              op_rdy,
-    input[`LSU_OP_BUS_WIDTH - 1 : 0]    op_bus,
+    input                               lsu_op_vld,
+    output                              lsu_op_rdy,
+    input[`LSU_OP_BUS_WIDTH - 1 : 0]    lsu_op_bus,
 
     input[31 : 0]                       rs1_rdata,
     input[31 : 0]                       rs2_rdata,
     input[31 : 0]                       imm,
 
     // 异常接口
-    output                              lsu_excp_vld,
-    input                               lsu_excp_rdy,
-    output                              lsu_ld_addr_misalgn,
-    output                              lsu_ld_access_fault,
-    output                              lsu_st_addr_misalgn,
-    output                              lsu_st_access_fault,
-    output[31 : 0]                      lsu_bad_addr,
+    output                              lsu_cmt_vld,
+    input                               lsu_cmt_rdy,
+    output                              lsu_cmt_ld,
+    output                              lsu_cmt_st,
+    output                              lsu_cmt_misalgn,
+    output                              lsu_cmt_buserr,
+    output[31 : 0]                      lsu_cmt_addr,
+    output[31 : 0]                      lsu_cmt_gpr_wdata,
 
     // alu
-    output                              alu_op_vld,
-    input                               alu_op_rdy,
-    output[`ALU_OP_BUS_WIDTH - 1 : 0]   alu_op_bus,
-    output[31 : 0]                      alu_in1,
-    output[31 : 0]                      alu_in2,
-    input[31 : 0]                       alu_res,
-
-    // 通用寄存器写回
-    output                              gpr_wbck_vld,
-    input                               gpr_wbck_rdy,
-    output[31 : 0]                      gpr_wbck_wdata,
+    output                              lsu2alu_op_vld,
+    input                               lsu2alu_op_rdy,
+    output[`ALU_OP_BUS_WIDTH - 1 : 0]   lsu2alu_op_bus,
+    output[31 : 0]                      lsu2alu_in1,
+    output[31 : 0]                      lsu2alu_in2,
+    input[31 : 0]                       lsu2alu_add_res,
 
     // 系统总线
     output                              lsu_cmd_vld,
@@ -117,10 +113,10 @@ assign      lsu_cmd_hsked = lsu_cmd_vld & lsu_cmd_rdy;
 assign      lsu_rsp_hsked = lsu_rsp_vld & lsu_rsp_rdy;
 
 
-assign      instr_is_load = op_bus[`LSU_LOAD_LOC];
-assign      instr_is_store = op_bus[`LSU_STORE_LOC];
-assign      ls_size = op_bus[`LSU_SIZE_LOC];
-assign      ls_uext = op_bus[`LSU_UEXT_LOC];
+assign      instr_is_load   = lsu_op_bus[`LSU_LOAD_LOC];
+assign      instr_is_store  = lsu_op_bus[`LSU_STORE_LOC];
+assign      ls_size         = lsu_op_bus[`LSU_SIZE_LOC];
+assign      ls_uext         = lsu_op_bus[`LSU_UEXT_LOC];
 
 
 assign      byte_access = (ls_size == 2'd0);
@@ -128,8 +124,8 @@ assign      half_access = (ls_size == 2'd1);
 assign      word_access = (ls_size == 2'd2);
 
 assign      addr_algn_byte = 1'b1;
-assign      addr_algn_half = ~alu_res[0];
-assign      addr_algn_word = ~(|alu_res[1 : 0]);
+assign      addr_algn_half = ~lsu2alu_add_res[0];
+assign      addr_algn_word = ~(|lsu2alu_add_res[1 : 0]);
 
 // 判断访问地址是否对齐
 assign      addr_algn = (byte_access & addr_algn_byte) | 
@@ -142,7 +138,7 @@ assign      no_ots_cmd = (~(cmd_ots_q | cmd_ots_set));
 
 // 访存的地址信息需要通过alu计算得到，因此我们只有在alu计算结束后，才可以输出总线访问请求，
 // 不支持非对齐访问
-assign      cmd_vld_set = addr_algn & op_vld & no_ots_cmd & alu_op_rdy;
+assign      cmd_vld_set = addr_algn & lsu_op_vld & no_ots_cmd & lsu2alu_op_rdy;
 assign      cmd_vld_clr = lsu_cmd_hsked;
 assign      cmd_vld_rld = cmd_vld_set | cmd_vld_clr;
 assign      cmd_vld_d = ~cmd_vld_clr;
@@ -212,15 +208,12 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 
-// 我们直接将lsu的resp接到异常处理模块
-// 对于地址非对齐异常，我们不会发出总线访问请求，直接申请异常处理
-assign      lsu_excp_vld        =   addr_misalgn ? op_vld : 
-                                    lsu_rsp_vld & lsu_rsp_err;
-assign      lsu_ld_access_fault = lsu_rsp_err & instr_is_load;
-assign      lsu_st_access_fault = lsu_rsp_err & instr_is_store;
-assign      lsu_ld_addr_misalgn = addr_misalgn & instr_is_load;
-assign      lsu_st_addr_misalgn = addr_misalgn & instr_is_store;
-assign      lsu_bad_addr = alu_res;
+
+// assign      lsu_ld_access_fault = lsu_rsp_err & instr_is_load;
+// assign      lsu_st_access_fault = lsu_rsp_err & instr_is_store;
+// assign      lsu_ld_addr_misalgn = addr_misalgn & instr_is_load;
+// assign      lsu_st_addr_misalgn = addr_misalgn & instr_is_store;
+// assign      lsu_bad_addr = alu_res;
 
 // 根据当前地址以及访问模式决定输出数据
 assign      store_byte =    (lsu_cmd_addr[1 : 0] == 2'b00) ? {24'd0, rs2_rdata[7 : 0]} : 
@@ -261,7 +254,7 @@ assign      sext_half = {{16{load_half[15]}}, load_half};
 assign      uext_half = {{16{1'b0}}, load_half};
 assign      ext_half = ls_uext ? uext_half : sext_half;
 
-assign      alu_op_vld = op_vld;
+assign      alu_op_vld = lsu_op_vld;
 assign      alu_op_bus[`ALU_ADD_LOC]    = instr_is_load | instr_is_store;
 assign      alu_op_bus[`ALU_SUB_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_OR_LOC]     = 1'b0;
@@ -279,15 +272,34 @@ assign      alu_op_bus[`ALU_EQ_LOC]     = 1'b0;
 assign      alu_in1                     = rs1_rdata;
 assign      alu_in2                     = imm;
 
-// 在没有发生异常的情况下才可以写回
-assign      gpr_wbck_vld    = lsu_rsp_vld & (~lsu_excp_vld) & instr_is_load;
-assign      gpr_wbck_wdata  =   byte_access ? ext_byte : 
+
+
+assign      lsu_op_rdy = lsu_cmt_rdy;
+
+// // 在没有发生异常的情况下才可以写回
+// assign      gpr_wbck_vld    = lsu_rsp_vld & (~lsu_excp_vld) & instr_is_load;
+// assign      gpr_wbck_wdata  =   byte_access ? ext_byte : 
+//                                 half_access ? ext_half : 
+//                                 lsu_rsp_rdata;
+
+// assign      op_rdy =    lsu_excp_vld ? lsu_excp_rdy : 
+//                         instr_is_load ? gpr_wbck_rdy & gpr_wbck_vld : 
+//                         lsu_rsp_hsked;
+
+// 我们直接将lsu的resp接到异常处理模块
+// 对于地址非对齐异常，我们不会发出总线访问请求，直接申请异常处理
+// lsu交付
+// 1、如果当前发生了地址非对齐错误，则不会有访问操作发出，直接将该指令交付，产生异常
+// 2、如果正常发出了访问操作，但是有错误，则产生总线错误异常
+assign      lsu_cmt_vld = addr_misalgn ? lsu_op_vld : lsu_rsp_vld;
+assign      lsu_cmt_misalgn = addr_misalgn;
+assign      lsu_cmt_buserr = lsu_rsp_err;
+assign      lsu_cmt_ld = instr_is_load;
+assign      lsu_cmt_st = instr_is_store;
+assign      lsu_cmt_addr = lsu_cmd_addr;
+assign      lsu_cmt_gpr_wdata = byte_access ? ext_byte : 
                                 half_access ? ext_half : 
                                 lsu_rsp_rdata;
-
-assign      op_rdy =    lsu_excp_vld ? lsu_excp_rdy : 
-                        instr_is_load ? gpr_wbck_rdy & gpr_wbck_vld : 
-                        lsu_rsp_hsked;
 
 endmodule
 

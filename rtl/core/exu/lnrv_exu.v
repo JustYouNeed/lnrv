@@ -14,29 +14,28 @@ module  lnrv_exu#
     output                                  exu_active,
 
     // 译码信息
-    input                                   dec_rglr_instr,
-    input                                   dec_lsu_instr,
-    input                                   dec_brch_instr,
-    input                                   dec_csr_instr,
-    input                                   dec_mdv_instr,
-    input                                   dec_amo_instr,
-    input                                   dec_fpu_instr,
-    input                                   dec_sys_instr,
-    input[`DEC_OP_BUS_WIDTH - 1 : 0]        dec_op_bus,
-    input                                   dec_op_vld,
-    output                                  dec_op_rdy,
-    input[4 : 0]                            dec_rs1_idx,
-    input[4 : 0]                            dec_rs2_idx,
-    input[4 : 0]                            dec_rd_idx,
-    input[11 : 0]                           dec_csr_idx,
-    input[31 : 0]                           dec_imm,
-    input[31 : 0]                           dec_pc,
-    input[31 : 0]                           dec_ir,
+    input                                   idu_pc_vld,
+    output                                  idu_pc_rdy,
+    input                                   idu_rlgr_instr,
+    input                                   idu_lsu_instr,
+    input                                   idu_brch_instr,
+    input                                   idu_mdv_instr,
+    input                                   idu_sys_instr,
+    input                                   idu_csr_instr,
+    input                                   idu_amo_instr,
+    input[`DEC_OP_BUS_WIDTH - 1 : 0]        idu_op_bus,
+    input[4 : 0]                            idu_rs1_idx,
+    input[4 : 0]                            idu_rs2_idx,
+    input[4 : 0]                            idu_rd_idx,
+    input[11 : 0]                           idu_csr_idx,
+    input[31 : 0]                           idu_imm,
+    input[31 : 0]                           idu_pc,
+    input[31 : 0]                           idu_ir,
 
     // 前级模块产生的异常信息
-    input                                   dec_ifu_misalgn,        // 地址非对齐
-    input                                   dec_ifu_buserr,         // 总线错误
-    input                                   dec_idu_ilegal_instr,   // 非法指令
+    input                                   ifu_excp_misalgn,        // 地址非对齐
+    input                                   ifu_excp_buserr,         // 总线错误
+    input                                   idu_excp_ilgl_ir,   // 非法指令
 
     input                                   ifu_pc_vld,
     input[31 : 0]                           ifu_pc,
@@ -44,6 +43,7 @@ module  lnrv_exu#
     input[31 : 0]                           rs1_rdata,
     input[31 : 0]                           rs2_rdata,
     input[31 : 0]                           csr_rdata,
+    input                                   csr_idx_err,
 
     // 流水线冲刷请求
     output                                  pipe_flush_req,
@@ -67,6 +67,8 @@ module  lnrv_exu#
 
     input                                   d_mode,
     input                                   m_mode,
+    // wfi模式指示信号，为高时表示处于wfi模式中
+    output                                  wfi_mode,
 
 
     input                                   dbg_halt,
@@ -75,9 +77,6 @@ module  lnrv_exu#
     input                                   dcsr_ebreakm,
     input                                   dcsr_stepie,
     input                                   dcsr_step,
-
-    // wfi模式指示信号，为高时表示处于wfi模式中
-    output                                  wfi_mode,
 
     // 通用寄存器写回接口       
     output                                  gpr_wbck_vld,
@@ -97,16 +96,21 @@ module  lnrv_exu#
     input[31 : 0]                           dpc,
 
     // 交付接口
-    output                                  cmt_irq,
-    output                                  cmt_excp,
-    output                                  cmt_debug,
-    output                                  cmt_mret,
-    output                                  cmt_dret,
-    output[31 : 0]                          cmt_mepc,
-    output[31 : 0]                          cmt_mcause,
-    output[31 : 0]                          cmt_mtval,
-    output[31 : 0]                          cmt_dpc,
-    output[2 : 0]                           cmt_dcause,
+    output                                  irq_taken,
+    output                                  excp_taken,
+    output                                  dbg_taken,
+
+    output                                  mepc_wdata_vld,
+    output[31 : 0]                          mepc_wdata,
+    output                                  mtval_wdata_vld,
+    output[31 : 0]                          mtval_wdata,
+    output                                  mcause_wdata_vld,
+    output[31 : 0]                          mcause_wdata,
+    
+    output                                  dpc_wdata_vld,
+    output[31 : 0]                          dpc_wdata,
+    output                                  dcause_wdata_vld,
+    output[2 : 0]                           dcause_wdata,
 
     output                                  exu_cmd_vld,
     input                                   exu_cmd_rdy,
@@ -484,127 +488,6 @@ lnrv_exu_lsu u_lnrv_exu_lsu
     .clk                    ( clk                           ),
     .reset_n                ( reset_n                       )
 );
-
-
-// 中断处理模块
-lnrv_exu_irq u_lnrv_exu_irq
-(           
-    .sft_irq                ( sft_irq                       ),
-    .ext_irq                ( ext_irq                       ),
-    .tmr_irq                ( tmr_irq                       ),
-
-    .sft_irq_en             ( sft_irq_en                    ),
-    .ext_irq_en             ( ext_irq_en                    ),
-    .tmr_irq_en             ( tmr_irq_en                    ),
-
-    .mstatus_mie            ( mstatus_mie                   ),
-
-    .ifu_pc_vld             ( ifu_pc_vld                    ),
-    .ifu_pc                 ( ifu_pc                        ),
-
-    .disp_idle              ( disp_idle                     ),
-
-    .d_mode                 ( d_mode                        ),
-
-    .irq_taken              ( irq_taken                     ),
-
-    .cmt_csr                ( irq_cmt_csr                   ),
-    .cmt_mepc               ( irq_cmt_mepc                  ),
-    .cmt_mcause             ( irq_cmt_mcause                ),
-
-    .dcsr_step              ( dcsr_step                     ),
-    .dcsr_stepie            ( dcsr_stepie                   ),
-
-    .mtvec                  ( mtvec                         ),
-
-    .pipe_flush_req         ( irq_pipe_flush_req            ),
-    .pipe_flush_ack         ( irq_pipe_flush_ack            ),
-    .pipe_flush_pc_op1      ( irq_pipe_flush_pc_op1         ),
-    .pipe_flush_pc_op2      ( irq_pipe_flush_pc_op2         ),
-
-    .clk                    ( clk                           ),
-    .reset_n                ( reset_n                       )
-);
-
-// 异常处理模块
-lnrv_exu_excp u_lnrv_exu_excp
-(
-    .dec_excp_vld           ( dec_op_vld                    ),
-    .dec_excp_rdy           (                               ),
-    .dec_ilegal_instr       ( dec_ilegal_instr              ),
-    .dec_ifu_buserr         ( dec_ifu_buserr                ),
-    .dec_ifu_misalgn        ( dec_ifu_misalgn               ),
-
-    .lsu_excp_vld           ( lsu_excp_vld                  ),
-    .lsu_excp_rdy           ( lsu_excp_rdy                  ),
-    .lsu_ld_addr_misalgn    ( lsu_ld_addr_misalgn           ),
-    .lsu_ld_access_fault    ( lsu_ld_access_fault           ),
-    .lsu_st_addr_misalgn    ( lsu_st_addr_misalgn           ),
-    .lsu_st_access_fault    ( lsu_st_access_fault           ),
-    .lsu_bad_addr           ( lsu_bad_addr                  ),
-
-    .sys_excp_vld           ( sys_excp_vld                  ),
-    .sys_excp_rdy           ( sys_excp_rdy                  ),
-    .sys_excp_ecall         ( sys_excp_ecall                ),
-    .sys_excp_ebreak        ( sys_excp_ebreak               ),
-
-    .cmt_csr                ( excp_cmt_csr                  ),
-    .cmt_mepc               ( excp_cmt_mepc                 ),
-    .cmt_mcause             ( excp_cmt_mcause               ),
-    .cmt_mtval              ( excp_cmt_mtval                ),
-
-    .cmt_dcsr               ( excp_cmt_dcsr                 ),
-    .cmt_dpc                ( excp_cmt_dpc                  ),
-    .cmt_dcause             ( excp_cmt_dcause               ),
-
-    .pc                     ( dec_pc                        ),
-    .ir                     ( dec_ir                        ),
-
-    .m_mode                 ( m_mode                        ),
-    .d_mode                 ( d_mode                        ),
-    .dcsr_ebreakm           ( dcsr_ebreakm                  ),
-    .mtvec                  ( mtvec                         ),
-
-    .pipe_flush_req         ( excp_pipe_flush_req           ),
-    .pipe_flush_ack         ( excp_pipe_flush_ack           ),
-    .pipe_flush_pc_op1      ( excp_pipe_flush_pc_op1        ),
-    .pipe_flush_pc_op2      ( excp_pipe_flush_pc_op2        ),
-
-    .clk                    ( clk                           ),
-    .reset_n                ( reset_n                       )
-);
-
-// 调试相关请求处理模块
-lnrv_exu_dbg u_lnrv_exu_dbg
-(
-    .dbg_irq                    ( dbg_irq                   ),
-    .dbg_halt                   ( dbg_halt                  ),
-    .dbg_step                   ( dcsr_step                 ),
-    .dbg_trig                   ( 1'b0                      ),
-
-    .d_mode                     ( d_mode                    ),
-
-    .dbg_taken                  ( dbg_taken                 ),
-
-    .ifu_pc_vld                 ( ifu_pc_vld                ),
-    .ifu_pc                     ( ifu_pc                    ),
-
-    .disp_idle                  ( disp_idle                 ),
-    .disp_hsked                 ( disp_hsked                ),
-
-    .pipe_flush_req             ( debug_pipe_flush_req      ),
-    .pipe_flush_ack             ( debug_pipe_flush_ack      ),
-    .pipe_flush_pc_op1          ( debug_pipe_flush_pc_op1   ),
-    .pipe_flush_pc_op2          ( debug_pipe_flush_pc_op2   ),
-
-    .cmt_dcsr                   ( debug_cmt_dcsr            ),
-    .cmt_dpc                    ( debug_cmt_dpc             ),
-    .cmt_dcause                 ( debug_cmt_dcause          ),
-
-    .clk                        ( clk                       ),
-    .reset_n                    ( reset_n                   )
-);
-
 
 // 有多个模块需要使用alu单元
 lnrv_exu_alu_mux u_lnrv_exu_alu_mux
