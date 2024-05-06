@@ -50,7 +50,7 @@ module lnrv_exu_cmt
     // csr相关指令交付请求
     input                       csr_cmt_vld,
     output                      csr_cmt_rdy,
-    input                       csr_cmt_idxerr,
+    input                       csr_cmt_idx_err,
     input[31 : 0]               csr_cmt_gpr_wdata,
 
     // alu结果输入
@@ -163,16 +163,16 @@ lnrv_exu_irq u_lnrv_exu_irq
     .reset_n                ( reset_n                       )
 );
 
-assign      lsu_cmt_ld_vld = lsu_cmt_vld & lsu_cmt_ld;
 assign      lsu_excp_ld_misalgn = lsu_cmt_ld & lsu_cmt_misalgn;
 assign      lsu_excp_ld_buserr = lsu_cmt_ld & lsu_cmt_buserr;
 
-assign      lsu_cmt_st_vld = lsu_cmt_vld & lsu_cmt_st;
 assign      lsu_excp_st_buserr = lsu_cmt_st & lsu_cmt_buserr;
 assign      lsu_excp_st_misalgn = lsu_cmt_st & lsu_cmt_misalgn;
 
 assign      sys_excp_ecall = sys_cmt_ecall;
 assign      sys_excp_ebreak = sys_cmt_ebreak;
+
+assign      csr_excp_idxerr = csr_cmt_idx_err;
 
 // 异常处理模块
 lnrv_exu_excp u_lnrv_exu_excp
@@ -326,7 +326,6 @@ assign      dcause_wdata_vld = dcause_wdata_vld_dbg;
 assign      dcause_wdata = dcause_wdata_dbg;
 
 
-
 // 所有常规指令都需要写回
 assign      rglr_need_wbck = rglr_cmt_vld;
 
@@ -343,7 +342,7 @@ assign      lsu_need_wbck = lsu_cmt_vld &
                             );
 
 // csr寄存器操作指令，需要在csr idx正确的情况下才会写回
-assign      csr_need_wbck = csr_cmt_vld & (~csr_cmt_idxerr);
+assign      csr_need_wbck = csr_cmt_vld & (~csr_cmt_idx_err);
 
 // 如是有异常或者中断请求冲刷流水线，则当前指令都不能与回
 assign      wbck_need_abort = pipe_flush_req_excp | pipe_flush_req_dbg;
@@ -356,13 +355,19 @@ assign      gpr_wbck_vld = (~wbck_need_abort) &
                                 csr_need_wbck
                            );
 
+assign      gpr_wbck_data = lsu_need_wbck ? lsu_cmt_gpr_wdata : 
+                            (rglr_need_wbck | brch_need_wbck) ? alu_add_res : 
+                            csr_need_wbck ? csr_cmt_gpr_wdata : 
+                            32'd0;
+
+// assign      gpr_wbck_idx = rd_idx;
 
 // 任何时候都可以接收指令交付
-assign      rglr_cmt_rdy = 1'b1;
-assign      csr_cmt_rdy = 1'b1;
-assign      brch_cmt_rdy = 1'b1;
-assign      sys_cmt_rdy = 1'b1;
-assign      lsu_cmt_rdy = 1'b1;
+assign      rglr_cmt_rdy    = 1'b1;
+assign      csr_cmt_rdy     = 1'b1;
+assign      brch_cmt_rdy    = 1'b1;
+assign      sys_cmt_rdy     = 1'b1;
+assign      lsu_cmt_rdy     = 1'b1;
 
 endmodule
 

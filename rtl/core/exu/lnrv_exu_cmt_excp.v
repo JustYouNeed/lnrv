@@ -1,10 +1,7 @@
 module lnrv_exu_excp
 (
-    input                       exu_pc_vld,
     input[31 : 0]               exu_pc,
     input[31 : 0]               exu_ir,
-
-    input                       cmt_hsked,
 
     output                      excp_taken,
 
@@ -25,6 +22,9 @@ module lnrv_exu_excp
     // 来自sys指令处理模块的异常，主要为ecall以及ebreak
     input                       sys_excp_ecall,
     input                       sys_excp_ebreak,
+
+    // CSR指令操作不存在的CSR寄存器时发生异常
+    input                       csr_excp_idxerr,
 
     output                      mepc_wdata_vld,
     output[31 : 0]              mepc_wdata,
@@ -61,6 +61,7 @@ wire                    lsu_excp_taken;
 wire                    idu_excp_taken;
 wire                    ifu_excp_taken;
 wire                    sys_excp_taken;
+wire                    csr_excp_taken;
 
 wire                    any_excp_taken;
 
@@ -92,10 +93,14 @@ assign      ifu_excp_taken =    ifu_excp_buserr |
 assign      ebreak4excp = (dbg_mode | (~dcsr_ebreakm)) & sys_excp_ebreak;
 assign      sys_excp_taken = sys_excp_ecall | ebreak4excp;
 
+assign      csr_excp_taken = csr_excp_idxerr;
+
 assign      any_excp_taken =    lsu_excp_taken | 
                                 idu_excp_taken | 
                                 ifu_excp_taken | 
-                                sys_excp_taken;
+                                sys_excp_taken | 
+                                csr_excp_taken | 
+                                1'b0;
 
 // 只要有异常发生，就请求冲刷流水线，异常只会在指令交付时有效，所以不需要等待exu idle
 assign      pipe_flush_req = 1'b1 & any_excp_taken;
@@ -120,7 +125,7 @@ assign      mcause_wdata[31] = 1'b0;
 assign      mcause_wdata[30 : 4] = 27'd0;
 assign      mcause_wdata[3 : 0] =   ifu_excp_misalgn ? 4'd0 : 
                                     ifu_excp_buserr ? 4'd1 : 
-                                    idu_excp_ilgl_ir ? 4'd2 : 
+                                    (idu_excp_ilgl_ir | csr_excp_idxerr) ? 4'd2 : 
                                     ebreak4excp ? 4'd3 : 
                                     lsu_excp_ld_misalgn ? 4'd4 :
                                     lsu_excp_ld_buserr ? 4'd5 : 
@@ -134,8 +139,8 @@ assign      mcause_wdata[3 : 0] =   ifu_excp_misalgn ? 4'd0 :
 // 如果是取指时发生错误，则将错误更新到mtval寄存器
 // 如果是译码时发现是非法指令，则将指令本身更新到mtval寄存器
 assign      mtval_wdata_vld = mepc_wdata_vld;
-assign      mtval_wdata =   (dec_ifu_buserr | dec_ifu_misalgn) ? pc : 
-                            dec_idu_ilegal_instr ? ir : 
+assign      mtval_wdata =   (dec_ifu_buserr | dec_ifu_misalgn) ? exu_pc : 
+                            dec_idu_ilegal_instr ? exu_ir : 
                             lsu_excp_taken ? lsu_bad_addr : 
                             32'd0;
 

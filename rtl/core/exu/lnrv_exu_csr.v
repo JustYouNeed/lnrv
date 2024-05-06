@@ -1,12 +1,14 @@
 `include "lnrv_def.v"
 module lnrv_exu_csr
 (
-    input                               op_vld,
-    output                              op_rdy,
-    input[`CSR_OP_BUS_WIDTH - 1 : 0]    op_bus,
-    input[31 : 0]                       imm,
+    input                               csr_op_vld,
+    output                              csr_op_rdy,
+    input[`CSR_OP_BUS_WIDTH - 1 : 0]    csr_op_bus,
 
+    
+    input[31 : 0]                       imm,
     input[11 : 0]                       csr_idx,
+    input                               csr_idx_err,
     input[31 : 0]                       csr_rdata,
     input[31 : 0]                       rs1_rdata,
     // input[31 : 0]                       rs2_rdata,
@@ -19,15 +21,11 @@ module lnrv_exu_csr
     output[31 : 0]                      alu_in2,
     input[31 : 0]                       alu_res,
 
-
+    // 交付接口
     output                              csr_cmt_vld,
     input                               csr_cmt_rdy,
-    output                              csr_cmt_idxerr,
-
-    // 通用寄存器写回接口
-    output                              gpr_wbck_vld,
-    input                               gpr_wbck_rdy,
-    output[31 : 0]                      gpr_wbck_wdata,
+    output                              csr_cmt_idx_err,
+    output[31 : 0]                      csr_cmt_gpr_wdata,
 
     // csr寄存器写回通道
     output                              csr_wbck_vld,
@@ -64,7 +62,7 @@ assign      need_alu = instr_is_csrrc | instr_is_csrrs;
 
 assign      alu_in1 = op1;
 assign      alu_in2 = instr_is_csrrc ? (~op2) : op2;
-assign      alu_op_vld = op_vld & need_alu;
+assign      alu_op_vld = csr_op_vld & need_alu;
 
 assign      alu_op_bus[`ALU_ADD_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_SUB_LOC]    = 1'b0;
@@ -82,13 +80,12 @@ assign      alu_op_bus[`ALU_NEQ_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_EQ_LOC]     = 1'b0;
 
 
-assign      gpr_wbck_vld = need_alu ? alu_hsked : op_vld;
-assign      gpr_wbck_wdata = csr_rdata;
+assign      csr_cmt_vld         = need_alu ? alu_op_rdy : 1'b1;
+assign      csr_cmt_idx_err     = csr_op_vld & csr_idx_err;
+assign      csr_cmt_gpr_wdata   = csr_rdata;
 
-assign      csr_wbck_vld = gpr_wbck_vld;
-assign      csr_wbck_idx = csr_idx;
-assign      csr_wbck_wdata = need_alu ? alu_res : op2;
-
-assign      op_rdy = gpr_wbck_rdy & csr_wbck_rdy;
+assign      csr_wbck_vld    = csr_cmt_vld;
+assign      csr_wbck_idx    = csr_idx;
+assign      csr_wbck_wdata  = need_alu ? alu_res : op2;
 
 endmodule

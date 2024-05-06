@@ -20,6 +20,8 @@ module lnrv_exu_cmt_irq
     // 有中断发生
     output                      irq_taken,
 
+    output                      irq_pending,
+
     // 中断发生时需要修改mcsr寄存器
     output                      mepc_wdata_vld,
     output[31 : 0]              mepc_wdata,

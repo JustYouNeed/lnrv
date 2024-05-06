@@ -61,6 +61,7 @@ wire                            pipe_flush_hsked;
 
 assign      pipe_flush_hsked = pipe_flush_req & pipe_flush_ack;
 
+// 如果设置了单步调试，我们需要在执行完一条指令后，请求CPU进入debug mode 
 assign      dbg_step_trig_set = dbg_step & non_dbg_mode & cmt_hsked & (~pipe_flush_hsked);
 assign      dbg_step_trig_clr = pipe_flush_hsked;
 assign      dbg_step_trig_rld = dbg_step_trig_set | dbg_step_trig_clr;
@@ -89,6 +90,7 @@ assign      pipe_flush_req = exu_idle & ifu_pc_vld & pipe_flush_req_pre;
 assign      pipe_flush_pc_op1   = 32'h800;
 assign      pipe_flush_pc_op2   = 32'd0;
 
+// 进入debug mode时，将当前pc值保存到dpc寄存器
 assign      dpc_wdata_vld   = pipe_flush_hsked;
 assign      dpc_wdata       = exu_pc;
 

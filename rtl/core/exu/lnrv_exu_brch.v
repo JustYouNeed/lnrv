@@ -84,10 +84,24 @@ assign      instr_is_dret   = brch_op_bus[`BRCH_DRET_LOC];
 // assign      instr_is_fencei = brch_op_bus[`BRCH_FENCEI_LOC];
 assign      instr_is_fence  = brch_op_bus[`BRCH_FENCE_LOC];
 
+assign      instr_is_bxx    =   instr_is_beq | 
+                                instr_is_bge | 
+                                instr_is_bgeu | 
+                                instr_is_blt | 
+                                instr_is_bltu | 
+                                instr_is_bne;
+
 assign      op1_is_pc       = brch_op_bus[`BRCH_OP1_IS_PC];
 assign      op2_is_imm      = brch_op_bus[`BRCH_OP2_IS_IMM];
 
-assign      alu_op_vld = brch_op_vld;
+// 除了下列指令，都需要使用alu
+assign      need_alu = ~(
+                            instr_is_mret | 
+                            instr_is_dret | 
+                            instr_is_fence
+                        );
+
+assign      alu_op_vld                  = brch_op_vld & need_alu;
 
 assign      alu_op_bus[`ALU_ADD_LOC]    = instr_is_jal | instr_is_jalr;
 assign      alu_op_bus[`ALU_SLL_LOC]    = 1'b0;
@@ -108,42 +122,15 @@ assign      alu_op_bus[`ALU_GTE_LOC]    = instr_is_bge;
 assign      alu_in1 = op1_is_pc ? pc : rs1_rdata;
 assign      alu_in2 = op2_is_imm ? 32'd4 : rs2_rdata;
 
-// 以下指令一定会跳转
-assign      brch_must_taken =   instr_is_jalr | 
-                                instr_is_jal | 
-                                instr_is_dret | 
-                                instr_is_mret | 
-                                instr_is_fence;
 
-// 当条件成立的时候跳转
-assign      brch_cond_taken = alu_cmp_res;
-assign      brch_taken      = brch_must_taken | brch_cond_taken;
-
-
-assign      brch_cmt_bjp    =   instr_is_blt | 
-                                instr_is_bltu | 
-                                instr_is_bne | 
-                                instr_is_beq | 
-                                instr_is_bge | 
-                                instr_is_bgeu;
-
+assign      brch_cmt_bjp    = instr_is_bxx & alu_cmp_res;
 assign      brch_cmt_dret   = instr_is_dret;
 assign      brch_cmt_mret   = instr_is_mret;
 assign      brch_cmt_fence  = instr_is_fence;
 assign      brch_cmt_jal    = instr_is_jal;
 assign      brch_cmt_jalr   = instr_is_jalr;
 
-assign      brch_cmt_vld    = brch_op_vld;
-
-// 分支结果
-assign      brch_cmt_bjp_res = brch_must_taken | brch_cond_taken;
-
-// jal和jalr指令需要写回
-assign      gpr_wbck_vld = instr_is_jal | instr_is_jalr & alu_hsked;
-
-assign      brch_op_rdy = brch_pipe_flush_req ? brch_pipe_flush_ack : gpr_wbck_rdy;
-
-assign      cmt_mret = instr_is_mret & brch_pipe_flush_ack;
-assign      cmt_dret = instr_is_dret & brch_pipe_flush_ack;
+// 如果需要使用alu，则需要等alu就绪才可以交付
+assign      brch_cmt_vld    = need_alu ? alu_op_rdy : brch_op_vld;
 
 endmodule
