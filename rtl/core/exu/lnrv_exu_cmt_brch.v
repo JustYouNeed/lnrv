@@ -13,10 +13,6 @@ module lnrv_exu_cmt_brch
 
     input                       bpu_prdt_res,
 
-    output                      cmt_mret_rdy,
-    output                      cmt_dret_rdy,
-    output                      cmt_fence_rdy,
-
     // 流水线冲刷请求
     output                      pipe_flush_req,
     input                       pipe_flush_ack,

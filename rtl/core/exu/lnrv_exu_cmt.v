@@ -1,7 +1,7 @@
 module lnrv_exu_cmt
 (
-    input                       exu_pc_vld,
-    output                      exu_pc_rdy,
+    input                       exu_idle,
+    input                       exu_hsked,
     input[31 : 0]               exu_pc,
     input[31 : 0]               exu_ir,
 
@@ -110,17 +110,60 @@ module lnrv_exu_cmt
     input                       gpr_wbck_rdy,
     output[31 : 0]              gpr_wbck_data,
 
+    output                      cmt_mret,
+    output                      cmt_dret,
+
     input                       clk,
     input                       reset_n
 );
 
-wire                        rglr_need_wbck;
-wire                        brch_need_wbck;
-wire                        csr_need_wbck;
-wire                        lsu_need_wbck;
-wire                        sys_need_wbck;
+wire                            rglr_need_wbck;
+wire                            brch_need_wbck;
+wire                            csr_need_wbck;
+wire                            lsu_need_wbck;
+wire                            sys_need_wbck;
 
-wire                        wbck_need_abort;
+wire                            wbck_need_abort;
+
+wire                            pipe_flush_req_irq;
+wire                            pipe_flush_ack_irq;
+wire[31 : 0]                    pipe_flush_pc_op1_irq;
+wire[31 : 0]                    pipe_flush_pc_op2_irq;
+wire                            pipe_flush_hsked_irq;
+wire[31 : 0]                    mepc_wdata_irq;
+wire[31 : 0]                    mcause_wdata_irq;
+
+wire                            pipe_flush_req_excp;
+wire                            pipe_flush_ack_excp;
+wire[31 : 0]                    pipe_flush_pc_op1_excp;
+wire[31 : 0]                    pipe_flush_pc_op2_excp;
+wire                            pipe_flush_hsked_excp;
+wire[31 : 0]                    mepc_wdata_excp;
+wire[31 : 0]                    mcause_wdata_excp;
+wire[31 : 0]                    mtval_wdata_excp;
+
+wire                            pipe_flush_req_dbg;
+wire                            pipe_flush_ack_dbg;
+wire[31 : 0]                    pipe_flush_pc_op1_dbg;
+wire[31 : 0]                    pipe_flush_pc_op2_dbg;
+wire                            pipe_flush_hsked_dbg;
+wire[31 : 0]                    dpc_wdata_dbg;
+wire[2 : 0]                     dcause_wdata_dbg;
+
+wire                            pipe_flush_req_brch;
+wire                            pipe_flush_ack_brch;
+wire[31 : 0]                    pipe_flush_pc_op1_brch;
+wire[31 : 0]                    pipe_flush_pc_op2_brch;
+wire                            pipe_flush_hsked_brch;
+
+
+wire                            lsu_excp_ld_misalgn;
+wire                            lsu_excp_ld_buserr;
+wire                            lsu_excp_st_buserr;
+wire                            lsu_excp_st_misalgn;
+wire                            sys_excp_ecall;
+wire                            sys_excp_ebreak;
+wire                            csr_excp_idxerr;
 
 // 中断处理模块
 lnrv_exu_irq u_lnrv_exu_irq
@@ -141,10 +184,7 @@ lnrv_exu_irq u_lnrv_exu_irq
 
     .d_mode                 ( d_mode                        ),
 
-    .mepc_wdata_vld         ( mepc_wdata_vld_irq            ),
     .mepc_wdata             ( mepc_wdata_irq                ),
-
-    .mcause_wdata_vld       ( mcause_wdata_vld_irq          ),
     .mcause_wdata           ( mcause_wdata_irq              ),
 
     .irq_taken              ( irq_taken                     ),
@@ -195,13 +235,8 @@ lnrv_exu_excp u_lnrv_exu_excp
     .sys_excp_ecall         ( sys_excp_ecall                ),
     .sys_excp_ebreak        ( sys_excp_ebreak               ),
 
-    .mepc_wdata_vld         ( mepc_wdata_vld_excp           ),
     .mepc_wdata             ( mepc_wdata_excp               ),
-
-    .mcause_wdata_vld       ( mcause_wdata_vld_excp         ),
     .mcause_wdata           ( mcause_wdata_excp             ),
-
-    .mtval_wdata_vld        ( mtval_wdata_vld_excp          ),
     .mtval_wdata            ( mtval_wdata_excp              ),
 
     .m_mode                 ( m_mode                        ),
@@ -239,8 +274,7 @@ lnrv_exu_dbg u_lnrv_exu_dbg
 
     .sys_cmt_ebreak         ( sys_cmt_ebreak                ),
 
-    .dbg_mode               ( dbg_mode                      ),
-    .non_dbg_mode           ( non_dbg_mode                  ),
+    .d_mode                 ( d_mode                        ),
 
     .dcsr_ebreakm           ( dcsr_ebreakm                  ),
 
@@ -249,10 +283,7 @@ lnrv_exu_dbg u_lnrv_exu_dbg
     .pipe_flush_pc_op1      ( pipe_flush_pc_op1_dbg         ),
     .pipe_flush_pc_op2      ( pipe_flush_pc_op2_dbg         ),
 
-    .dpc_wdata_vld          ( dpc_wdata_vld_dbg             ),
     .dpc_wdata              ( dpc_wdata_dbg                 ),
-
-    .dcause_wdata_vld       ( dcause_wdata_vld_dbg          ),
     .dcause_wdata           ( dcause_wdata_dbg              ),
 
     .clk                    ( clk                           ),
@@ -260,6 +291,27 @@ lnrv_exu_dbg u_lnrv_exu_dbg
 );
 
 
+lnrv_exu_cmt_brch u_lnrv_exu_cmt_brch
+(
+    .brch_cmt_vld           ( brch_cmt_vld                  ),
+    .brch_cmt_rdy           ( brch_cmt_rdy                  ),
+    .brch_cmt_bjp           ( brch_cmt_bjp                  ),
+    .brch_cmt_jal           ( brch_cmt_jal                  ),
+    .brch_cmt_jalr          ( brch_cmt_jalr                 ),
+    .brch_cmt_mret          ( brch_cmt_mret                 ),
+    .brch_cmt_dret          ( brch_cmt_dret                 ),
+    .brch_cmt_fence         ( brch_cmt_fence                ),
+    
+    .bpu_prdt_res           ( bpu_prdt_res                  ),
+    
+    .pipe_flush_req         ( pipe_flush_req_brch           ),
+    .pipe_flush_ack         ( pipe_flush_ack_brch           ),
+    .pipe_flush_pc_op1      ( pipe_flush_pc_op1_brch        ),
+    .pipe_flush_pc_op2      ( pipe_flush_pc_op2_brch        ),
+
+    .clk                    ( clk                           ),
+    .reset_n                ( reset_n                       )
+);
 
 // 流水线冲刷请求优先级如下：
 // 1、debug请求
@@ -308,21 +360,22 @@ assign      pipe_flush_ack_excp =  pipe_flush_ack &
                                     );
 
 
-// 操作mcsr寄存器
-assign      mepc_wdata_vld = mepc_wdata_vld_irq | mepc_wdata_vld_excp;
-assign      mepc_wdata = mepc_wdata_vld_irq ? mepc_wdata_irq : mepc_wdata_excp;
-
-assign      mcause_wdata_vld = mcause_wdata_vld_irq | mcause_wdata_vld_excp;
-assign      mcause_wdata = mcause_wdata_vld_irq ? mcause_wdata_irq : mcause_wdata_excp;
-
-assign      mtval_wdata_vld = mtval_wdata_vld_excp;
-assign      mtval_wdata = mtval_wdata_excp;
+// 有中断/异常发生时需要更新以下寄存器
+// 1、mepc
+// 2、mcause
+// 3、mtval(仅发生异常时需要更新)
+assign      mepc_wdata_vld      = pipe_flush_hsked_irq | pipe_flush_hsked_excp;
+assign      mepc_wdata          = pipe_flush_hsked_irq ? mepc_wdata_irq : mepc_wdata_excp;
+assign      mcause_wdata_vld    = mepc_wdata_vld;
+assign      mcause_wdata        = pipe_flush_hsked_irq ? mcause_wdata_irq : mcause_wdata_excp;
+assign      mtval_wdata_vld     = pipe_flush_hsked_excp;
+assign      mtval_wdata         = mtval_wdata_excp;
 
 // 操作dcsr寄存器
-assign      dpc_wdata_vld = dpc_wdata_vld_dbg;
+assign      dpc_wdata_vld = pipe_flush_hsked_dbg;
 assign      dpc_wdata = dpc_wdata_dbg;
 
-assign      dcause_wdata_vld = dcause_wdata_vld_dbg;
+assign      dcause_wdata_vld = pipe_flush_hsked_dbg;
 assign      dcause_wdata = dcause_wdata_dbg;
 
 
@@ -360,14 +413,19 @@ assign      gpr_wbck_data = lsu_need_wbck ? lsu_cmt_gpr_wdata :
                             csr_need_wbck ? csr_cmt_gpr_wdata : 
                             32'd0;
 
+assign      cmt_mret = brch_cmt_mret & pipe_flush_hsked_brch;
+assign      cmt_dret = brch_cmt_dret & pipe_flush_hsked_brch;
+
 // assign      gpr_wbck_idx = rd_idx;
 
 // 任何时候都可以接收指令交付
-assign      rglr_cmt_rdy    = 1'b1;
-assign      csr_cmt_rdy     = 1'b1;
-assign      brch_cmt_rdy    = 1'b1;
-assign      sys_cmt_rdy     = 1'b1;
-assign      lsu_cmt_rdy     = 1'b1;
+assign      rglr_cmt_rdy    = pipe_flush_req ? pipe_flush_ack : gpr_wbck_rdy;
+assign      csr_cmt_rdy     = pipe_flush_req ? pipe_flush_ack : gpr_wbck_rdy;
+assign      brch_cmt_rdy    = pipe_flush_req ? pipe_flush_ack : 
+                                brch_need_wbck ? gpr_wbck_rdy : 1'b1;
+assign      sys_cmt_rdy     = pipe_flush_req ? pipe_flush_ack : 1'b1;
+assign      lsu_cmt_rdy     = pipe_flush_req ? pipe_flush_ack : 
+                                lsu_need_wbck ? gpr_wbck_rdy : 1'b1;
 
 endmodule
 

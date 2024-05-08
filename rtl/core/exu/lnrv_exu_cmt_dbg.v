@@ -18,8 +18,7 @@ module  lnrv_exu_dbg
     // ebreak
     input                       sys_cmt_ebreak,
 
-    input                       dbg_mode,
-    input                       non_dbg_mode,
+    input                       d_mode,
 
     // 该寄存器用于设置ebreak指令用途
     // 0:产生异常
@@ -32,11 +31,8 @@ module  lnrv_exu_dbg
     output[31 : 0]              pipe_flush_pc_op1,
     output[31 : 0]              pipe_flush_pc_op2,
 
-    output                      dpc_wdata_vld,
     output[31 : 0]              dpc_wdata,
-
-    output                      dcause_wdata_vld,
-    output[31 : 0]              dcause_wdata,
+    output[2 : 0]               dcause_wdata,
 
 
     input                       clk,
@@ -53,13 +49,15 @@ wire                            dbg_step_trig_rld;
 wire                            dbg_step_trig_d;
 
 wire                            debug_request;
-wire                            not_in_debug_mode;
+wire                            non_dbg_mode;
 
 wire                            step_pipe_flush_req;
 wire                            pipe_flush_hsked;
 
 
 assign      pipe_flush_hsked = pipe_flush_req & pipe_flush_ack;
+
+assign      non_dbg_mode = ~d_mode;
 
 // 如果设置了单步调试，我们需要在执行完一条指令后，请求CPU进入debug mode 
 assign      dbg_step_trig_set = dbg_step & non_dbg_mode & cmt_hsked & (~pipe_flush_hsked);
@@ -91,10 +89,8 @@ assign      pipe_flush_pc_op1   = 32'h800;
 assign      pipe_flush_pc_op2   = 32'd0;
 
 // 进入debug mode时，将当前pc值保存到dpc寄存器
-assign      dpc_wdata_vld   = pipe_flush_hsked;
 assign      dpc_wdata       = exu_pc;
 
-assign      dcause_wdata_vld    = pipe_flush_hsked;
 assign      dcause_wdata        = ebreak4debug ? 3'd2 : 
                                   dbg_halt ? 3'd3 : 
                                   dbg_step_trig_q ? 3'd4 : 

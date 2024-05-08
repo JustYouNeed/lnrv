@@ -23,9 +23,7 @@ module lnrv_exu_cmt_irq
     output                      irq_pending,
 
     // 中断发生时需要修改mcsr寄存器
-    output                      mepc_wdata_vld,
     output[31 : 0]              mepc_wdata,
-    output                      mcause_wdata_vld,
     output[31 : 0]              mcause_wdata,
 
     input                       dcsr_stepie,        // 在单步调试模式下是否使能中断
@@ -51,10 +49,10 @@ wire                            tmr_irq_vld;
 wire                            any_irq_vld;
 
 wire                            dbg_msk_irq;
-wire                            pipe_flush_hsked;
+// wire                            pipe_flush_hsked;
 
 
-assign      pipe_flush_hsked = pipe_flush_req & pipe_flush_ack;
+// assign      pipe_flush_hsked = pipe_flush_req & pipe_flush_ack;
 
 assign      sft_irq_vld = sft_irq & mie_msie;
 assign      ext_irq_vld = ext_irq & mie_meie;
@@ -88,13 +86,10 @@ assign      pipe_flush_pc_op1 = mtvec;
 assign      pipe_flush_pc_op2 = 32'd0;
 
 
-// 我们需要等流水线冲刷请求被接收后才请求修改相应的csr寄存器
-assign      mepc_wdata_vld = pipe_flush_hsked;
 // 对于中断，我们需要将下一条未执行指令的地址保存到mepc中，exu处于流水线的第三级，pc由idu输出，已经
 // 执行完成，ifu的输出即为下一条未执行指令的地址
 assign      mepc_wdata = ifu_pc;
 
-assign      mcause_wdata_vld        = mepc_wdata_vld;
 assign      mcause_wdata[31]        = 1'b1;
 assign      mcause_wdata[30 : 4]    = 27'd0;
 assign      mcause_wdata[3 : 0]     = sft_irq_vld ? 4'd3 : 

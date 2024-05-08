@@ -10,6 +10,7 @@ module	lnrv_exu_disp
 
     input[`DEC_OP_BUS_WIDTH - 1 : 0]    idu_op_bus,
     input                               idu_op_vld,
+    output                              idu_op_rdy,
 
     // 前级模块产生的异常信息
     input                               ifu_excp_misalgn,        // 地址非对齐
@@ -18,26 +19,32 @@ module	lnrv_exu_disp
 
     // 常规指令 
     output                              rglr_op_vld,
+    input                               rglr_op_rdy,
     output[`RGLR_OP_BUS_WIDTH - 1 : 0]  rglr_op_bus,
 
     // 访问指令
     output                              lsu_op_vld,
+    input                               lsu_op_rdy,
     output[`LSU_OP_BUS_WIDTH - 1 : 0]   lsu_op_bus,
 
     // 分支指令
     output                              brch_op_vld,
+    input                               brch_op_rdy,
     output[`BRCH_OP_BUS_WIDTH - 1 : 0]  brch_op_bus,
 
     // csr相关指令 
     output                              csr_op_vld,
+    input                               csr_op_rdy,
     output[`CSR_OP_BUS_WIDTH - 1 : 0]   csr_op_bus,
 
     // 系统指令
     output                              sys_op_vld,
+    input                               sys_op_rdy,
     output[`SYS_OP_BUS_WIDTH - 1 : 0]   sys_op_bus,
 
     // 乘除法指令
     output                              mdv_op_vld,
+    input                               mdv_op_rdy,
     output[`MDV_OP_BUS_WIDTH - 1 : 0]   mdv_op_bus,
 
 
@@ -87,6 +94,14 @@ assign      sys_op_bus = {`SYS_OP_BUS_WIDTH{sys_op_vld}} & idu_op_bus[0 +: `SYS_
 // 派发到乘除法指令模块执行
 assign      mdv_op_vld = idu_mdv_instr & disp_condition;
 assign      mdv_op_bus = {`MDV_OP_BUS_WIDTH{mdv_op_vld}} & idu_op_bus[0 +: `MDV_OP_BUS_WIDTH];
+
+
+assign      idu_op_rdy =    (rglr_op_vld & rglr_op_rdy) | 
+                            (lsu_op_vld & lsu_op_rdy) | 
+                            (brch_op_vld & brch_op_rdy) | 
+                            (csr_op_vld & csr_op_rdy) | 
+                            (sys_op_vld & sys_op_rdy) | 
+                            (mdv_op_vld & mdv_op_rdy);
 
 assign      disp_hsked = idu_op_vld & idu_op_rdy;
 assign      disp_idle = (~idu_op_vld) | disp_hsked;
