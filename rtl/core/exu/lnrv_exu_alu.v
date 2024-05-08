@@ -7,8 +7,7 @@ module  lnrv_exu_alu
     input[31 : 0]                       alu_in1,
     input[31 : 0]                       alu_in2,
 
-    output[31 : 0]                      alu_add_res,
-    output                              alu_cmp_res
+    output[31 : 0]                      alu_res
 );
 
 wire                    alu_op_add;
@@ -63,20 +62,20 @@ wire                    op_unsigned;
 integer                 i;
 
 //从总线中取出各个操作符
-assign      alu_op_add      = alu_op_bus[`ALU_ADD_LOC];      // 加法     res = in1 + in2
-assign      alu_op_sub      = alu_op_bus[`ALU_SUB_LOC];       
-assign      alu_op_and      = alu_op_bus[`ALU_AND_LOC];      // 与       res = in1 & in2
-assign      alu_op_or       = alu_op_bus[`ALU_OR_LOC];       // 或       res = in1 | in2
-assign      alu_op_xor      = alu_op_bus[`ALU_XOR_LOC];      // 异或     res = in1 ^ in2
-assign      alu_op_sll      = alu_op_bus[`ALU_SLL_LOC];      // 逻辑左移 res = in1 << in2
-assign      alu_op_srl      = alu_op_bus[`ALU_SRL_LOC];      // 逻辑右移 res = in1 >> in2
-assign      alu_op_sra      = alu_op_bus[`ALU_SRA_LOC];      // 算术右移 res = in1 >> in2
-assign      alu_cmp_eq      = alu_op_bus[`ALU_EQ_LOC];      // 等于     res = in1 == in2
-assign      alu_cmp_neq     = alu_op_bus[`ALU_NEQ_LOC];     // 不等于   res = in1 != in2
-assign      alu_cmp_lt      = alu_op_bus[`ALU_LT_LOC];      // 小于     res = in1 < in2
-assign      alu_cmp_ltu     = alu_op_bus[`ALU_LTU_LOC];     // 夫符号小于     res = in1 <= in2
-assign      alu_cmp_gteu    = alu_op_bus[`ALU_GTEU_LOC];    // 无符号大于等于		res = in1 > in2
-assign      alu_cmp_gte     = alu_op_bus[`ALU_GTE_LOC];     // 大于等于		res = in1 >= in2
+assign      alu_op_add  = alu_op_bus[`ALU_ADD_LOC];      // 加法     res = in1 + in2
+assign      alu_op_sub  = alu_op_bus[`ALU_SUB_LOC];       
+assign      alu_op_and  = alu_op_bus[`ALU_AND_LOC];      // 与       res = in1 & in2
+assign      alu_op_or   = alu_op_bus[`ALU_OR_LOC];       // 或       res = in1 | in2
+assign      alu_op_xor  = alu_op_bus[`ALU_XOR_LOC];      // 异或     res = in1 ^ in2
+assign      alu_op_sll  = alu_op_bus[`ALU_SLL_LOC];      // 逻辑左移 res = in1 << in2
+assign      alu_op_srl  = alu_op_bus[`ALU_SRL_LOC];      // 逻辑右移 res = in1 >> in2
+assign      alu_op_sra  = alu_op_bus[`ALU_SRA_LOC];      // 算术右移 res = in1 >> in2
+assign      alu_cmp_eq   = alu_op_bus[`ALU_EQ_LOC];      // 等于     res = in1 == in2
+assign      alu_cmp_neq  = alu_op_bus[`ALU_NEQ_LOC];     // 不等于   res = in1 != in2
+assign      alu_cmp_lt   = alu_op_bus[`ALU_LT_LOC];      // 小于     res = in1 < in2
+assign      alu_cmp_ltu  = alu_op_bus[`ALU_LTU_LOC];     // 夫符号小于     res = in1 <= in2
+assign      alu_cmp_gteu = alu_op_bus[`ALU_GTEU_LOC];    // 无符号大于等于		res = in1 > in2
+assign      alu_cmp_gte  = alu_op_bus[`ALU_GTE_LOC];     // 大于等于		res = in1 >= in2
 
 
 assign      op_unsigned = alu_cmp_ltu | alu_cmp_gteu;
@@ -142,20 +141,22 @@ assign      in1_lt_in2 = adder_res[32];
 // assign      in1_gt_in2 = (~in1_lt_in2) & in1_neq_in2;
 assign      in1_gte_in2 = (~in1_lt_in2);
 
-assign      alu_res =   ({32{alu_op_add | alu_op_sub}} & in1_add_in2) | 
-                        ({32{alu_op_and}} & in1_and_in2) | 
-                        ({32{alu_op_or}}? in1_or_in2) |
-                        ({32{alu_op_xor}} ? in1_xor_in2) |
-                        ({32{alu_op_sll}} ? in1_sll_in2) |
-                        ({32{alu_op_srl}} ? in1_srl_in2) |
-                        ({32{alu_op_sra}} ? in1_sra_in2) | 
+assign      alu_res =   (alu_op_add | alu_op_sub) ? in1_add_in2 : 
+                        (alu_op_and) ? in1_and_in2 : 
+                        (alu_op_or) ? in1_or_in2 : 
+                        (alu_op_xor) ? in1_xor_in2 : 
+                        (alu_op_sll) ? in1_sll_in2 : 
+                        (alu_op_srl) ? in1_srl_in2 : 
+                        (alu_op_sra) ? in1_sra_in2 : 
+                        (alu_cmp_lt | alu_cmp_ltu) ? {31'd0, in1_lt_in2} : 
+                        // alu_cmp_ltu ? {31'd0, in1_lte_in2} : 
+                        alu_cmp_eq ? {31'd0, in1_eq_in2} : 
+                        // alu_cmp_gteu ? {31'd0, in1_gt_in2} : 
+                        (alu_cmp_gte | alu_cmp_gteu) ? {31'd0, in1_gte_in2} : 
+                        alu_cmp_neq ? {31'd0, in1_neq_in2} : 
                         32'd0;
 
-assign      alu_cmp_res =   ((alu_cmp_lt | alu_cmp_ltu) & in1_lt_in2) | 
-                            ((alu_cmp_gte | alu_cmp_gteu) & in1_gte_in2) | 
-                            (alu_cmp_neq & in1_neq_in2);
-
 // alu运算模块是纯组合逻辑，只要valid拉高，ready就有效
-assign      alu_op_rdy = 1'b1;
+assign      alu_op_rdy = alu_op_vld;
 
 endmodule

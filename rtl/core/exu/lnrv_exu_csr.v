@@ -5,7 +5,6 @@ module lnrv_exu_csr
     output                              csr_op_rdy,
     input[`CSR_OP_BUS_WIDTH - 1 : 0]    csr_op_bus,
 
-    
     input[31 : 0]                       imm,
     input[11 : 0]                       csr_idx,
     input                               csr_idx_err,
