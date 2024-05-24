@@ -1,9 +1,9 @@
 `include "lnrv_def.v"
 module	lnrv_exu_sys
 (
-    input                               op_vld,
-    output                              op_rdy,
-    input[`SYS_OP_BUS_WIDTH - 1 : 0]    op_bus,
+    input                               sys_op_vld,
+    output                              sys_op_rdy,
+    input[`SYS_OP_BUS_WIDTH - 1 : 0]    sys_op_bus,
     input[31 : 0]                       pc,
     input[31 : 0]                       imm,
 
@@ -89,11 +89,9 @@ end
 assign      pipe_halt_req = pipe_halt_req_q;
 assign      wfi_mode = wfi_mode_q & (~wfi_mode_clr);
 
-assign      sys_excp_vld = op_vld;
-assign      sys_excp_ecall = instr_is_ecall;
-assign      sys_excp_ebreak = instr_is_ebreak;
+assign      sys_cmt_vld = sys_op_vld;
+assign      sys_cmt_ebreak = instr_is_ebreak;
+assign      sys_cmt_ecall = instr_is_ecall;
 
-assign      op_rdy =    instr_is_wfi ? pipe_halt_hsked : 
-                        sys_excp_rdy;
-
+assign      sys_op_rdy = sys_cmt_rdy;
 endmodule

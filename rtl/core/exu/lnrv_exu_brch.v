@@ -28,9 +28,7 @@ module lnrv_exu_brch
     output                                  brch_cmt_fence,
     output                                  brch_cmt_bjp,
     output                                  brch_cmt_bjp_res,
-
-    output                                  gpr_wbck_vld,
-    input                                   gpr_wbck_rdy
+    output                                  brch_cmt_gpr_wen
 );
 
 // 该模块处理分支相关指令:
@@ -132,5 +130,6 @@ assign      brch_cmt_jalr   = instr_is_jalr;
 
 // 如果需要使用alu，则需要等alu就绪才可以交付
 assign      brch_cmt_vld    = need_alu ? alu_op_rdy : brch_op_vld;
+assign      brch_cmt_gpr_wen = instr_is_jal | instr_is_jalr;
 
 endmodule

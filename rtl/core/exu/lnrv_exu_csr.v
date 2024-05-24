@@ -24,13 +24,10 @@ module lnrv_exu_csr
     output                              csr_cmt_vld,
     input                               csr_cmt_rdy,
     output                              csr_cmt_idx_err,
+    output                              csr_cmt_gpr_wen,
     output[31 : 0]                      csr_cmt_gpr_wdata,
-
-    // csr寄存器写回通道
-    output                              csr_wbck_vld,
-    input                               csr_wbck_rdy,
-    output[11 : 0]                      csr_wbck_idx,
-    output[31 : 0]                      csr_wbck_wdata
+    output[31 : 0]                      csr_cmt_csr_wdata,
+    output[11 : 0]                      csr_cmt_csr_widx,
 );
 
 wire                                instr_is_csrrc;
@@ -79,12 +76,10 @@ assign      alu_op_bus[`ALU_NEQ_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_EQ_LOC]     = 1'b0;
 
 
-assign      csr_cmt_vld         = need_alu ? alu_op_rdy : 1'b1;
-assign      csr_cmt_idx_err     = csr_op_vld & csr_idx_err;
+assign      csr_cmt_vld         = need_alu ? (alu_op_rdy & csr_op_vld) : csr_op_vld;
+assign      csr_cmt_idx_err     = csr_idx_err;
 assign      csr_cmt_gpr_wdata   = csr_rdata;
-
-assign      csr_wbck_vld    = csr_cmt_vld;
-assign      csr_wbck_idx    = csr_idx;
-assign      csr_wbck_wdata  = need_alu ? alu_res : op2;
+assign      csr_cmt_csr_widx    = csr_idx;
+assign      csr_cmt_csr_wdata   = need_alu ? alu_res : op2;
 
 endmodule

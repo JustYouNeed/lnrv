@@ -24,6 +24,7 @@ module lnrv_exu_cmt
     input                       lsu_cmt_st,
     input                       lsu_cmt_ld,
     input[31 : 0]               lsu_cmt_addr,
+    input                       lsu_cmt_gpr_wen,
     input[31 : 0]               lsu_cmt_gpr_wdata,
 
     // 来自sys指令处理模块的异常，主要为ecall以及ebreak
@@ -36,6 +37,7 @@ module lnrv_exu_cmt
     // 常规指令交付请求
     input                       rglr_cmt_vld,
     output                      rglr_cmt_rdy,
+    input                       rglr_cmt_gpr_wen,
 
     // 分支指令交付请求
     input                       brch_cmt_vld,
@@ -46,17 +48,22 @@ module lnrv_exu_cmt
     input                       brch_cmt_mret,
     input                       brch_cmt_dret,
     input                       brch_cmt_fence,
+    input                       brch_cmt_gpr_wen,
 
     // csr相关指令交付请求
     input                       csr_cmt_vld,
     output                      csr_cmt_rdy,
     input                       csr_cmt_idx_err,
+    input                       csr_cmt_gpr_wen,
     input[31 : 0]               csr_cmt_gpr_wdata,
+    input                       csr_cmt_csr_wen,
+    input[31 : 0]               csr_cmt_csr_wdata,
 
     // alu结果输入
     input[31 : 0]               alu_add_res,
     input                       alu_cmp_res,
 
+    // 分支预测结果
     input                       bpu_prdt_res,
 
     // 中断输入
@@ -64,11 +71,13 @@ module lnrv_exu_cmt
     input                       ext_irq,            // 外部中断
     input                       tmr_irq,            // 定时器中断
 
+    // 中断使能
     input                       mie_meie,
     input                       mie_mtie,
     input                       mie_msie,
     input                       mstatus_mie,
 
+    // 调试模式
     input                       dbg_mode,
 
     // 有中断发生
@@ -84,19 +93,19 @@ module lnrv_exu_cmt
     input                       dcsr_step,      // 单步调试模式
     input                       dcsr_stepie,    // 在单步调试模式下是否使能中断
 
-    output                      mepc_wdata_vld,
+    output                      mepc_wen,
     output[31 : 0]              mepc_wdata,
 
-    output                      mcause_wdata_vld,
+    output                      mcause_wen,
     output[31 : 0]              mcause_wdata,
 
-    output                      mtval_wdata_vld,
+    output                      mtval_wen,
     output[31 : 0]              mtval_wdata,
 
-    output                      dpc_wdata_vld,
+    output                      dpc_wen,
     output[31 : 0]              dpc_wdata,
 
-    output                      dcause_wdata_vld,
+    output                      dcause_wen,
     output[31 : 0]              dcause_wdata,
 
     // 流水线冲刷请求
@@ -109,6 +118,12 @@ module lnrv_exu_cmt
     output                      gpr_wbck_vld,
     input                       gpr_wbck_rdy,
     output[31 : 0]              gpr_wbck_data,
+
+    // csr寄存器写回接口
+    output                      csr_wbck_vld,
+    input                       csr_wbck_rdy,
+    output[11 : 0]              csr_wbck_idx,
+    output[31 : 0]              csr_wbck_data,
 
     output                      cmt_mret,
     output                      cmt_dret,
@@ -364,68 +379,86 @@ assign      pipe_flush_ack_excp =  pipe_flush_ack &
 // 1、mepc
 // 2、mcause
 // 3、mtval(仅发生异常时需要更新)
-assign      mepc_wdata_vld      = pipe_flush_hsked_irq | pipe_flush_hsked_excp;
+assign      mepc_wen      = pipe_flush_hsked_irq | pipe_flush_hsked_excp;
 assign      mepc_wdata          = pipe_flush_hsked_irq ? mepc_wdata_irq : mepc_wdata_excp;
-assign      mcause_wdata_vld    = mepc_wdata_vld;
+assign      mcause_wen    = mepc_wen;
 assign      mcause_wdata        = pipe_flush_hsked_irq ? mcause_wdata_irq : mcause_wdata_excp;
-assign      mtval_wdata_vld     = pipe_flush_hsked_excp;
+assign      mtval_wen     = pipe_flush_hsked_excp;
 assign      mtval_wdata         = mtval_wdata_excp;
 
 // 操作dcsr寄存器
-assign      dpc_wdata_vld = pipe_flush_hsked_dbg;
+assign      dpc_wen = pipe_flush_hsked_dbg;
 assign      dpc_wdata = dpc_wdata_dbg;
 
-assign      dcause_wdata_vld = pipe_flush_hsked_dbg;
+assign      dcause_wen = pipe_flush_hsked_dbg;
 assign      dcause_wdata = dcause_wdata_dbg;
 
 
-// 所有常规指令都需要写回
-assign      rglr_need_wbck = rglr_cmt_vld;
+// // 所有常规指令都需要写回
+// assign      rglr_need_wbck = rglr_cmt_vld;
 
-// 分支指令只有jal和jalr需要写回
-assign      brch_need_wbck = brch_cmt_vld & 
-                             (
-                                brch_cmt_jal | 
-                                brch_cmt_jalr
-                             );
-// lsu指令只有load需要写回
-assign      lsu_need_wbck = lsu_cmt_vld & 
-                            (
-                                lsu_cmt_ld
-                            );
+// // 分支指令只有jal和jalr需要写回
+// assign      brch_need_wbck = brch_cmt_vld & 
+//                              (
+//                                 brch_cmt_jal | 
+//                                 brch_cmt_jalr
+//                              );
+// // lsu指令只有load需要写回
+// assign      lsu_need_wbck = lsu_cmt_vld & 
+//                             (
+//                                 lsu_cmt_ld
+//                             );
 
-// csr寄存器操作指令，需要在csr idx正确的情况下才会写回
-assign      csr_need_wbck = csr_cmt_vld & (~csr_cmt_idx_err);
+// // csr寄存器操作指令，需要在csr idx正确的情况下才会写回
+// assign      csr_need_wbck = csr_cmt_vld & (~csr_cmt_idx_err);
 
 // 如是有异常或者中断请求冲刷流水线，则当前指令都不能与回
 assign      wbck_need_abort = pipe_flush_req_excp | pipe_flush_req_dbg;
 
 assign      gpr_wbck_vld = (~wbck_need_abort) & 
                            (
-                                rglr_need_wbck | 
-                                brch_need_wbck | 
-                                lsu_need_wbck | 
-                                csr_need_wbck
+                                rglr_cmt_gpr_wen | 
+                                brch_cmt_gpr_wen | 
+                                csr_cmt_gpr_wen | 
+                                lsu_cmt_gpr_wen
                            );
 
+// lsu模块要写回的数据来自总线
+// 常规指令以及分支指令要写回的数据都来自于alu的运算结果
+// 
 assign      gpr_wbck_data = lsu_need_wbck ? lsu_cmt_gpr_wdata : 
                             (rglr_need_wbck | brch_need_wbck) ? alu_add_res : 
                             csr_need_wbck ? csr_cmt_gpr_wdata : 
                             32'd0;
+
+// 只有csr相关指令需要操作csr寄存器
+assign      csr_wbck_vld = (~wbck_need_abort) & csr_cmt_csr_wen;
+assign      csr_wbck_data = csr_cmt_csr_wdata;
 
 assign      cmt_mret = brch_cmt_mret & pipe_flush_hsked_brch;
 assign      cmt_dret = brch_cmt_dret & pipe_flush_hsked_brch;
 
 // assign      gpr_wbck_idx = rd_idx;
 
-// 任何时候都可以接收指令交付
-assign      rglr_cmt_rdy    = pipe_flush_req ? pipe_flush_ack : gpr_wbck_rdy;
-assign      csr_cmt_rdy     = pipe_flush_req ? pipe_flush_ack : gpr_wbck_rdy;
-assign      brch_cmt_rdy    = pipe_flush_req ? pipe_flush_ack : 
-                                brch_need_wbck ? gpr_wbck_rdy : 1'b1;
-assign      sys_cmt_rdy     = pipe_flush_req ? pipe_flush_ack : 1'b1;
-assign      lsu_cmt_rdy     = pipe_flush_req ? pipe_flush_ack : 
-                                lsu_need_wbck ? gpr_wbck_rdy : 1'b1;
+
+// 常规指令都需要写回
+assign      rglr_cmt_rdy    = gpr_wbck_rdy;
+
+// csr相关指令都需要写回
+assign      csr_wbck_gpr_rdy = csr_need_wbck ? gpr_wbck_rdy : 1'b1;
+assign      csr_wbck_csr_rdy = csr_cmt_csr_wen ? csr_wbck_rdy : 1'b1;
+assign      csr_cmt_rdy     = csr_wbck_gpr_rdy & csr_wbck_csr_rdy;
+
+// 对于分支指令，有可能需要写回和冲刷流水线，任意操作没
+assign      brch_wbck_rdy   = brch_need_wbck  ? gpr_wbck_rdy : 1'b1;
+assign      brch_flush_rdy  = pipe_flush_req_brch ? pipe_flush_ack_brch : 1'b1;
+assign      brch_cmt_rdy    = brch_wbck_rdy & brch_flush_rdy;
+
+// sys相关指令，不需要写回，只要没有其他原因冲刷
+assign      sys_cmt_rdy     = (~pipe_flush_req);
+
+// lsu相关指令，如果不需要写回则只要没有流水线冲刷请求就表示交付成功，如果需要写回，则写回成功就表示交付成功
+assign      lsu_cmt_rdy     = lsu_need_wbck ? gpr_wbck_rdy : (~pipe_flush_req);
 
 endmodule
 

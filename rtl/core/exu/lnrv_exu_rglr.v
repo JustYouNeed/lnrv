@@ -17,7 +17,8 @@ module	lnrv_exu_rglr
     output[31 : 0]                              rglr2alu_in1,
 
     output                                      rglr_cmt_vld,
-    input                                       rglr_cmt_rdy
+    input                                       rglr_cmt_rdy,
+    output                                      rglr_cmt_gpr_wen
 );
 
 // 该模块处理以下指令:
@@ -106,7 +107,8 @@ assign      rglr2alu_in1 =  op1_is_pc ? pc :
 assign      rglr2alu_in2 = op2_is_imm ? imm : rs2_rdata;
 
 
-assign      rglr_cmt_vld = alu_hsked;
+assign      rglr_cmt_vld = alu_op_vld & rglr2alu_op_rdy;
+assign      rglr_cmt_gpr_wen = alu_op_vld;
 
 assign      rglr_op_rdy = rglr_cmt_rdy;
 

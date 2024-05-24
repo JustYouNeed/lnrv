@@ -100,16 +100,16 @@ module  lnrv_exu#
     output                                  excp_taken,
     output                                  dbg_taken,
 
-    output                                  mepc_wdata_vld,
+    output                                  mepc_wen,
     output[31 : 0]                          mepc_wdata,
-    output                                  mtval_wdata_vld,
+    output                                  mtval_wen,
     output[31 : 0]                          mtval_wdata,
-    output                                  mcause_wdata_vld,
+    output                                  mcause_wen,
     output[31 : 0]                          mcause_wdata,
     
-    output                                  dpc_wdata_vld,
+    output                                  dpc_wen,
     output[31 : 0]                          dpc_wdata,
-    output                                  dcause_wdata_vld,
+    output                                  dcause_wen,
     output[2 : 0]                           dcause_wdata,
 
     output                                  exu_cmd_vld,
