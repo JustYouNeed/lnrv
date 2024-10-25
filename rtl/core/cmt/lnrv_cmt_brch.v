@@ -1,4 +1,4 @@
-module lnrv_exu_cmt_brch
+module lnrv_cmt_brch
 (
     // 分支指令交付请求
     input                       brch_cmt_vld,

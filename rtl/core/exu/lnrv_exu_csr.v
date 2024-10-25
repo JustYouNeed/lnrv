@@ -6,28 +6,23 @@ module lnrv_exu_csr
     input[`CSR_OP_BUS_WIDTH - 1 : 0]    csr_op_bus,
 
     input[31 : 0]                       imm,
-    input[11 : 0]                       csr_idx,
     input                               csr_idx_err,
     input[31 : 0]                       csr_rdata,
     input[31 : 0]                       rs1_rdata,
-    // input[31 : 0]                       rs2_rdata,
 
     // alu接口
-    output                              alu_op_vld,
-    input                               alu_op_rdy,
-    output[`ALU_OP_BUS_WIDTH - 1 : 0]   alu_op_bus,
-    output[31 : 0]                      alu_in1,
-    output[31 : 0]                      alu_in2,
-    input[31 : 0]                       alu_res,
+    output                              csralu_op_vld,
+    input                               csralu_op_rdy,
+    output[`ALU_OP_BUS_WIDTH - 1 : 0]   csralu_op_bus,
+    output[31 : 0]                      csralu_in1,
+    output[31 : 0]                      csralu_in2,
 
     // 交付接口
     output                              csr_cmt_vld,
     input                               csr_cmt_rdy,
-    output                              csr_cmt_idx_err,
     output                              csr_cmt_gpr_wen,
-    output[31 : 0]                      csr_cmt_gpr_wdata,
-    output[31 : 0]                      csr_cmt_csr_wdata,
-    output[11 : 0]                      csr_cmt_csr_widx,
+    output                              csr_cmt_csr_wen,
+    output                              csr_cmt_idx_err
 );
 
 wire                                instr_is_csrrc;
@@ -48,21 +43,21 @@ assign      alu_hsked = alu_op_vld & alu_op_rdy;
 assign      instr_is_csrrc  = op_bus[`CSR_CSRRC_LOC];
 assign      instr_is_csrrw  = op_bus[`CSR_CSRRW_LOC];
 assign      instr_is_csrrs  = op_bus[`CSR_CSRRS_LOC];
-assign      op1_is_zero     = op_bus[`CSR_OP1_IS_ZERO];
 assign      op2_is_imm      = op_bus[`CSR_OP2_IS_IMM];
+assign      rs1_is_0        = op_bus[`CSR_RS1_IS_0];
 
-assign      op1 = op1_is_zero ? 32'd0 : csr_rdata;
+assign      op1 = instr_is_csrrw ? 32'd0 : csr_rdata;
 assign      op2 = op2_is_imm ? imm : rs1_rdata;
 
 assign      need_alu = instr_is_csrrc | instr_is_csrrs;
 
 assign      alu_in1 = op1;
 assign      alu_in2 = instr_is_csrrc ? (~op2) : op2;
-assign      alu_op_vld = csr_op_vld & need_alu;
+assign      alu_op_vld = csr_op_vld;
 
 assign      alu_op_bus[`ALU_ADD_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_SUB_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_OR_LOC]     = instr_is_csrrs;
+assign      alu_op_bus[`ALU_OR_LOC]     = instr_is_csrrs | instr_is_csrrw;
 assign      alu_op_bus[`ALU_XOR_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_AND_LOC]    = instr_is_csrrc;
 assign      alu_op_bus[`ALU_SLL_LOC]    = 1'b0;
@@ -78,8 +73,7 @@ assign      alu_op_bus[`ALU_EQ_LOC]     = 1'b0;
 
 assign      csr_cmt_vld         = need_alu ? (alu_op_rdy & csr_op_vld) : csr_op_vld;
 assign      csr_cmt_idx_err     = csr_idx_err;
-assign      csr_cmt_gpr_wdata   = csr_rdata;
-assign      csr_cmt_csr_widx    = csr_idx;
-assign      csr_cmt_csr_wdata   = need_alu ? alu_res : op2;
+assign      csr_cmt_csr_wen     = csr_op_vld & (instr_is_csrrw | (instr_is_csrrc | instr_is_csrrs) & (~rs1_is_0));
+assign      csr_cmt_gpr_wen     = csr_op_vld
 
 endmodule

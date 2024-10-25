@@ -1,65 +1,101 @@
-`include    "lnrv_def.v"
-module  lnrv_exu_alu
+`include	"lnrv_def.v"
+module	lnrv_exu_alu
 (
-    input                               alu_op_vld,
-    output                              alu_op_rdy,
-    input[`ALU_OP_BUS_WIDTH - 1 : 0]    alu_op_bus,
-    input[31 : 0]                       alu_in1,
-    input[31 : 0]                       alu_in2,
+    // 有四个模块需要使用alu，但是不会同时使用，因为是单发射流水线
+    input                               rglr2alu_op_vld,
+    output                              rglr2alu_op_rdy,
+    input[`ALU_OP_BUS_WIDTH - 1 : 0]    rglr2alu_op_bus,
+    input[31 : 0]                       rglr2alu_in1,
+    input[31 : 0]                       rglr2alu_in2,
+
+    input                               brch2alu_op_vld,
+    output                              brch2alu_op_rdy,
+    input[`ALU_OP_BUS_WIDTH - 1 : 0]    brch2alu_op_bus,
+    input[31 : 0]                       brch2alu_in1,
+    input[31 : 0]                       brch2alu_in2,
+
+    input                               csr2alu_op_vld,
+    output                              csr2alu_op_rdy,
+    input[`ALU_OP_BUS_WIDTH - 1 : 0]    csr2alu_op_bus,
+    input[31 : 0]                       csr2alu_in1,
+    input[31 : 0]                       csr2alu_in2,
+
+    input                               lsu2alu_op_vld,
+    output                              lsu2alu_op_rdy,
+    input[`ALU_OP_BUS_WIDTH - 1 : 0]    lsu2alu_op_bus,
+    input[31 : 0]                       lsu2alu_in1,
+    input[31 : 0]                       lsu2alu_in2,
 
     output[31 : 0]                      alu_res
 );
 
-wire                    alu_op_add;
-wire                    alu_op_and;
-wire                    alu_op_or;
-wire                    alu_op_xor;
-wire                    alu_op_sll;
-wire                    alu_op_srl;
-wire                    alu_op_sra;
-wire                    alu_op_sub;
+wire[`ALU_OP_BUS_WIDTH - 1 : 0]         alu_op_bus;
 
-wire                    alu_cmp_lt;
-wire                    alu_cmp_ltu;
-wire                    alu_cmp_gteu;
-wire                    alu_cmp_gte;
-wire                    alu_cmp_eq;
-wire                    alu_cmp_neq;
+wire                                    alu_op_add;
+wire                                    alu_op_and;
+wire                                    alu_op_or;
+wire                                    alu_op_xor;
+wire                                    alu_op_sll;
+wire                                    alu_op_srl;
+wire                                    alu_op_sra;
+wire                                    alu_op_sub;
+
+wire                                    alu_cmp_lt;
+wire                                    alu_cmp_ltu;
+wire                                    alu_cmp_gteu;
+wire                                    alu_cmp_gte;
+wire                                    alu_cmp_eq;
+wire                                    alu_cmp_neq;
 
 
+wire                                    adder_sub;
+wire[32 : 0]                            adder_in1;
+wire[32 : 0]                            adder_in2;
+wire[32 : 0]                            adder_res;
 
-wire                    adder_sub;
-wire[32 : 0]            adder_in1;
-wire[32 : 0]            adder_in2;
-wire[32 : 0]            adder_res;
+wire                                    adder_in1_signed;
+wire                                    adder_in2_signed;
 
-wire                    adder_in1_signed;
-wire                    adder_in2_signed;
+wire[31 : 0]                            in1_add_in2;
+wire[31 : 0]                            in1_or_in2;
+wire[31 : 0]                            in1_xor_in2;
+wire[31 : 0]                            in1_and_in2;
+wire[31 : 0]                            in1_sll_in2;
+wire[31 : 0]                            in1_srl_in2;
+wire[31 : 0]                            in1_sra_in2;
+wire                                    in1_eq_in2;
+wire                                    in1_neq_in2;
+wire                                    in1_lt_in2;
+wire                                    in1_lte_in2;
+wire                                    in1_gt_in2;
+wire                                    in1_gte_in2;
 
-wire[31 : 0]            in1_add_in2;
-wire[31 : 0]            in1_or_in2;
-wire[31 : 0]            in1_xor_in2;
-wire[31 : 0]            in1_and_in2;
-wire[31 : 0]            in1_sll_in2;
-wire[31 : 0]            in1_srl_in2;
-wire[31 : 0]            in1_sra_in2;
-wire                    in1_eq_in2;
-wire                    in1_neq_in2;
-wire                    in1_lt_in2;
-wire                    in1_lte_in2;
-wire                    in1_gt_in2;
-wire                    in1_gte_in2;
+reg[31 : 0]                             in1_bit_invert;
+wire[31 : 0]                            shift_in1;
+reg[31 : 0]                             shift_res_invert;
+wire[31 : 0]                            shift_res;
 
-reg[31 : 0]             in1_bit_invert;
-wire[31 : 0]            shift_in1;
-reg[31 : 0]             shift_res_invert;
-wire[31 : 0]            shift_res;
+wire[31 : 0]                            sra_mask;
 
-wire[31 : 0]            sra_mask;
+wire                                    op_unsigned;
 
-wire                    op_unsigned;
+integer                                 i;
 
-integer                 i;
+assign      alu_op_bus = {{`ALU_OP_BUS_WIDTH{rglr2alu_op_vld}} & rglr2alu_op_bus} | 
+                         {{`ALU_OP_BUS_WIDTH{brch2alu_op_vld}} & brch2alu_op_bus} | 
+                         {{`ALU_OP_BUS_WIDTH{csr2alu_op_vld}} & csr2alu_op_bus} | 
+                         {{`ALU_OP_BUS_WIDTH{lsu2alu_op_vld}} & lsu2alu_op_bus};
+
+assign      alu_in1 =   {{32{rglr2alu_op_vld}} & rglr2alu_in1} | 
+                        {{32{brch2alu_op_vld}} & brch2alu_in1} | 
+                        {{32{csr2alu_op_vld}} & csr2alu_in1} | 
+                        {{32{lsu2alu_op_vld}} & lsu2alu_in1};
+
+assign      alu_in2 =   {{32{rglr2alu_op_vld}} & rglr2alu_in2} | 
+                        {{32{brch2alu_op_vld}} & brch2alu_in2} | 
+                        {{32{csr2alu_op_vld}} & csr2alu_in2} | 
+                        {{32{lsu2alu_op_vld}} & lsu2alu_in2};
+
 
 //从总线中取出各个操作符
 assign      alu_op_add  = alu_op_bus[`ALU_ADD_LOC];      // 加法     res = in1 + in2
@@ -157,6 +193,9 @@ assign      alu_res =   (alu_op_add | alu_op_sub) ? in1_add_in2 :
                         32'd0;
 
 // alu运算模块是纯组合逻辑，只要valid拉高，ready就有效
-assign      alu_op_rdy = alu_op_vld;
+assign      rglr2alu_op_rdy = rglr2alu_op_vld;
+assign      brch2alu_op_rdy = brch2alu_op_vld;
+assign      csr2alu_op_rdy = csr2alu_op_vld;
+assign      lsu2alu_op_rdy = lsu2alu_op_vld;
 
 endmodule

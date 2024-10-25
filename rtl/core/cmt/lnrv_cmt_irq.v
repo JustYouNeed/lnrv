@@ -1,4 +1,4 @@
-module lnrv_exu_cmt_irq
+module lnrv_cmt_irq
 (
     // 指令执行模块空闲，没有正在执行的指令，或者当前指令已经执行完成
     input                       exu_idle,

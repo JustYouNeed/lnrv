@@ -1,18 +1,17 @@
-module lnrv_exu_cmt
+module lnrv_cmt
 (
-    input                       exu_idle,
-    input                       exu_hsked,
-    input[31 : 0]               exu_pc,
-    input[31 : 0]               exu_ir,
-
     input                       ifu_pc_vld,
     input[31 : 0]               ifu_pc,
 
-
-    // 来自前级模块的异常
-    input                       idu_excp_ilgl_ir,       // 非法指令
-    input                       ifu_excp_buserr,             // 取指总线错误
-    input                       ifu_excp_misalgn,            // 取指地址非对齐
+    input                       idu_pc_vld,
+    output                      idu_pc_rdy,
+    input[31 : 0]               idu_pc,
+    input[31 : 0]               idu_ir,
+    input[4 : 0]                idu_rd_idx,
+    input[11 : 0]               idu_csr_idx,
+    input                       idu_excp_ilgl_ir,
+    input                       idu_excp_buserr,
+    input                       idu_excp_misalgn,
 
     // 来自lsu模块的异常，包括:
     // 1、非对齐访问
@@ -23,7 +22,7 @@ module lnrv_exu_cmt
     input                       lsu_cmt_buserr,
     input                       lsu_cmt_st,
     input                       lsu_cmt_ld,
-    input[31 : 0]               lsu_cmt_addr,
+    input[31 : 0]               lsu_cmt_bad_addr,
     input                       lsu_cmt_gpr_wen,
     input[31 : 0]               lsu_cmt_gpr_wdata,
 
@@ -55,13 +54,10 @@ module lnrv_exu_cmt
     output                      csr_cmt_rdy,
     input                       csr_cmt_idx_err,
     input                       csr_cmt_gpr_wen,
-    input[31 : 0]               csr_cmt_gpr_wdata,
     input                       csr_cmt_csr_wen,
-    input[31 : 0]               csr_cmt_csr_wdata,
 
-    // alu结果输入
-    input[31 : 0]               alu_add_res,
-    input                       alu_cmp_res,
+    input[31 : 0]               csr_rdata,
+    input[31 : 0]               alu_res,
 
     // 分支预测结果
     input                       bpu_prdt_res,
@@ -79,6 +75,7 @@ module lnrv_exu_cmt
 
     // 调试模式
     input                       dbg_mode,
+    // output                      wfi_mode,
 
     // 有中断发生
     output                      irq_taken,
@@ -90,6 +87,8 @@ module lnrv_exu_cmt
     input                       dbg_step,
     input                       dbg_trig,
 
+
+    input                       dcsr_ebreakm,
     input                       dcsr_step,      // 单步调试模式
     input                       dcsr_stepie,    // 在单步调试模式下是否使能中断
 
@@ -117,6 +116,7 @@ module lnrv_exu_cmt
     // 通用寄存器写回接口
     output                      gpr_wbck_vld,
     input                       gpr_wbck_rdy,
+    output[4 : 0]               gpr_wbck_idx,
     output[31 : 0]              gpr_wbck_data,
 
     // csr寄存器写回接口
@@ -132,13 +132,7 @@ module lnrv_exu_cmt
     input                       reset_n
 );
 
-wire                            rglr_need_wbck;
-wire                            brch_need_wbck;
-wire                            csr_need_wbck;
-wire                            lsu_need_wbck;
-wire                            sys_need_wbck;
-
-wire                            wbck_need_abort;
+wire                            gpr_wbck_abort;
 
 wire                            pipe_flush_req_irq;
 wire                            pipe_flush_ack_irq;
@@ -181,7 +175,7 @@ wire                            sys_excp_ebreak;
 wire                            csr_excp_idxerr;
 
 // 中断处理模块
-lnrv_exu_irq u_lnrv_exu_irq
+lnrv_cmt_irq u_lnrv_cmt_irq
 (
     .exu_idle               ( exu_idle                      ),
 
@@ -227,19 +221,23 @@ assign      lsu_excp_st_misalgn = lsu_cmt_st & lsu_cmt_misalgn;
 assign      sys_excp_ecall = sys_cmt_ecall;
 assign      sys_excp_ebreak = sys_cmt_ebreak;
 
-assign      csr_excp_idxerr = csr_cmt_idx_err;
+assign      csr_excp_idxerr = csr_cmt_idx_err & csr_cmt_vld;
+
+assign      idu_excp_buserr_vld = ifu_excp_buserr & idu_pc_vld;
+assign      idu_excp_ilgl_ir_vld = idu_excp_ilgl_ir & idu_pc_vld;
+assign      idu_excp_misalgn_vld = ifu_excp_misalgn & idu_pc_vld;
 
 // 异常处理模块
-lnrv_exu_excp u_lnrv_exu_excp
+lnrv_cmt_excp u_lnrv_cmt_excp
 (
     .exu_pc                 ( exu_pc                        ),
     .exu_ir                 ( exu_ir                        ),
     
     .excp_taken             ( excp_taken                    ),
 
-    .idu_excp_ilgl_ir       ( idu_excp_ilgl_ir              ),
-    .ifu_excp_buserr        ( ifu_excp_buserr               ),
-    .ifu_excp_misalgn       ( ifu_excp_misalgn              ),
+    .idu_excp_ilgl_ir       ( idu_excp_ilgl_ir_vld          ),
+    .ifu_excp_buserr        ( ifu_excp_buserr_vld           ),
+    .ifu_excp_misalgn       ( ifu_excp_misalgn_vld          ),
 
     .lsu_excp_ld_misalgn    ( lsu_excp_ld_misalgn           ),
     .lsu_excp_ld_buserr     ( lsu_excp_ld_buserr            ),
@@ -270,7 +268,7 @@ lnrv_exu_excp u_lnrv_exu_excp
 );
 
 // 调试相关请求处理模块
-lnrv_exu_dbg u_lnrv_exu_dbg
+lnrv_cmt_dbg u_lnrv_cmt_dbg
 (
     .exu_pc                 ( exu_pc                        ),
     .exu_idle               ( exu_idle                      ),
@@ -306,7 +304,7 @@ lnrv_exu_dbg u_lnrv_exu_dbg
 );
 
 
-lnrv_exu_cmt_brch u_lnrv_exu_cmt_brch
+lnrv_cmt_brch u_lnrv_cmt_brch
 (
     .brch_cmt_vld           ( brch_cmt_vld                  ),
     .brch_cmt_rdy           ( brch_cmt_rdy                  ),
@@ -413,9 +411,9 @@ assign      dcause_wdata = dcause_wdata_dbg;
 // assign      csr_need_wbck = csr_cmt_vld & (~csr_cmt_idx_err);
 
 // 如是有异常或者中断请求冲刷流水线，则当前指令都不能与回
-assign      wbck_need_abort = pipe_flush_req_excp | pipe_flush_req_dbg;
+assign      gpr_wbck_abort = pipe_flush_req_excp | pipe_flush_req_dbg;
 
-assign      gpr_wbck_vld = (~wbck_need_abort) & 
+assign      gpr_wbck_vld = (~gpr_wbck_abort) & 
                            (
                                 rglr_cmt_gpr_wen | 
                                 brch_cmt_gpr_wen | 
@@ -432,7 +430,7 @@ assign      gpr_wbck_data = lsu_need_wbck ? lsu_cmt_gpr_wdata :
                             32'd0;
 
 // 只有csr相关指令需要操作csr寄存器
-assign      csr_wbck_vld = (~wbck_need_abort) & csr_cmt_csr_wen;
+assign      csr_wbck_vld = (~gpr_wbck_abort) & csr_cmt_csr_wen;
 assign      csr_wbck_data = csr_cmt_csr_wdata;
 
 assign      cmt_mret = brch_cmt_mret & pipe_flush_hsked_brch;

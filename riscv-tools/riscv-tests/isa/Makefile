@@ -110,4 +110,4 @@ all: $(tests_dump)
 # Clean up
 
 clean:
-	rm -rf $(tests_dump)
+	rm -rf $(tests_dump) ${tests_verilog} ${tests}

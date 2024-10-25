@@ -13,9 +13,9 @@ module	lnrv_exu_disp
     output                              idu_op_rdy,
 
     // 前级模块产生的异常信息
-    input                               ifu_excp_misalgn,        // 地址非对齐
-    input                               ifu_excp_buserr,         // 总线错误
-    input                               idu_excp_ilgl_ir,   // 非法指令
+    input                               idu_excp_misalgn,        // 地址非对齐
+    input                               idu_excp_buserr,         // 总线错误
+    input                               idu_excp_ilgl_ir,       // 非法指令
 
     // 常规指令 
     output                              rglr_op_vld,
@@ -47,14 +47,7 @@ module	lnrv_exu_disp
     input                               mdv_op_rdy,
     output[`MDV_OP_BUS_WIDTH - 1 : 0]   mdv_op_bus,
 
-
-    output                              disp_idu_excp_ilgl_ir,
-    output                              disp_ifu_excp_buserr,
-    output                              disp_ifu_excp_misalgn,
-
-    output                              disp_condition,
-    output                              disp_hsked,
-    output                              disp_idle
+    output                              exu_idle
 );
 
 

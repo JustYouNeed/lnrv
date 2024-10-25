@@ -142,8 +142,8 @@ Disassembly of section .text.init:
 000001b4 <waitloop1>:
  1b4:	fff28293          	add	t0,t0,-1
  1b8:	fe029ee3          	bnez	t0,1b4 <waitloop1>
- 1bc:	100083b7          	lui	t2,0x10008
- 1c0:	00838393          	add	t2,t2,8 # 10008008 <_end+0x10005ff8>
+ 1bc:	000283b7          	lui	t2,0x28
+ 1c0:	00838393          	add	t2,t2,8 # 28008 <_end+0x25ff8>
  1c4:	0003a283          	lw	t0,0(t2)
  1c8:	00040337          	lui	t1,0x40
  1cc:	fff34313          	not	t1,t1
@@ -183,8 +183,8 @@ Disassembly of section .text.init:
 00000240 <waitloop4>:
  240:	fff28293          	add	t0,t0,-1
  244:	fe029ee3          	bnez	t0,240 <waitloop4>
- 248:	100083b7          	lui	t2,0x10008
- 24c:	00c38393          	add	t2,t2,12 # 1000800c <_end+0x10005ffc>
+ 248:	000283b7          	lui	t2,0x28
+ 24c:	00c38393          	add	t2,t2,12 # 2800c <_end+0x25ffc>
  250:	0003a283          	lw	t0,0(t2)
  254:	10000313          	li	t1,256
  258:	fff34313          	not	t1,t1

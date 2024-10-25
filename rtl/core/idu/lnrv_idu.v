@@ -10,23 +10,24 @@ module lnrv_idu
     input                               ifu_excp_misalgn,
     input                               ifu_excp_buserr,
 
+    // 交付模块的流水线冲刷请求
+    input                               cmt_pipe_flush_req,
+    output                              cmt_pipe_flush_ack,
 
-    // 流水线暂停请求
-    input                               pipe_halt_req,
-    output                              pipe_halt_ack,
-
-    // 流水线冲刷请求
-    input                               pipe_flush_req,
-    output                              pipe_flush_ack,
+    // 分支预测模块的流水线冲刷请求输出
+    output                              bpu_pipe_flush_req,
+    input                               bpu_pipe_flush_ack,
+    output[31 : 0]                      bpu_pipe_flush_pc_op1,
+    output[31 : 0]                      bpu_pipe_flush_pc_op2,
 
     input                               d_mode,
 
     // input[31 : 0]
 
     // 非法指令
-    output                              idu_excp_instr_ilegl,
-    output                              ifu_excp_misalgn,
-    output                              ifu_excp_buserr,
+    output                              idu_excp_ilgl_ir,
+    output                              idu_excp_misalgn,
+    output                              idu_excp_buserr,
 
     output                              idu_rglr_instr,
     output                              idu_lsu_instr,
@@ -119,7 +120,7 @@ lnrv_idu_decode u_lnrv_idu_decode
 
 
 // 只有要ifu_ir有效，且没有暂停流水线请求的情况下，才会将译码信息送到下一级
-assign      idu_buf_push_vld = ifu_pc_vld & (~pipe_halt_req);
+assign      idu_buf_push_vld = ifu_pc_vld;
 assign      idu_buf_push_data = {
                                     dec_rs1_idx,
                                     dec_rs2_idx,
@@ -157,8 +158,8 @@ u_idu_pipe_stage
     .clk                ( clk                   ),
     .reset_n            ( reset_n               ),
 
-    .flush_req          ( pipe_flush_req        ),
-    .flush_ack          ( pipe_flush_ack        ),
+    .flush_req          ( cmt_pipe_flush_req        ),
+    .flush_ack          ( cmt_pipe_flush_ack        ),
 
     .push_vld           ( idu_buf_push_vld      ),
     .push_rdy           ( idu_buf_push_rdy      ),
@@ -168,9 +169,6 @@ u_idu_pipe_stage
     .pop_rdy            ( idu_buf_pop_rdy       ),
     .pop_data           ( idu_buf_pop_data      )
 );
-
-
-assign      pipe_halt_ack = 1'b1;
 
 assign      ifu_pc_rdy = idu_buf_push_rdy;
 
@@ -182,7 +180,7 @@ assign      {
                 idu_rd_idx,
                 idu_csr_idx,
                 idu_imm,
-                idu_excp_instr_ilegl,
+                idu_excp_ilgl_ir,
                 idu_rglr_instr,
                 idu_lsu_instr,
                 idu_csr_instr,
@@ -194,8 +192,8 @@ assign      {
                 idu_op_bus,
                 idu_ir,
                 idu_pc,
-                ifu_excp_misalgn,
-                ifu_excp_buserr
+                idu_excp_misalgn,
+                idu_excp_buserr
             } = idu_buf_pop_data;
 
 

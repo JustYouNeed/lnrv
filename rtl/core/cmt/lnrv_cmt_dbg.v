@@ -1,4 +1,4 @@
-module  lnrv_exu_dbg
+module  lnrv_cmt_dbg
 (
     input[31 : 0]               exu_pc,
     input                       exu_idle,

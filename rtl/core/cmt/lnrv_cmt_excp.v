@@ -1,4 +1,4 @@
-module lnrv_exu_excp
+module lnrv_cmt_excp
 (
     input[31 : 0]               exu_pc,
     input[31 : 0]               exu_ir,
@@ -74,7 +74,7 @@ wire                    ebreak4excp;
 assign      lsu_excp_taken =    lsu_excp_ld_misalgn | 
                                 lsu_excp_ld_buserr | 
                                 lsu_excp_st_misalgn | 
-                                lsu_excp_st_buserr
+                                lsu_excp_st_buserr;
 
 // 来自idu模块的异常
 assign      idu_excp_taken =    idu_excp_ilgl_ir;

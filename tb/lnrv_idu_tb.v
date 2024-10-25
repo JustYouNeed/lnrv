@@ -2,7 +2,7 @@
 module  lnrv_idu_tb;
 
 // outports wire
-wire                         	ifu_ir_rdy;
+wire                         	ifu_pc_rdy;
 wire                         	pipe_halt_ack;
 wire                         	pipe_flush_ack;
 wire                         	dec_idu_instr_ilegl;
@@ -33,12 +33,12 @@ reg                         reset_n;
 
 reg[31 : 0]                 ifu_ir;
 reg[31 : 0]                 ifu_pc;
-reg                         ifu_ir_vld;
+reg                         ifu_pc_vld;
 
 lnrv_idu u_lnrv_idu
 (
-    .ifu_ir_vld             ( ifu_ir_vld           ),
-    .ifu_ir_rdy             ( ifu_ir_rdy           ),
+    .ifu_pc_vld             ( ifu_pc_vld           ),
+    .ifu_pc_rdy             ( ifu_pc_rdy           ),
     .ifu_ir                 ( ifu_ir               ),
     .ifu_pc                 ( ifu_pc               ),
     .ifu_misalgn            ( 1'b0                  ),
@@ -99,11 +99,11 @@ always #10 clk = ~clk;
 	// |		0001000	   |   00101  |   00000   |  000  | 	00000	|   1110011  |
 initial begin
     ifu_ir = 0;
-    ifu_ir_vld = 0;
+    ifu_pc_vld = 0;
     wait(reset_n == 1'b1);
     @(posedge clk) begin
         ifu_ir <= {7'b0001000, 5'b00101, 5'b00000, 3'b000, 5'b00000, 7'b1110011};
-        ifu_ir_vld <= 1'b1;
+        ifu_pc_vld <= 1'b1;
     end
 end
 

@@ -5887,8 +5887,8 @@ v00000246be5a7360_0 .net "ifu_cmd_wdata", 31 0, L_00000246be5e2cd8;  alias, 1 dr
 v00000246be5a8d00_0 .net "ifu_cmd_write", 0 0, L_00000246be5e2c90;  alias, 1 drivers
 v00000246be5a8120_0 .net "ifu_cmd_wstrb", 3 0, L_00000246be5e2d20;  alias, 1 drivers
 v00000246be5a81c0_0 .net "ifu_ir", 31 0, L_00000246be5b3520;  1 drivers
-v00000246be5a8260_0 .net "ifu_ir_rdy", 0 0, L_00000246be648fb0;  1 drivers
-v00000246be5a83a0_0 .net "ifu_ir_vld", 0 0, L_00000246be245ff0;  1 drivers
+v00000246be5a8260_0 .net "ifu_pc_rdy", 0 0, L_00000246be648fb0;  1 drivers
+v00000246be5a83a0_0 .net "ifu_pc_vld", 0 0, L_00000246be245ff0;  1 drivers
 v00000246be5a8440_0 .net "ifu_pc", 31 0, L_00000246be5b3660;  1 drivers
 v00000246be5a8da0_0 .net "ifu_pipe_flush_ack", 0 0, L_00000246be5e2d68;  1 drivers
 v00000246be5a6b40_0 .net "ifu_pipe_flush_req", 0 0, L_00000246be246840;  1 drivers
@@ -10449,8 +10449,8 @@ L_00000246be5c7e80 .concat [ 5 3 0 0], L_00000246be6505d0, L_00000246be5e8018;
 L_00000246be5c9500 .cmp/eq 8, L_00000246be5c7e80, L_00000246be5e8060;
 S_00000246be5022b0 .scope module, "u_lnrv_idu" "lnrv_idu" 14 170, 32 2 0, S_00000246be49fba0;
  .timescale 0 0;
-    .port_info 0 /INPUT 1 "ifu_ir_vld";
-    .port_info 1 /OUTPUT 1 "ifu_ir_rdy";
+    .port_info 0 /INPUT 1 "ifu_pc_vld";
+    .port_info 1 /OUTPUT 1 "ifu_pc_rdy";
     .port_info 2 /INPUT 32 "ifu_ir";
     .port_info 3 /INPUT 32 "ifu_pc";
     .port_info 4 /INPUT 1 "ifu_misalgn";
@@ -10560,8 +10560,8 @@ v00000246be5a09c0_0 .net "idu_buf_push_rdy", 0 0, L_00000246be6477a0;  1 drivers
 v00000246be59f520_0 .net "idu_buf_push_vld", 0 0, L_00000246be646b60;  1 drivers
 v00000246be5a1500_0 .net "ifu_buserr", 0 0, L_00000246be5e3c50;  1 drivers
 v00000246be5a0ec0_0 .net "ifu_ir", 31 0, L_00000246be5b3520;  alias, 1 drivers
-v00000246be59f700_0 .net "ifu_ir_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
-v00000246be59f660_0 .net "ifu_ir_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
+v00000246be59f700_0 .net "ifu_pc_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
+v00000246be59f660_0 .net "ifu_pc_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
 v00000246be59f480_0 .net "ifu_misalgn", 0 0, L_00000246be5e3c08;  1 drivers
 v00000246be59f5c0_0 .net "ifu_no_err", 0 0, L_00000246be238760;  1 drivers
 v00000246be5a0a60_0 .net "ifu_pc", 31 0, L_00000246be5b3660;  alias, 1 drivers
@@ -11587,8 +11587,8 @@ S_00000246be4ff3d0 .scope module, "u_lnrv_ifu" "lnrv_ifu" 14 133, 34 3 0, S_0000
     .port_info 6 /INPUT 32 "pipe_flush_pc_op2";
     .port_info 7 /INPUT 1 "pipe_halt_req";
     .port_info 8 /OUTPUT 1 "pipe_halt_ack";
-    .port_info 9 /OUTPUT 1 "ifu_ir_vld";
-    .port_info 10 /INPUT 1 "ifu_ir_rdy";
+    .port_info 9 /OUTPUT 1 "ifu_pc_vld";
+    .port_info 10 /INPUT 1 "ifu_pc_rdy";
     .port_info 11 /OUTPUT 32 "ifu_pc";
     .port_info 12 /OUTPUT 32 "ifu_ir";
     .port_info 13 /OUTPUT 1 "ifu_misalgn";
@@ -11619,8 +11619,8 @@ v00000246be5a5d80_0 .net "ifu_cmd_wdata", 31 0, L_00000246be5e2cd8;  alias, 1 dr
 v00000246be5a61e0_0 .net "ifu_cmd_write", 0 0, L_00000246be5e2c90;  alias, 1 drivers
 v00000246be5a6280_0 .net "ifu_cmd_wstrb", 3 0, L_00000246be5e2d20;  alias, 1 drivers
 v00000246be5a47a0_0 .net "ifu_ir", 31 0, L_00000246be5b3520;  alias, 1 drivers
-v00000246be5a6500_0 .net "ifu_ir_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
-v00000246be5a5600_0 .net "ifu_ir_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
+v00000246be5a6500_0 .net "ifu_pc_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
+v00000246be5a5600_0 .net "ifu_pc_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
 L_00000246be5e2db0 .functor BUFT 1, C4<0>, C4<0>, C4<0>, C4<0>;
 v00000246be5a65a0_0 .net "ifu_misalgn", 0 0, L_00000246be5e2db0;  1 drivers
 v00000246be5a56a0_0 .net "ifu_pc", 31 0, L_00000246be5b3660;  alias, 1 drivers
@@ -11645,8 +11645,8 @@ S_00000246be5dc2d0 .scope module, "u_lnrv_ifu_ifetch" "lnrv_ifu_ifetch" 34 54, 3
     .port_info 4 /INPUT 32 "pipe_flush_pc_op2";
     .port_info 5 /INPUT 1 "pipe_halt_req";
     .port_info 6 /OUTPUT 1 "pipe_halt_ack";
-    .port_info 7 /OUTPUT 1 "ifu_ir_vld";
-    .port_info 8 /INPUT 1 "ifu_ir_rdy";
+    .port_info 7 /OUTPUT 1 "ifu_pc_vld";
+    .port_info 8 /INPUT 1 "ifu_pc_rdy";
     .port_info 9 /OUTPUT 32 "ifu_pc";
     .port_info 10 /OUTPUT 32 "ifu_ir";
     .port_info 11 /OUTPUT 1 "ifu_misalgn";
@@ -11764,8 +11764,8 @@ v00000246be5a24a0_0 .net "ifu_cmd_wstrb", 3 0, L_00000246be5e2d20;  alias, 1 dri
 v00000246be5a3e40_0 .net "ifu_ir", 31 0, L_00000246be5b3520;  alias, 1 drivers
 v00000246be5a3ee0_0 .net "ifu_ir_d", 31 0, o00000246be54a798;  0 drivers
 v00000246be5a3f80_0 .net "ifu_ir_hsked", 0 0, L_00000246be245650;  1 drivers
-v00000246be5a4020_0 .net "ifu_ir_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
-v00000246be5a40c0_0 .net "ifu_ir_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
+v00000246be5a4020_0 .net "ifu_pc_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
+v00000246be5a40c0_0 .net "ifu_pc_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
 v00000246be5a1960_0 .net "ifu_ir_vld_clr", 0 0, L_00000246be245b20;  1 drivers
 v00000246be5a1a00_0 .net "ifu_ir_vld_d", 0 0, L_00000246be245b90;  1 drivers
 v00000246be5a1aa0_0 .var "ifu_ir_vld_q", 0 0;

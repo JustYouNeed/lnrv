@@ -15,11 +15,7 @@ module lnrv_exu_brch
     output[`ALU_OP_BUS_WIDTH - 1 : 0]       alu_op_bus,
     output[31 : 0]                          alu_in1,
     output[31 : 0]                          alu_in2,
-    input[31 : 0]                           alu_add_res,
-    input                                   alu_cmp_res,
-
-    input[31 : 0]                           dpc,
-    input[31 : 0]                           mepc,
+    input[31 : 0]                           alu_res,
 
     output                                  brch_cmt_vld,
     input                                   brch_cmt_rdy,
@@ -64,10 +60,6 @@ wire                        brch_taken;
 
 wire                        need_wbck;
 wire                        need_alu;
-wire                        alu_hsked;
-
-
-assign      alu_hsked = alu_op_vld & alu_op_rdy;
 
 assign      instr_is_beq    = brch_op_bus[`BRCH_BEQ_LOC];
 assign      instr_is_bge    = brch_op_bus[`BRCH_BGE_LOC];
@@ -121,7 +113,7 @@ assign      alu_in1 = op1_is_pc ? pc : rs1_rdata;
 assign      alu_in2 = op2_is_imm ? 32'd4 : rs2_rdata;
 
 
-assign      brch_cmt_bjp    = instr_is_bxx & alu_cmp_res;
+assign      brch_cmt_bjp    = instr_is_bxx & alu_res[0];
 assign      brch_cmt_dret   = instr_is_dret;
 assign      brch_cmt_mret   = instr_is_mret;
 assign      brch_cmt_fence  = instr_is_fence;
