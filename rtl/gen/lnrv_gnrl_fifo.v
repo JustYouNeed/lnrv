@@ -46,8 +46,8 @@ generate
         assign      pop_hsked = pop_vld & pop_rdy;
 
         // 输入端握手成功，则表示可以将数据加载到buffer中
-        assign      fifo_buf_rld = push_hsked;
-        assign      fifo_buf_d = push_data;
+        assign      fifo_buf_rld = push_hsked | flush_req;
+        assign      fifo_buf_d = flush_req ? {P_DATA_WIDTH{1'b0}} : push_data;
         always@(posedge clk or negedge reset_n) begin
             if(reset_n == 1'b0) begin
                 fifo_buf_q <= {P_DATA_WIDTH{1'b0}};
