@@ -129,23 +129,7 @@
 `define		INSTR_GET_J_TYPE_IMM(ir)	{{12{ir[`INSTR_J_IMM_MSB_LOC]}}, ir[`INSTR_J_IMM20_LOC], ir[`INSTR_J_IMM19_12_LOC], ir[`INSTR_J_IMM11_LOC], ir[`INSTR_J_IMM10_1_LOC], 1'b0}
 
 
-
-`define 	DEC_BUS_TYPE_WIDTH             3
-`define     DEC_BUS_TYPE_LSB               0
-`define     DEC_BUS_TYPE_LOC               `DEC_BUS_TYPE_LSB +: `DEC_BUS_TYPE_WIDTH
-
-//译码信息总线类型
-`define     DEC_NONE_BUS                    `DEC_BUS_TYPE_WIDTH'd0
-`define 	DEC_RGLR_BUS          	        `DEC_BUS_TYPE_WIDTH'd1     //常规运算指令
-`define 	DEC_BJP_BUS          	        `DEC_BUS_TYPE_WIDTH'd2     //分支运算指令
-`define 	DEC_MDV_BUS       	            `DEC_BUS_TYPE_WIDTH'd3     //乘除法指令
-`define 	DEC_CSR_BUS          	        `DEC_BUS_TYPE_WIDTH'd4     //CSR指令
-`define 	DEC_MEM_BUS          	        `DEC_BUS_TYPE_WIDTH'd5     //内存操作指令
-`define 	DEC_SYS_BUS          	        `DEC_BUS_TYPE_WIDTH'd6     //系统相关指令
-
-`define     DEC_OP_BUS_WIDTH                14
-
-`define     RGLR_OP_BUS_WIDTH               14
+// 常规指令
 `define     RGLR_ADD_LOC                    0
 `define     RGLR_SUB_LOC                    1
 `define     RGLR_AND_LOC                    2
@@ -160,8 +144,9 @@
 `define     RGLR_SLTU_LOC                   11
 `define     RGLR_OP1_IS_PC                  12
 `define     RGLR_OP2_IS_IMM                 13
+`define     RGLR_OP_BUS_WIDTH               14
 
-`define     BRCH_OP_BUS_WIDTH               13
+// 分支指令
 `define     BRCH_BEQ_LOC                    0
 `define     BRCH_BGE_LOC                    1
 `define     BRCH_BGEU_LOC                   2
@@ -175,38 +160,41 @@
 `define     BRCH_FENCE_LOC                  10
 `define     BRCH_OP1_IS_PC                  11
 `define     BRCH_OP2_IS_IMM                 12
+`define     BRCH_OP_BUS_WIDTH               13
 
-`define     SYS_OP_BUS_WIDTH                3
+// 系统指令
 `define     SYS_WFI_LOC                     0
 `define     SYS_EBREAK_LOC                  1
 `define     SYS_ECALL_LOC                   2
 // `define     SYS_FENCE_LOC                   3
 // `define     SYS_FENCEI_LOC                  4
+`define     SYS_OP_BUS_WIDTH                3
 
-
-`define     CSR_OP_BUS_WIDTH                5
+// csr操作指令
 `define     CSR_CSRRC_LOC                   0
 `define     CSR_CSRRS_LOC                   1
 `define     CSR_CSRRW_LOC                   2
 `define     CSR_OP1_IS_ZERO                 3
 `define     CSR_OP2_IS_IMM                  4
+`define     CSR_OP_BUS_WIDTH                5
 
-`define     LSU_OP_BUS_WIDTH                5
+// 访存指令
 `define     LSU_LOAD_LOC                    0
 `define     LSU_STORE_LOC                   1
 `define     LSU_SIZE_LOC                    3:2
 `define     LSU_UEXT_LOC                    4
+`define     LSU_OP_BUS_WIDTH                5
 
-`define     MDV_OP_BUS_WIDTH                6
+// 整数乘除法指令
 `define     MDV_DIV_LOC                     0
 `define     MDV_MUL_LOC                     1
 `define     MDV_REM_LOC                     2
 `define     MDV_OP1_UNSIGNED_LOC            3
 `define     MDV_OP2_UNSIGNED_LOC            4
 `define     MDV_RES_HIGH_LOC                5
+`define     MDV_OP_BUS_WIDTH                6
 
-
-`define     ALU_OP_BUS_WIDTH                14
+// alu模块操作总线
 `define     ALU_ADD_LOC                     0
 `define     ALU_SUB_LOC                     1
 `define     ALU_AND_LOC                     2
@@ -221,6 +209,24 @@
 `define     ALU_LT_LOC                      11
 `define     ALU_LTU_LOC                     12
 `define     ALU_NEQ_LOC                     13
+`define     ALU_OP_BUS_WIDTH                14
+
+// 
+`define     DEC_OP_TYPE_WIDTH               3
+`define     DEC_OP_TYPE_LSB                 0
+`define     DEC_OP_TYPE_LOC                 `DEC_BUS_TYPE_LSB +: `DEC_BUS_TYPE_WIDTH
+
+`define     DEC_OP_BUS_WIDTH                `RGLR_OP_BUS_WIDTH
+
+
+//译码信息总线类型
+`define     DEC_NONE_BUS                    `DEC_BUS_TYPE_WIDTH'd0
+`define     DEC_RGLR_BUS                    `DEC_BUS_TYPE_WIDTH'd1     //常规运算指令
+`define     DEC_BRCH_BUS                    `DEC_BUS_TYPE_WIDTH'd2     //分支运算指令
+`define     DEC_MDV_BUS                     `DEC_BUS_TYPE_WIDTH'd3     //乘除法指令
+`define     DEC_CSR_BUS                     `DEC_BUS_TYPE_WIDTH'd4     //CSR指令
+`define     DEC_MEM_BUS                     `DEC_BUS_TYPE_WIDTH'd5     //内存操作指令
+`define     DEC_SYS_BUS                     `DEC_BUS_TYPE_WIDTH'd6     //系统相关指令
 
 
 /* 控制和状态寄存器地址 */

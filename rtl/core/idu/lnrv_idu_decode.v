@@ -20,14 +20,7 @@ module  lnrv_idu_decode
     output                              dec_ilegl_instr,
 
     output[`DEC_OP_BUS_WIDTH - 1 : 0]   dec_op_bus,
-    output                              dec_rglr_instr,     // 常规指令
-    output                              dec_lsu_instr,      // load and store指令
-    output                              dec_csr_instr,
-    output                              dec_brch_instr,     // 分支相关指令
-    output                              dec_mdv_instr,      // 乘除法相关指令
-    output                              dec_sys_instr,      // 系统相关指令
-    output                              dec_amo_instr,
-    output                              dec_fpu_instr
+    output[`DEC_OP_TYPE_WIDTH -1 : 0]   dec_op_type
 );
 
 
@@ -93,6 +86,7 @@ wire                                instr_is_srl;
 wire                                instr_is_srli;
 wire                                instr_is_sub;
 wire                                instr_is_lui;
+wire                                dec_rglr_instr;
 
 // csr相关指令
 wire                                instr_is_csrrc;
@@ -101,6 +95,7 @@ wire                                instr_is_csrrw;
 wire                                instr_is_csrrwi;
 wire                                instr_is_csrrs;
 wire                                instr_is_csrrsi;
+wire                                dec_csr_instr;
 
 // 分支相关指令
 wire                                instr_is_beq;
@@ -111,6 +106,7 @@ wire                                instr_is_bltu;
 wire                                instr_is_bne;
 wire                                instr_is_jal;
 wire                                instr_is_jalr;
+wire                                dec_brch_instr;
 
 // 系统相关指令
 wire                                instr_is_ebreak;
@@ -120,6 +116,7 @@ wire                                instr_is_mret;
 wire                                instr_is_fence;
 wire                                instr_is_fencei;
 wire                                instr_is_wfi;
+wire                                dec_sys_instr;
 
 // load and store相关指令
 wire                                instr_is_lb;
@@ -132,6 +129,7 @@ wire                                instr_is_scw;
 wire                                instr_is_sb;
 wire                                instr_is_sh;
 wire                                instr_is_sw;
+wire                                dec_lsu_instr;
 
 wire                                instr_is_div;
 wire                                instr_is_divu;
@@ -141,6 +139,10 @@ wire                                instr_is_mulhsu;
 wire                                instr_is_mulhu;
 wire                                instr_is_rem;
 wire                                instr_is_remu;
+wire                                dec_mdv_instr;
+
+wire                                dec_amo_instr;
+wire                                dec_fpu_instr;
 
 
 
@@ -1048,6 +1050,13 @@ assign      dec_op_bus_mux =    ({(`DEC_OP_BUS_WIDTH + 1){dec_rglr_instr}} & {{(
                                 ({(`DEC_OP_BUS_WIDTH + 1){dec_mdv_instr}} & {{(`DEC_OP_BUS_WIDTH + 1 - `MDV_OP_BUS_WIDTH){1'b0}}, mdv_op_bus});
 
 assign      dec_op_bus = dec_op_bus_mux[0 +: `DEC_OP_BUS_WIDTH];
+assign      dec_op_type = dec_rglr_instr ? `DEC_RGLR_BUS : 
+                            dec_brch_instr ? `DEC_BRCH_BUS : 
+                            dec_lsu_instr ? `DEC_LSU_BUS : 
+                            dec_csr_instr ? `DEC_CSR_BUS : 
+                            dec_sys_instr ? `DEC_SYS_BUS : 
+                            dec_mdv_instr ? `DEC_MDV_BUS : 
+                            `DEC_NONE_BUS;
 
 // 判断非法指令
 
@@ -1065,10 +1074,11 @@ assign      legl_exu =  dec_rglr_instr |
                         dec_sys_instr | 
                         dec_brch_instr | 
                         dec_lsu_instr | 
-                        dec_mdv_instr | 
-                        dec_fpu_instr | 
+                        // dec_mdv_instr | 
+                        // dec_fpu_instr | 
                         dec_csr_instr |
-                        dec_amo_instr;
+                        // dec_amo_instr | 
+                        1'b0;
 
 assign      ilegl_exu = ~legl_exu;
 

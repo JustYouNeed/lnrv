@@ -17,65 +17,41 @@ module  lnrv_exu#
     // 译码信息
     input                                   idu_pc_vld,
     output                                  idu_pc_rdy,
-    input                                   idu_rlgr_instr,
-    input                                   idu_lsu_instr,
-    input                                   idu_brch_instr,
-    input                                   idu_mdv_instr,
-    input                                   idu_sys_instr,
-    input                                   idu_csr_instr,
-    input                                   idu_amo_instr,
     input[`DEC_OP_BUS_WIDTH - 1 : 0]        idu_op_bus,
+    input[`DEC_OP_TYPE_WIDTH - 1 : 0]       idu_op_type,
     input[31 : 0]                           idu_imm,
     input[31 : 0]                           idu_pc,
     input[31 : 0]                           idu_ir,
 
-    // 前级模块产生的异常信息
-    input                                   idu_excp_misalgn,       
-    input                                   idu_excp_buserr,        
-    input                                   idu_excp_ilgl_ir,       
 
     // 寄存器读取接口
     input[31 : 0]                           rs1_rdata,
     input[31 : 0]                           rs2_rdata,
     input[31 : 0]                           csr_rdata,
 
-    // 常规指令交付接口
-    output                                  rglr_cmt_vld,
-    input                                   rglr_cmt_rdy,
-    output                                  rglr_cmt_gpr_wen,
+    output                                  exu_cmt_vld,
+    input                                   exu_cmt_rdy,
+    output                                  exu_cmt_dret,
+    output                                  exu_cmt_mret,
+    output                                  exu_cmt_fence,
+    output                                  exu_cmt_bjp,
+    output                                  exu_cmt_bjp_res,
 
-    // 分支指令交付接口
-    output                                  brch_cmt_vld,
-    input                                   brch_cmt_rdy,
-    output                                  brch_cmt_dret,
-    output                                  brch_cmt_mret,
-    output                                  brch_cmt_fence,
-    output                                  brch_cmt_bjp,
-    output                                  brch_cmt_bjp_res,
-    output                                  brch_cmt_gpr_wen,
+    output                                  exu_cmt_csr_idxerr,
+    output                                  exu_cmt_csr_wen,
+    output[31 : 0]                          exu_cmt_csr_wdata,
 
-    // csr指令交付接口
-    output                                  csr_cmt_vld,
-    input                                   csr_cmt_rdy,
-    output                                  csr_cmt_gpr_wen,
-    output                                  csr_cmt_csr_wen,
+    output                                  exu_cmt_rglr,
+    
+    output                                  exu_cmt_ebreak,
+    output                                  exu_cmt_ecall,
+    output                                  exu_cmt_wfi,
 
-    // sys指令交付接口
-    output                                  sys_cmt_vld,
-    input                                   sys_cmt_rdy,
-    output                                  sys_cmt_ebreak,
-    output                                  sys_cmt_ecall,
-    output                                  sys_cmt_wfi,
-
-    // 访存指令交付接口
-    output                                  lsu_cmt_vld,
-    input                                   lsu_cmt_rdy,
-    output                                  lsu_cmt_ld,
-    output                                  lsu_cmt_st,
-    output                                  lsu_cmt_misalgn,
-    output                                  lsu_cmt_buserr,
-    output[31 : 0]                          lsu_cmt_addr,
-    output[31 : 0]                          lsu_cmt_gpr_wdata,
+    output                                  exu_cmt_ld,
+    output                                  exu_cmt_st,
+    output                                  exu_cmt_excp_misalgn,
+    output                                  exu_cmt_excp_buserr,
+    output[31 : 0]                          exu_cmt_baddr,
 
     //访存接口
     output                                  lsu_cmd_vld,
