@@ -1,9 +1,9 @@
 `include    "lnrv_def.v"
 module lnrv_exu_brch
 (
-    input                                   brch_op_vld,
-    output                                  brch_op_rdy,
-    input[`BRCH_OP_BUS_WIDTH - 1 : 0]       brch_op_bus,
+    input                                   op_vld,
+    output                                  op_rdy,
+    input[`BRCH_OP_BUS_WIDTH - 1 : 0]       op_bus,
 
     input[31 : 0]                           rs1_rdata,
     input[31 : 0]                           rs2_rdata,
@@ -17,14 +17,17 @@ module lnrv_exu_brch
     output[31 : 0]                          alu_in2,
     input[31 : 0]                           alu_res,
 
-    output                                  brch_cmt_vld,
-    input                                   brch_cmt_rdy,
-    output                                  brch_cmt_dret,
-    output                                  brch_cmt_mret,
-    output                                  brch_cmt_fence,
-    output                                  brch_cmt_bjp,
-    output                                  brch_cmt_bjp_res,
-    output                                  brch_cmt_gpr_wen
+    output                                  cmt_vld,
+    input                                   cmt_rdy,
+    output                                  cmt_dret,
+    output                                  cmt_mret,
+    output                                  cmt_fence,
+    output                                  cmt_bjp,
+    output                                  cmt_jal,
+    output                                  cmt_jalr,
+
+    output                                  gpr_wen,
+    output[31 : 0]                          gpr_wdata
 );
 
 // 该模块处理分支相关指令:
@@ -54,25 +57,20 @@ wire                        instr_is_bxx;
 wire                        op1_is_pc;
 wire                        op2_is_imm;
 
-wire                        brch_must_taken;
-wire                        brch_cond_taken;
-wire                        brch_taken;
-
-wire                        need_wbck;
 wire                        need_alu;
 
-assign      instr_is_beq    = brch_op_bus[`BRCH_BEQ_LOC];
-assign      instr_is_bge    = brch_op_bus[`BRCH_BGE_LOC];
-assign      instr_is_bgeu   = brch_op_bus[`BRCH_BGEU_LOC];
-assign      instr_is_blt    = brch_op_bus[`BRCH_BLT_LOC];
-assign      instr_is_bltu   = brch_op_bus[`BRCH_BLTU_LOC];
-assign      instr_is_bne    = brch_op_bus[`BRCH_BNE_LOC];
-assign      instr_is_jal    = brch_op_bus[`BRCH_JAL_LOC];
-assign      instr_is_jalr   = brch_op_bus[`BRCH_JALR_LOC];
-assign      instr_is_mret   = brch_op_bus[`BRCH_MRET_LOC];
-assign      instr_is_dret   = brch_op_bus[`BRCH_DRET_LOC];
-// assign      instr_is_fencei = brch_op_bus[`BRCH_FENCEI_LOC];
-assign      instr_is_fence  = brch_op_bus[`BRCH_FENCE_LOC];
+assign      instr_is_beq    = op_bus[`BRCH_BEQ_LOC];
+assign      instr_is_bge    = op_bus[`BRCH_BGE_LOC];
+assign      instr_is_bgeu   = op_bus[`BRCH_BGEU_LOC];
+assign      instr_is_blt    = op_bus[`BRCH_BLT_LOC];
+assign      instr_is_bltu   = op_bus[`BRCH_BLTU_LOC];
+assign      instr_is_bne    = op_bus[`BRCH_BNE_LOC];
+assign      instr_is_jal    = op_bus[`BRCH_JAL_LOC];
+assign      instr_is_jalr   = op_bus[`BRCH_JALR_LOC];
+assign      instr_is_mret   = op_bus[`BRCH_MRET_LOC];
+assign      instr_is_dret   = op_bus[`BRCH_DRET_LOC];
+// assign      instr_is_fencei = op_bus[`BRCH_FENCEI_LOC];
+assign      instr_is_fence  = op_bus[`BRCH_FENCE_LOC];
 
 assign      instr_is_bxx    =   instr_is_beq | 
                                 instr_is_bge | 
@@ -81,8 +79,8 @@ assign      instr_is_bxx    =   instr_is_beq |
                                 instr_is_bltu | 
                                 instr_is_bne;
 
-assign      op1_is_pc       = brch_op_bus[`BRCH_OP1_IS_PC];
-assign      op2_is_imm      = brch_op_bus[`BRCH_OP2_IS_IMM];
+assign      op1_is_pc       = op_bus[`BRCH_OP1_IS_PC];
+assign      op2_is_imm      = op_bus[`BRCH_OP2_IS_IMM];
 
 // 除了下列指令，都需要使用alu
 assign      need_alu = ~(
@@ -91,7 +89,7 @@ assign      need_alu = ~(
                             instr_is_fence
                         );
 
-assign      alu_op_vld                  = brch_op_vld & need_alu;
+assign      alu_op_vld                  = op_vld & need_alu;
 
 assign      alu_op_bus[`ALU_ADD_LOC]    = instr_is_jal | instr_is_jalr;
 assign      alu_op_bus[`ALU_SLL_LOC]    = 1'b0;
@@ -113,15 +111,20 @@ assign      alu_in1 = op1_is_pc ? pc : rs1_rdata;
 assign      alu_in2 = op2_is_imm ? 32'd4 : rs2_rdata;
 
 
-assign      brch_cmt_bjp    = instr_is_bxx & alu_res[0];
-assign      brch_cmt_dret   = instr_is_dret;
-assign      brch_cmt_mret   = instr_is_mret;
-assign      brch_cmt_fence  = instr_is_fence;
-assign      brch_cmt_jal    = instr_is_jal;
-assign      brch_cmt_jalr   = instr_is_jalr;
+assign      cmt_bjp    = instr_is_bxx & alu_res[0];
+assign      cmt_dret   = instr_is_dret;
+assign      cmt_mret   = instr_is_mret;
+assign      cmt_fence  = instr_is_fence;
+assign      cmt_jal    = instr_is_jal;
+assign      cmt_jalr   = instr_is_jalr;
 
 // 如果需要使用alu，则需要等alu就绪才可以交付
-assign      brch_cmt_vld    = need_alu ? alu_op_rdy : brch_op_vld;
-assign      brch_cmt_gpr_wen = instr_is_jal | instr_is_jalr;
+assign      cmt_vld = need_alu ? alu_op_rdy : op_vld;
+
+assign      op_rdy = cmt_rdy;
+
+// 只有jal和jalr两个指令需要写回
+assign      gpr_wen = instr_is_jal | instr_is_jalr;
+assign      gpr_wdata = alu_res;
 
 endmodule

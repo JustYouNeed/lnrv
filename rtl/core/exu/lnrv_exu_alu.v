@@ -1,4 +1,4 @@
-`include	"lnrv_def.v"
+`include    "lnrv_def.v"
 module	lnrv_exu_alu
 (
     // 有四个模块需要使用alu，但是不会同时使用，因为是单发射流水线
@@ -76,6 +76,9 @@ reg[31 : 0]                             shift_res_invert;
 wire[31 : 0]                            shift_res;
 
 wire[31 : 0]                            sra_mask;
+
+wire[31 : 0]                            alu_in1;
+wire[31 : 0]                            alu_in2;
 
 wire                                    op_unsigned;
 

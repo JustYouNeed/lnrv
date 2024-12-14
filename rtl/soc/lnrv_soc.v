@@ -65,8 +65,8 @@ lnrv_cpu#
 )
 u_lnrv_cpu
 (
-    .reset_vector           ( reset_vector              ),
-    .reset_mtvec            ( reset_mtvec               ),
+    .reset_vector           ( 32'd0                     ),
+    .reset_mtvec            ( 32'h0000_0000             ),
 
     .sft_irq                ( sft_irq                   ),
     .tmr_irq                ( tmr_irq                   ),

@@ -1,4 +1,4 @@
-jmh// `include    "lnrv_config.v"
+// `include    "lnrv_config.v"
 `include    "lnrv_def.v"
 module	lnrv_ifu
 (
@@ -14,10 +14,10 @@ module	lnrv_ifu
     input[31 : 0]                       reset_vector,
 
     // 来自执行单元的流水线冲刷请求
-    input                               exu_pipe_flush_req,
-    output                              exu_pipe_flush_ack,
-    input[31 : 0]                       exu_pipe_flush_pc_op1,
-    input[31 : 0]                       exu_pipe_flush_pc_op2,
+    input                               cmt_pipe_flush_req,
+    output                              cmt_pipe_flush_ack,
+    input[31 : 0]                       cmt_pipe_flush_pc_op1,
+    input[31 : 0]                       cmt_pipe_flush_pc_op2,
 
     // 来自分支预测模块的流水线冲刷请求
     input                               bpu_pipe_flush_req,
@@ -30,8 +30,8 @@ module	lnrv_ifu
     output                              pipe_halt_ack,
         
     // 输出至EXU模块
-    output                              ifu_pc_vld,
-    input                               ifu_pc_rdy,
+    output                              ifu_vld,
+    input                               ifu_rdy,
     output[31 : 0]                      ifu_ir,                 // instruction寄存器
     output[31 : 0]                      ifu_pc,                 // pc寄存器
     output                              ifu_excp_misalgn,
@@ -132,10 +132,10 @@ wire[LP_IFU_BUF_WIDTH - 1 : 0]          ifu_buf_pop_data;
 
 // 如果分支预测模块和指令执行模块同时请求冲刷流水线，则优先响应指令执行模块，因为指令执行模块的冲刷请求有可能来自中断或者异常，
 // 需要优先处理
-assign      pipe_flush_req      = exu_pipe_flush_req | bpu_pipe_flush_req;
-assign      pipe_flush_pc_op1   = exu_pipe_flush_req ? exu_pipe_flush_pc_op1 : bpu_pipe_flush_pc_op1;
-assign      pipe_flush_pc_op2   = exu_pipe_flush_req ? exu_pipe_flush_pc_op2 : bpu_pipe_flush_pc_op2;
-assign      pipe_flush_hsked    = pipe_flush_req & pipe_flush_ack;
+assign      pipe_flush_req      = cmt_pipe_flush_req | bpu_pipe_flush_req;
+assign      pipe_flush_pc_op1   = cmt_pipe_flush_req ? cmt_pipe_flush_pc_op1 : bpu_pipe_flush_pc_op1;
+assign      pipe_flush_pc_op2   = cmt_pipe_flush_req ? cmt_pipe_flush_pc_op2 : bpu_pipe_flush_pc_op2;
+assign      pipe_flush_hsked    = cmt_pipe_flush_req & cmt_pipe_flush_ack;
 
 /* 应答通道握手 */
 assign      ifu_rsp_hsked = ifu_rsp_vld & ifu_rsp_rdy;
@@ -192,12 +192,14 @@ end
 
 
 // 这里将指令地址分为两个操作数相加
-assign      instr_addr_op1 =    pipe_flush_req ? pipe_flush_pc_op1 :          // 流水线冲刷请求
+assign      instr_addr_op1 =    bpu_pipe_flush_req ? bpu_pipe_flush_pc_op1 :
+                                cmt_pipe_flush_req ? cmt_pipe_flush_pc_op1 :          // 流水线冲刷请求
                                 flush_req_pend_q ? instr_addr_q :     // 流水线冲刷请求并不一定能被立即处理
                                 reset_pend_q ? reset_vector : 
                                 instr_addr_q;
 
-assign      instr_addr_op2 =    pipe_flush_req ? pipe_flush_pc_op2 : 
+assign      instr_addr_op2 =    bpu_pipe_flush_req ? bpu_pipe_flush_pc_op1 :
+                                cmt_pipe_flush_req ? cmt_pipe_flush_pc_op2 : 
                                 flush_req_pend_q ? 32'd0 : 
                                 reset_pend_q ? 32'd0 : 
                                 32'd4;
@@ -260,7 +262,7 @@ lnrv_gnrl_buffer#
 (
     .P_DATA_WIDTH       ( LP_IFU_BUF_WIDTH          ),
     .P_DEEPTH           ( 1                         ),
-    .P_CUT_READY        ( "true"                    ),
+    .P_CUT_READY        ( "false"                   ),
     .P_BYPASS           ( "false"                   )
 )       
 u_ifu_buffer        
@@ -286,11 +288,11 @@ assign      {
                 ifu_ir,
                 ifu_pc
             } = ifu_buf_pop_data;
-assign      ifu_buf_pop_rdy = ifu_pc_rdy;
-assign      ifu_pc_vld = ifu_buf_pop_vld;
+assign      ifu_buf_pop_rdy = ifu_rdy;
+assign      ifu_vld = ifu_buf_pop_vld;
 
 // 只要没有滞外请求，且没有halt请求，地址对齐，就可以发出新的指令请求
-assign      ifu_cmd_vld     = no_cmd_ots & (~pipe_halt_req) & addr_algn;
+assign      ifu_cmd_vld     = no_cmd_ots & (~pipe_halt_req) & instr_addr_algn;
 assign      ifu_cmd_addr    = instr_addr_d;
 assign      ifu_cmd_write   = 1'b0;
 assign      ifu_cmd_wdata   = 32'd0;
@@ -302,7 +304,7 @@ assign      ifu_cmd_size    = 3'd2;
 assign      ifu_rsp_rdy = pipe_flush_vld | ifu_buf_push_rdy;
 
 // 无论什么时候都会接收流水线冲刷请求
-assign      pipe_flush_ack = 1'b1;
+assign      cmt_pipe_flush_ack = 1'b1;
 
 assign      ifu_active = 1'b1;
 

@@ -15,8 +15,8 @@ module	lnrv_ifu_ifetch
     output                              pipe_halt_ack,
 
     // 输出至EXU模块
-    output                              ifu_pc_vld,
-    input                               ifu_pc_rdy,
+    output                              ifu_vld,
+    input                               ifu_rdy,
     output[31 : 0]                      ifu_pc,     //pc寄存器
     output[31 : 0]                      ifu_ir,     //instruction寄存器
     output                              ifu_misalgn,
@@ -134,7 +134,7 @@ assign      ifu_cmd_hsked = ifu_cmd_vld & ifu_cmd_rdy;
 
 // ifu ir寄存器握手成功，表示exu成功派遣一条指令，可以将下一条指令装载到ir寄存器，等待派遣
 // 本设计中采用的是顺序执行，只有上一条指令执行完成后，才会将后续指令派遣
-assign      ifu_ir_hsked = ifu_pc_vld & ifu_pc_rdy;
+assign      ifu_ir_hsked = ifu_vld & ifu_rdy;
 
 
 // 复位为我们需要从reset_vector取指，由于取指PC直接由组合逻辑输出，因此在第一个取指请求没有成功握手
@@ -252,7 +252,7 @@ assign      ifu_buf_push_data = {
                                     instr_addr_q
                                 };
 
-assign      ifu_buf_pop_rdy = ifu_pc_rdy;
+assign      ifu_buf_pop_rdy = ifu_rdy;
 assign      {
                 ifu_buserr,
                 ifu_ir,
@@ -260,7 +260,7 @@ assign      {
             } = ifu_buf_pop_data;
 
 // assign      ifu_rsp_rdy = ifu_buf_push_rdy;
-assign      ifu_pc_vld = ifu_buf_pop_vld;
+assign      ifu_vld = ifu_buf_pop_vld;
 
 lnrv_gnrl_buffer#
 (

@@ -61,43 +61,43 @@ module  lnrv_core
     input                                   reset_n
 );
 
+wire                                    cmt_pipe_flush_req;
+wire                                    cmt_pipe_flush_ack_ifu;
+wire                                    cmt_pipe_flush_ack_idu;
+wire[31 : 0]                            cmt_pipe_flush_pc_op1;
+wire[31 : 0]                            cmt_pipe_flush_pc_op2;
+
+wire                                    bpu_pipe_flush_req;
+wire                                    bpu_pipe_flush_ack;
+wire[31 : 0]                            bpu_pipe_flush_pc_op1;
+wire[31 : 0]                            bpu_pipe_flush_pc_op2;
+
 wire                                    ifu_pipe_halt_req;
 wire                                    ifu_pipe_halt_ack;
-wire                                    ifu_pipe_flush_req;
-wire                                    ifu_pipe_flush_ack;
-wire                                    ifu_pc_vld;
+
+wire                                    ifu_vld;
 wire[`CPU_ADDR_WIDTH - 1 : 0]           ifu_pc;
 wire[`CPU_DATA_WIDTH - 1 : 0]           ifu_ir;
+wire                                    ifu_excp_misalgn;
+wire                                    ifu_excp_buserr;
 
 
-wire                                    ifu_pc_rdy;
-wire                                    idu_pipe_halt_req;
-wire                                    idu_pipe_halt_ack;
-wire                                    idu_pipe_flush_req;
-wire                                    idu_pipe_flush_ack;
-wire                                    dec_op_vld;
-wire                                    dec_op_rdy;
-wire[31 : 0]                            dec_ir;
-wire[31 : 0]                            dec_pc;
-wire                                    dec_idu_instr_ilegl;
-wire                                    dec_ifu_misalgn;
-wire                                    dec_ifu_buserr;
-wire[4 : 0]                             dec_rs1_idx;
-wire[4 : 0]                             dec_rs2_idx;
-wire[11 : 0]                            dec_csr_idx;
-wire[4 : 0]                             dec_rd_idx;
-wire[31 : 0]                            dec_imm;
-wire                                    dec_rglr_instr;
-wire                                    dec_lsu_instr;
-wire                                    dec_csr_instr;
-wire                                    dec_brch_instr;
-wire                                    dec_mdv_instr;
-wire                                    dec_sys_instr;
-wire                                    dec_amo_instr;
-wire                                    dec_fpu_instr;
-wire[`DEC_OP_BUS_WIDTH - 1 : 0]         dec_op_bus;
-wire                                    dec_rv32;
-wire                                    dec_rv16;
+wire                                    idu_vld;
+wire                                    idu_rdy;
+wire                                    idu_excp_ilglir;
+wire                                    idu_excp_misalgn;
+wire                                    idu_excp_buserr;
+wire[31 : 0]                            idu_ir;
+wire[31 : 0]                            idu_pc;
+wire[31 : 0]                            idu_imm;
+wire[4 : 0]                             idu_rs1_idx;
+wire[4 : 0]                             idu_rs2_idx;
+wire[4 : 0]                             idu_rd_idx;
+wire[11 : 0]                            idu_csr_idx;
+wire[`DEC_OP_BUS_WIDTH - 1 : 0]         idu_op_bus;
+wire[`DEC_OP_TYPE_WIDTH - 1 : 0]        idu_op_type;
+wire                                    idu_rv32;
+wire                                    idu_rv16;
 
 wire                                    pipe_halt_req;
 wire                                    pipe_halt_ack;
@@ -107,17 +107,51 @@ wire                                    pipe_flush_ack;
 wire[31 : 0]                            pipe_flush_pc_op1;
 wire[31 : 0]                            pipe_flush_pc_op2;
 
+wire                                    cmt_vld;
+wire                                    cmt_rdy;
+wire                                    cmt_brch_dret;
+wire                                    cmt_brch_mret;
+wire                                    cmt_brch_fence;
+wire                                    cmt_brch_jal;
+wire                                    cmt_brch_jalr;
+wire                                    cmt_brch_bjp;
+wire                                    cmt_csr_idxerr;
+wire                                    cmt_csr;
+wire                                    cmt_rglr;
+wire                                    cmt_ifu_excp_buserr;
+wire                                    cmt_ifu_excp_misalgn;
+wire                                    cmt_idu_excp_ilglir;
+wire                                    cmt_sys_ebreak;
+wire                                    cmt_sys_ecall;
+wire                                    cmt_sys_wfi;
+wire                                    cmt_lsu_ld;
+wire                                    cmt_lsu_st;
+wire                                    cmt_lsu_excp_misalgn;
+wire                                    cmt_lsu_excp_buserr;
+wire[31 : 0]                            cmt_lsu_addr;
 
-wire                                    cmt_mret;
-wire                                    cmt_dret;
-wire                                    cmt_irq;
-wire                                    cmt_excp;
-wire                                    cmt_debug;
-wire[31 : 0]                            cmt_mepc;
-wire[31 : 0]                            cmt_mcause;
-wire[31 : 0]                            cmt_mtval;
-wire[31 : 0]                            cmt_dpc;
-wire[2 : 0]                             cmt_dcause;
+wire                                    cmted_dret;
+wire                                    cmted_mret;
+wire                                    irq_taken;
+wire                                    excp_taken;
+wire                                    dbg_taken;
+
+wire                                    mepc_wen;
+wire[31 : 0]                            mepc_wdata;
+
+wire                                    mcause_wen;
+wire[31 : 0]                            mcause_wdata;
+
+wire                                    mtval_wen;
+wire[31 : 0]                            mtval_wdata;
+
+wire                                    dpc_wen;
+wire[31 : 0]                            dpc_wdata;
+
+wire                                    dcause_wen;
+wire[2 : 0]                             dcause_wdata;
+
+wire                                    csr_idx_err;
 
 
 wire[31 : 0]                            rs1_rdata;
@@ -144,15 +178,11 @@ wire                                    dcsr_stoptime;
 wire [31 : 0]                           mepc;
 wire[31 : 0]                            dpc;
 wire [31 : 0]                           mtvec;
-wire                                    sft_irq_en;
-wire                                    tmr_irq_en;
-wire                                    ext_irq_en;
+wire                                    mie_msie;
+wire                                    mie_mtie;
+wire                                    mie_meie;
 wire                                    mstatus_mie;
 
-
-
-assign      ifu_pipe_halt_req = pipe_halt_req;
-assign      ifu_pipe_flush_req = pipe_flush_req;
 
 // 取指模块
 lnrv_ifu u_lnrv_ifu
@@ -162,21 +192,29 @@ lnrv_ifu u_lnrv_ifu
 
     .ifu_active                 ( ifu_active                ),
 
+    .firmware_loading           ( firmware_loading          ),
+
     .reset_vector               ( reset_vector              ),
 
-    .pipe_flush_req             ( ifu_pipe_flush_req        ),
-    .pipe_flush_ack             ( ifu_pipe_flush_ack        ),
+    .cmt_pipe_flush_req         ( cmt_pipe_flush_req        ),
+    .cmt_pipe_flush_ack         ( cmt_pipe_flush_ack_ifu    ),
+    .cmt_pipe_flush_pc_op1      ( cmt_pipe_flush_pc_op1     ),
+    .cmt_pipe_flush_pc_op2      ( cmt_pipe_flush_pc_op2     ),
 
-    .pipe_flush_pc_op1          ( pipe_flush_pc_op1         ),
-    .pipe_flush_pc_op2          ( pipe_flush_pc_op2         ),
+    .bpu_pipe_flush_req         ( bpu_pipe_flush_req        ),
+    .bpu_pipe_flush_ack         ( bpu_pipe_flush_ack        ),
+    .bpu_pipe_flush_pc_op1      ( bpu_pipe_flush_pc_op1     ),
+    .bpu_pipe_flush_pc_op2      ( bpu_pipe_flush_pc_op2     ),
 
-    .pipe_halt_req              ( ifu_pipe_halt_req         ),
-    .pipe_halt_ack              ( ifu_pipe_halt_ack         ),
+    .pipe_halt_req              ( pipe_halt_req             ),
+    .pipe_halt_ack              ( pipe_halt_ack             ),
 
-    .ifu_pc_vld                 ( ifu_pc_vld                ),
-    .ifu_pc_rdy                 ( ifu_pc_rdy                ),
+    .ifu_vld                    ( ifu_vld                   ),
+    .ifu_rdy                    ( ifu_rdy                   ),
     .ifu_pc                     ( ifu_pc                    ),
     .ifu_ir                     ( ifu_ir                    ),
+    .ifu_excp_misalgn           ( ifu_excp_misalgn          ),
+    .ifu_excp_buserr            ( ifu_excp_buserr           ),
 
     .ifu_cmd_vld                ( ifu_cmd_vld               ),
     .ifu_cmd_rdy                ( ifu_cmd_rdy               ),
@@ -191,7 +229,6 @@ lnrv_ifu u_lnrv_ifu
     .ifu_rsp_err                ( ifu_rsp_err               )
 );
 
-assign      idu_pipe_halt_req = pipe_halt_req;
 assign      idu_pipe_flush_req = pipe_flush_req;
 
 // 译码模块
@@ -199,42 +236,38 @@ lnrv_idu u_lnrv_idu
 (
     .idu_active                 ( idu_active                ),
 
-    .ifu_pc_vld                 ( ifu_pc_vld                ),
-    .ifu_pc_rdy                 ( ifu_pc_rdy                ),
+    .ifu_vld                    ( ifu_vld                   ),
+    .ifu_rdy                    ( ifu_rdy                   ),
     .ifu_ir                     ( ifu_ir                    ),
     .ifu_pc                     ( ifu_pc                    ),
-    .ifu_misalgn                ( 1'b0                      ),
-    .ifu_buserr                 ( 1'b0                      ),
+    .ifu_excp_misalgn           ( ifu_excp_misalgn          ),
+    .ifu_excp_buserr            ( ifu_excp_buserr           ),
 
     .cmt_pipe_flush_req         ( cmt_pipe_flush_req        ),
     .cmt_pipe_flush_ack         ( cmt_pipe_flush_ack_idu    ),
 
-    .idu_excp_ilgl_ir           ( idu_excp_ilgl_ir          ),
-    .idu_excp_misalgn           ( idu_excp_misalgn          ),
-    .idu_excp_buserr            ( idu_excp_buserr           ),
+    .bpu_pipe_flush_req         ( bpu_pipe_flush_req        ),
+    .bpu_pipe_flush_ack         ( bpu_pipe_flush_ack        ),
+    .bpu_pipe_flush_pc_op1      ( bpu_pipe_flush_pc_op1     ),
+    .bpu_pipe_flush_pc_op2      ( bpu_pipe_flush_pc_op2     ),
 
     .d_mode                     ( d_mode                    ),
 
+    .idu_excp_ilglir            ( idu_excp_ilglir           ),
+    .idu_excp_misalgn           ( idu_excp_misalgn          ),
+    .idu_excp_buserr            ( idu_excp_buserr           ),
+
+    .idu_vld                    ( idu_vld                   ),
+    .idu_rdy                    ( idu_rdy                   ),
+    .idu_ir                     ( idu_ir                    ),
+    .idu_pc                     ( idu_pc                    ),
+    .idu_imm                    ( idu_imm                   ),
     .idu_rs1_idx                ( idu_rs1_idx               ),
     .idu_rs2_idx                ( idu_rs2_idx               ),
     .idu_csr_idx                ( idu_csr_idx               ),
     .idu_rd_idx                 ( idu_rd_idx                ),
-    .idu_imm                    ( idu_imm                   ),
-    .idu_ir                     ( idu_ir                    ),
-    .idu_pc                     ( idu_pc                    ),
-
-    .idu_rglr_instr             ( idu_rglr_instr            ),
-    .idu_lsu_instr              ( idu_lsu_instr             ),
-    .idu_csr_instr              ( idu_csr_instr             ),
-    .idu_brch_instr             ( idu_brch_instr            ),
-    .idu_mdv_instr              ( idu_mdv_instr             ),
-    .idu_sys_instr              ( idu_sys_instr             ),
-    .idu_amo_instr              ( idu_amo_instr             ),
-    .idu_fpu_instr              ( idu_fpu_instr             ),
-    
-    .idu_op_vld                 ( idu_op_vld                ),
-    .idu_op_rdy                 ( idu_op_rdy                ),
     .idu_op_bus                 ( idu_op_bus                ),
+    .idu_op_type                ( idu_op_type               ),
 
 
     .idu_rv32                   ( idu_rv32                  ),
@@ -244,43 +277,72 @@ lnrv_idu u_lnrv_idu
     .reset_n                    ( reset_n                   )
 );
 
-assign      pipe_halt_ack = ifu_pipe_halt_ack & idu_pipe_halt_ack;
-assign      pipe_flush_ack = ifu_pipe_flush_ack & idu_pipe_flush_ack;
+assign      cmt_pipe_flush_ack = cmt_pipe_flush_ack_ifu & cmt_pipe_flush_ack_idu;
 
 // 指令执行模块
 lnrv_exu u_lnrv_exu
 (
     .exu_active                 ( exu_active                ),
 
-    .idu_rglr_instr             ( idu_rglr_instr            ),
-    .idu_lsu_instr              ( idu_lsu_instr             ),
-    .idu_brch_instr             ( idu_brch_instr            ),
-    .idu_mdv_instr              ( idu_mdv_instr             ),
-    .idu_amo_instr              ( idu_amo_instr             ),
-    .idu_fpu_instr              ( idu_fpu_instr             ),
-    .idu_sys_instr              ( idu_sys_instr             ),
-    .idu_csr_instr              ( idu_csr_instr             ),
+    // 译码模块输入
+    .idu_vld                    ( idu_vld                   ),
+    .idu_rdy                    ( idu_rdy                   ),
     .idu_op_bus                 ( idu_op_bus                ),
-    .idu_op_vld                 ( idu_op_vld                ),
-    .idu_op_rdy                 ( idu_op_rdy                ),
-    .idu_rs1_idx                ( idu_rs1_idx               ),
-    .idu_rs2_idx                ( idu_rs2_idx               ),
-    .idu_rd_idx                 ( idu_rd_idx                ),
-    .idu_csr_idx                ( idu_csr_idx               ),
+    .idu_op_type                ( idu_op_type               ),
     .idu_imm                    ( idu_imm                   ),
     .idu_pc                     ( idu_pc                    ),
     .idu_ir                     ( idu_ir                    ),
+    .idu_rd_idx                 ( idu_rd_idx                ),
+    .idu_excp_ilglir            ( idu_excp_ilglir           ),
+    .idu_excp_misalgn           ( idu_excp_misalgn          ),
+    .idu_excp_buserr            ( idu_excp_buserr           ),
 
+    // 寄存器读接口
     .rs1_rdata                  ( rs1_rdata                 ),
     .rs2_rdata                  ( rs2_rdata                 ),
     .csr_rdata                  ( csr_rdata                 ),
+    .csr_idx_err                ( csr_idx_err               ),
 
-    .pipe_halt_req              ( pipe_halt_req             ),
-    .pipe_halt_ack              ( pipe_halt_ack             ),
+    // 交付接口
+    .cmt_vld                    ( cmt_vld                   ),
+    .cmt_rdy                    ( cmt_rdy                   ),
+    .cmt_brch_dret              ( cmt_brch_dret             ),
+    .cmt_brch_mret              ( cmt_brch_mret             ),
+    .cmt_brch_fence             ( cmt_brch_fence            ),
+    .cmt_brch_bjp               ( cmt_brch_bjp              ),
+    .cmt_brch_jal               ( cmt_brch_jal              ),
+    .cmt_brch_jalr              ( cmt_brch_jalr             ),
 
+    .cmt_idu_excp_ilglir        ( cmt_idu_excp_ilglir       ),
+    .cmt_ifu_excp_buserr        ( cmt_ifu_excp_buserr       ),
+    .cmt_ifu_excp_misalgn       ( cmt_ifu_excp_misalgn      ),
 
-    .wfi_mode                   ( wfi_mode                  ),
+    .cmt_csr_idxerr             ( cmt_csr_idxerr            ),
+    .cmt_csr                    ( cmt_csr                   ),
 
+    .cmt_rglr                   ( cmt_rglr                  ),
+    .cmt_sys_ebreak             ( cmt_sys_ebreak            ),
+    .cmt_sys_ecall              ( cmt_sys_ecall             ),
+    .cmt_sys_wfi                ( cmt_sys_wfi               ),
+
+    .cmt_lsu_ld                 ( cmt_lsu_ld                ),
+    .cmt_lsu_st                 ( cmt_lsu_st                ),
+    .cmt_lsu_excp_misalgn       ( cmt_lsu_excp_misalgn      ),
+    .cmt_lsu_excp_buserr        ( cmt_lsu_excp_buserr       ),
+    .cmt_lsu_addr               ( cmt_lsu_addr              ),
+
+    // 通用寄存器写回接口
+    .gpr_wbck_vld               ( gpr_wbck_vld              ),
+    .gpr_wbck_rdy               ( gpr_wbck_rdy              ),
+    .gpr_wbck_idx               ( gpr_wbck_idx              ),
+    .gpr_wbck_wdata             ( gpr_wbck_wdata            ),
+
+    // CSR寄存器写回接口
+    .csr_wbck_vld               ( csr_wbck_vld              ),
+    .csr_wbck_rdy               ( csr_wbck_rdy              ),
+    .csr_wbck_wdata             ( csr_wbck_wdata            ),
+
+    // 访存接口
     .lsu_cmd_vld                ( lsu_cmd_vld               ),
     .lsu_cmd_rdy                ( lsu_cmd_rdy               ),
     .lsu_cmd_write              ( lsu_cmd_write             ),
@@ -299,67 +361,55 @@ lnrv_exu u_lnrv_exu
 
 lnrv_cmt u_lnrv_cmt
 (
-    .ifu_pc_vld                 ( ifu_pc_vld                ),
+    .ifu_vld                    ( ifu_vld                   ),
     .ifu_pc                     ( ifu_pc                    ),
 
-    .idu_pc_vld                 ( idu_pc_vld                ),
+    .idu_vld                    ( idu_vld                   ),
     .idu_pc                     ( idu_pc                    ),
     .idu_ir                     ( idu_ir                    ),
-    .idu_rd_idx                 ( idu_rd_idx                ),
-    .idu_csr_idx                ( idu_csr_idx               ),
-    .idu_excp_ilgl_ir           ( idu_excp_ilgl_ir          ),
-    .idu_excp_buserr            ( idu_excp_buserr           ),
-    .idu_excp_misalgn           ( idu_excp_misalgn          ),
+    .idu_imm                    ( idu_imm                   ),
 
-    .lsu_cmt_vld                ( lsu_cmt_vld               ),
-    .lsu_cmt_rdy                ( lsu_cmt_rdy               ),
-    .lsu_cmt_misalgn            ( lsu_cmt_misalgn           ),
-    .lsu_cmt_buserr             ( lsu_cmt_buserr            ),
-    .lsu_cmt_st                 ( lsu_cmt_st                ),
-    .lsu_cmt_ld                 ( lsu_cmt_ld                ),
-    .lsu_cmt_bad_addr           ( lsu_cmt_bad_addr          ),
-    .lsu_cmt_gpr_wen            ( lsu_cmt_gpr_wen           ),
-    .lsu_cmt_gpr_wdata          ( lsu_cmt_gpr_wdata         ),
+    .cmt_vld                    ( cmt_vld                   ),
+    .cmt_rdy                    ( cmt_rdy                   ),
+    .cmt_idu_excp_ilglir        ( cmt_idu_excp_ilglir       ),
+    .cmt_ifu_excp_buserr        ( cmt_ifu_excp_buserr       ),
+    .cmt_ifu_excp_misalgn       ( cmt_ifu_excp_misalgn      ),
+    .cmt_brch_dret              ( cmt_brch_dret             ),
+    .cmt_brch_mret              ( cmt_brch_mret             ),
+    .cmt_brch_jal               ( cmt_brch_jal              ),
+    .cmt_brch_jalr              ( cmt_brch_jalr             ),
+    .cmt_brch_fence             ( cmt_brch_fence            ),
+    .cmt_brch_bjp               ( cmt_brch_bjp              ),
+    .cmt_rglr                   ( cmt_rglr                  ),
+    .cmt_csr                    ( cmt_csr                   ),
+    .cmt_csr_idxerr             ( cmt_csr_idxerr            ),
+    .cmt_sys_ebreak             ( cmt_sys_ebreak            ),
+    .cmt_sys_ecall              ( cmt_sys_ecall             ),
+    .cmt_sys_wfi                ( cmt_sys_wfi               ),
+    .cmt_lsu_ld                 ( cmt_lsu_ld                ),
+    .cmt_lsu_st                 ( cmt_lsu_st                ),
+    .cmt_lsu_excp_misalgn       ( cmt_lsu_excp_misalgn      ),
+    .cmt_lsu_excp_buserr        ( cmt_lsu_excp_buserr       ),
+    .cmt_lsu_baddr              ( cmt_lsu_baddr             ),
 
-    .sys_cmt_vld                ( sys_cmt_vld               ),
-    .sys_cmt_rdy                ( sys_cmt_rdy               ),
-    .sys_cmt_ecall              ( sys_cmt_ecall             ),
-    .sys_cmt_ebreak             ( sys_cmt_ebreak            ),
-    .sys_cmt_wfi                ( sys_cmt_wfi               ),
-
-    .rglr_cmt_vld               ( rglr_cmt_vld              ),
-    .rglr_cmt_rdy               ( rglr_cmt_rdy              ),
-    .rglr_cmt_gpr_wen           ( rglr_cmt_gpr_wen          ),
-
-    .brch_cmt_vld               ( brch_cmt_vld              ),
-    .brch_cmt_rdy               ( brch_cmt_rdy              ),
-    .brch_cmt_bjp               ( brch_cmt_bjp              ),
-    .brch_cmt_jal               ( brch_cmt_jal              ),
-    .brch_cmt_jalr              ( brch_cmt_jalr             ),
-    .brch_cmt_mret              ( brch_cmt_mret             ),
-    .brch_cmt_dret              ( brch_cmt_dret             ),
-    .brch_cmt_fence             ( brch_cmt_fence            ),
-    .brch_cmt_gpr_wen           ( brch_cmt_gpr_wen          ),
-
-    .csr_cmt_vld                ( csr_cmt_vld               ),
-    .csr_cmt_rdy                ( csr_cmt_rdy               ),
-    .csr_cmt_idx_err            ( csr_cmt_idx_err           ),
-    .csr_cmt_gpr_wen            ( csr_cmt_gpr_wen           ),
-    .csr_cmt_csr_wen            ( csr_cmt_csr_wen           ),
-    .csr_rdata                  ( csr_rdata                 ),
-
-    .alu_res                    ( alu_res                   ),
-    .bpu_prdt_res               ( bpu_prdt_res              ),
+    .bpu_prdt_res               ( 1'b0                      ),
 
     .sft_irq                    ( sft_irq                   ),
     .ext_irq                    ( ext_irq                   ),
     .tmr_irq                    ( tmr_irq                   ),
+
     .mie_meie                   ( mie_meie                  ),
     .mie_mtie                   ( mie_mtie                  ),
     .mie_msie                   ( mie_msie                  ),
     .mstatus_mie                ( mstatus_mie               ),
 
-    .dbg_mode                   ( dbg_mode                  ),
+    .dpc                        ( dpc                       ),
+    .mepc                       ( mepc                      ),
+    .mtvec                      ( mtvec                     ),
+    .rs1_rdata                  ( rs1_rdata                 ),
+
+    .d_mode                     ( d_mode                    ),
+    .wfi_mode                   ( wfi_mode                  ),
 
     .irq_taken                  ( irq_taken                 ),
     .dbg_taken                  ( dbg_taken                 ),
@@ -367,8 +417,8 @@ lnrv_cmt u_lnrv_cmt
 
     .dbg_irq                    ( dbg_irq                   ),
     .dbg_halt                   ( dbg_halt                  ),
-    .dbg_step                   ( dbg_step                  ),
-    .dbg_trig                   ( dbg_trig                  ),
+    .dbg_step                   ( 1'b0                      ),
+    .dbg_trig                   ( 1'b0                      ),
 
     .dcsr_ebreakm               ( dcsr_ebreakm              ),
     .dcsr_step                  ( dcsr_step                 ),
@@ -376,32 +426,29 @@ lnrv_cmt u_lnrv_cmt
 
     .mepc_wen                   ( mepc_wen                  ),
     .mepc_wdata                 ( mepc_wdata                ),
+
     .mcause_wen                 ( mcause_wen                ),
     .mcause_wdata               ( mcause_wdata              ),
+
     .mtval_wen                  ( mtval_wen                 ),
     .mtval_wdata                ( mtval_wdata               ),
+
     .dpc_wen                    ( dpc_wen                   ),
     .dpc_wdata                  ( dpc_wdata                 ),
+
     .dcause_wen                 ( dcause_wen                ),
     .dcause_wdata               ( dcause_wdata              ),
 
-    .pipe_flush_req             ( pipe_flush_req            ),
-    .pipe_flush_ack             ( pipe_flush_ack            ),
-    .pipe_flush_pc_op1          ( pipe_flush_pc_op1         ),
-    .pipe_flush_pc_op2          ( pipe_flush_pc_op2         ),
+    .pipe_flush_req             ( cmt_pipe_flush_req        ),
+    .pipe_flush_ack             ( cmt_pipe_flush_ack        ),
+    .pipe_flush_pc_op1          ( cmt_pipe_flush_pc_op1     ),
+    .pipe_flush_pc_op2          ( cmt_pipe_flush_pc_op2     ),
 
-    .gpr_wbck_vld               ( gpr_wbck_vld              ),
-    .gpr_wbck_rdy               ( gpr_wbck_rdy              ),
-    .gpr_wbck_idx               ( gpr_wbck_idx              ),
-    .gpr_wbck_data              ( gpr_wbck_data             ),
+    .pipe_halt_req              ( pipe_halt_req             ),
+    .pipe_halt_ack              ( pipe_halt_ack             ),
 
-    .csr_wbck_vld               ( csr_wbck_vld              ),
-    .csr_wbck_rdy               ( csr_wbck_rdy              ),
-    .csr_wbck_idx               ( csr_wbck_idx              ),
-    .csr_wbck_data              ( csr_wbck_data             ),
-
-    .cmt_mret                   ( cmt_mret                  ),
-    .cmt_dret                   ( cmt_dret                  ),
+    .cmted_mret                 ( cmted_mret                ),
+    .cmted_dret                 ( cmted_dret                ),
 
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   )
@@ -414,9 +461,9 @@ lnrv_gpr#(
 )
 u_lnrv_gpr
 (
-    .rs1_idx                    ( dec_rs1_idx               ),
+    .rs1_idx                    ( idu_rs1_idx               ),
     .rs1_rdata                  ( rs1_rdata                 ),
-    .rs2_idx                    ( dec_rs2_idx               ),
+    .rs2_idx                    ( idu_rs2_idx               ),
     .rs2_rdata                  ( rs2_rdata                 ),
 
     .wr_vld                     ( gpr_wbck_vld              ),
@@ -437,34 +484,44 @@ lnrv_csr u_lnrv_csr
     
     .mepc                       ( mepc                      ),
     .mtvec                      ( mtvec                     ),
-    .mstatus_mie                ( mstatus_mie               ),
-    .dpc                        ( dpc                       ),
-    .d_mode                     ( d_mode                    ),
-
-    .non_msk_irq                ( 1'b0                      ),
-    .sft_irq_en                 ( sft_irq_en                ),
-    .tmr_irq_en                 ( tmr_irq_en                ),
-    .ext_irq_en                 ( ext_irq_en                ),
-
-
-    .cmt_irq                    ( cmt_irq                   ),
-    .cmt_excp                   ( cmt_excp                  ),
-    .cmt_debug                  ( cmt_debug                 ),
-    .cmt_mret                   ( cmt_mret                  ),
-    .cmt_dret                   ( cmt_dret                  ),
-    .cmt_mepc                   ( cmt_mepc                  ),
-    .cmt_mcause                 ( cmt_mcause                ),
-    .cmt_mtval                  ( cmt_mtval                 ),
-    .cmt_dpc                    ( cmt_dpc                   ),
-    .cmt_dcause                 ( cmt_dcause                ),
 
     .dcsr_step                  ( dcsr_step                 ),
     .dcsr_stepie                ( dcsr_stepie               ),
     .dcsr_ebreakm               ( dcsr_ebreakm              ),
-    .dcsr_stoptime              ( stop_time                 ),
-    .dcsr_stopcount             ( stop_count                ),
+    .dcsr_stoptime              ( dcsr_stoptime             ),
+    .dcsr_stopcount             ( dcsr_stopcount            ),
+    .dpc                        ( dpc                       ),
+    .d_mode                     ( d_mode                    ),
 
-    .csr_idx                    ( dec_csr_idx               ),
+    .sft_irq                    ( sft_irq                   ),
+    .tmr_irq                    ( tmr_irq                   ),
+    .ext_irq                    ( ext_irq                   ),
+
+    .mie_msie                   ( mie_msie                  ),
+    .mie_mtie                   ( mie_mtie                  ),
+    .mie_meie                   ( mie_meie                  ),
+    .mstatus_mie                ( mstatus_mie               ),
+
+
+    .excp_taken                 ( excp_taken                ),
+    .irq_taken                  ( irq_taken                 ),
+    .dbg_taken                  ( dbg_taken                 ),
+    .cmted_mret                 ( cmted_mret                ),
+    .cmted_dret                 ( cmted_dret                ),
+
+    .mepc_wen                   ( mepc_wen                  ),
+    .mepc_wdata                 ( mepc_wdata                ),
+    .mcause_wen                 ( mcause_wen                ),
+    .mcause_wdata               ( mcause_wdata              ),
+    .mtval_wen                  ( mtval_wen                 ),
+    .mtval_wdata                ( mtval_wdata               ),
+    .dpc_wen                    ( dpc_wen                   ),
+    .dpc_wdata                  ( dpc_wdata                 ),
+    .dcause_wen                 ( dcause_wen                ),
+    .dcause_wdata               ( dcause_wdata              ),
+
+    .csr_idx_err                ( csr_idx_err               ),
+    .csr_idx                    ( idu_csr_idx               ),
     .csr_rdata                  ( csr_rdata                 ),
 
     .wbck_vld                   ( csr_wbck_vld              ),

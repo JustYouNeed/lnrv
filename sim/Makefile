@@ -3,7 +3,7 @@ RUN_DIR      	:= ${SIM_DIR}/run
 TB_DIR 			:= ${SIM_DIR}/../tb
 TB_TOP 			:= lnrv_cpu_tb
 
-TEST_NAME     	:= rv32ui-p-add 
+TEST_NAME     	:= rv32ui-p-addi
 TEST_CASE     	:= ${RUN_DIR}/../../riscv-tools/riscv-tests/isa/generated/${TEST_NAME}
 
 SIM_TOOL       	:= vcs 

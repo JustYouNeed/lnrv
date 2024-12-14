@@ -5870,7 +5870,7 @@ L_00000246be5e8408 .functor BUFT 1, C4<00000000000000000000000000000000>, C4<0>,
 RS_00000246be411cd8 .resolv tri, L_00000246be5e8408, v00000246be496370_0;
 v00000246be5a84e0_0 .net8 "dpc", 31 0, RS_00000246be411cd8;  2 drivers
 v00000246be5a7cc0_0 .net "ext_irq", 0 0, v00000246be5b38e0_0;  alias, 1 drivers
-v00000246be5a6aa0_0 .net "ext_irq_en", 0 0, L_00000246be662a90;  1 drivers
+v00000246be5a6aa0_0 .net "mie_meie", 0 0, L_00000246be662a90;  1 drivers
 v00000246be5a7180_0 .net "gpr_wbck_idx", 4 0, L_00000246be6505d0;  1 drivers
 L_00000246be5e82a0 .functor BUFT 1, C4<1>, C4<0>, C4<0>, C4<0>;
 v00000246be5a7fe0_0 .net "gpr_wbck_rdy", 0 0, L_00000246be5e82a0;  1 drivers
@@ -5887,8 +5887,8 @@ v00000246be5a7360_0 .net "ifu_cmd_wdata", 31 0, L_00000246be5e2cd8;  alias, 1 dr
 v00000246be5a8d00_0 .net "ifu_cmd_write", 0 0, L_00000246be5e2c90;  alias, 1 drivers
 v00000246be5a8120_0 .net "ifu_cmd_wstrb", 3 0, L_00000246be5e2d20;  alias, 1 drivers
 v00000246be5a81c0_0 .net "ifu_ir", 31 0, L_00000246be5b3520;  1 drivers
-v00000246be5a8260_0 .net "ifu_pc_rdy", 0 0, L_00000246be648fb0;  1 drivers
-v00000246be5a83a0_0 .net "ifu_pc_vld", 0 0, L_00000246be245ff0;  1 drivers
+v00000246be5a8260_0 .net "ifu_rdy", 0 0, L_00000246be648fb0;  1 drivers
+v00000246be5a83a0_0 .net "ifu_vld", 0 0, L_00000246be245ff0;  1 drivers
 v00000246be5a8440_0 .net "ifu_pc", 31 0, L_00000246be5b3660;  1 drivers
 v00000246be5a8da0_0 .net "ifu_pipe_flush_ack", 0 0, L_00000246be5e2d68;  1 drivers
 v00000246be5a6b40_0 .net "ifu_pipe_flush_req", 0 0, L_00000246be246840;  1 drivers
@@ -5926,11 +5926,11 @@ v00000246be5aac40_0 .net "reset_vector", 31 0, L_00000246be5ea538;  alias, 1 dri
 v00000246be5aa060_0 .net "rs1_rdata", 31 0, L_00000246be6f1e00;  1 drivers
 v00000246be5aad80_0 .net "rs2_rdata", 31 0, L_00000246be6f2650;  1 drivers
 v00000246be5aa240_0 .net "sft_irq", 0 0, v00000246be5b56e0_0;  alias, 1 drivers
-v00000246be5ab8c0_0 .net "sft_irq_en", 0 0, L_00000246be6619f0;  1 drivers
+v00000246be5ab8c0_0 .net "mie_msie", 0 0, L_00000246be6619f0;  1 drivers
 v00000246be5aae20_0 .net "stop_count", 0 0, L_00000246be6626a0;  alias, 1 drivers
 v00000246be5aa2e0_0 .net "stop_time", 0 0, L_00000246be6614b0;  alias, 1 drivers
 v00000246be5a9700_0 .net "tmr_irq", 0 0, v00000246be5b37a0_0;  alias, 1 drivers
-v00000246be5aaec0_0 .net "tmr_irq_en", 0 0, L_00000246be661ec0;  1 drivers
+v00000246be5aaec0_0 .net "mie_mtie", 0 0, L_00000246be661ec0;  1 drivers
 v00000246be5aa380_0 .net "wfi_mode", 0 0, L_00000246be64a4b0;  alias, 1 drivers
 S_00000246be49f0b0 .scope module, "u_lnrv_csr" "lnrv_csr" 14 348, 15 1 0, S_00000246be49fba0;
  .timescale 0 0;
@@ -5944,9 +5944,9 @@ S_00000246be49f0b0 .scope module, "u_lnrv_csr" "lnrv_csr" 14 348, 15 1 0, S_0000
     .port_info 7 /INPUT 1 "tmr_irq";
     .port_info 8 /INPUT 1 "ext_irq";
     .port_info 9 /INPUT 1 "non_msk_irq";
-    .port_info 10 /OUTPUT 1 "sft_irq_en";
-    .port_info 11 /OUTPUT 1 "tmr_irq_en";
-    .port_info 12 /OUTPUT 1 "ext_irq_en";
+    .port_info 10 /OUTPUT 1 "mie_msie";
+    .port_info 11 /OUTPUT 1 "mie_mtie";
+    .port_info 12 /OUTPUT 1 "mie_meie";
     .port_info 13 /INPUT 1 "cmt_irq";
     .port_info 14 /INPUT 1 "cmt_excp";
     .port_info 15 /INPUT 1 "cmt_debug";
@@ -6331,7 +6331,7 @@ v00000246be497950_0 .net "cycle_d", 63 0, L_00000246be5cb940;  1 drivers
 v00000246be496690_0 .var "cycle_q", 63 0;
 v00000246be497310_0 .net "cycle_rld", 0 0, L_00000246be660100;  1 drivers
 v00000246be4985d0_0 .net "d_mode", 0 0, L_00000246be5e8450;  alias, 1 drivers
-v00000246be497a90_0 .net "dbg_mode", 0 0, L_00000246be5c9be0;  1 drivers
+v00000246be497a90_0 .net "d_mode", 0 0, L_00000246be5c9be0;  1 drivers
 v00000246be498670_0 .net "dcause_d", 2 0, L_00000246be65f760;  1 drivers
 v00000246be498030_0 .var "dcause_q", 2 0;
 v00000246be4974f0_0 .net "dcause_rld", 0 0, L_00000246be660250;  1 drivers
@@ -6356,7 +6356,7 @@ v00000246be497e50_0 .var "ebreakm_q", 0 0;
 v00000246be496b90_0 .net "ebreakm_rld", 0 0, L_00000246be660aa0;  1 drivers
 o00000246be411f48 .functor BUFZ 1, C4<z>; HiZ drive
 v00000246be4964b0_0 .net "ext_irq", 0 0, o00000246be411f48;  0 drivers
-v00000246be497c70_0 .net "ext_irq_en", 0 0, L_00000246be662a90;  alias, 1 drivers
+v00000246be497c70_0 .net "mie_meie", 0 0, L_00000246be662a90;  alias, 1 drivers
 L_00000246be5e82e8 .functor BUFT 1, C4<0>, C4<0>, C4<0>, C4<0>;
 v00000246be497ef0_0 .net "ilegl_access", 0 0, L_00000246be5e82e8;  1 drivers
 v00000246be496c30_0 .net "mcause_d", 31 0, L_00000246be5cae00;  1 drivers
@@ -6409,7 +6409,7 @@ L_00000246be5e9848 .functor BUFT 1, C4<00000000000000000000000000000000>, C4<0>,
 v00000246be49af10_0 .net "reset_mtvec", 31 0, L_00000246be5e9848;  1 drivers
 v00000246be499610_0 .net "reset_n", 0 0, v00000246be5b51e0_0;  alias, 1 drivers
 v00000246be49b050_0 .net "sft_irq", 0 0, o00000246be4128a8;  0 drivers
-v00000246be499390_0 .net "sft_irq_en", 0 0, L_00000246be6619f0;  alias, 1 drivers
+v00000246be499390_0 .net "mie_msie", 0 0, L_00000246be6619f0;  alias, 1 drivers
 v00000246be49a0b0_0 .net "step_d", 0 0, L_00000246be5cbc60;  1 drivers
 v00000246be499c50_0 .var "step_q", 0 0;
 v00000246be499cf0_0 .net "step_rld", 0 0, L_00000246be660640;  1 drivers
@@ -6423,7 +6423,7 @@ v00000246be49a290_0 .net "stoptime_d", 0 0, L_00000246be5ca860;  1 drivers
 v00000246be49a650_0 .var "stoptime_q", 0 0;
 v00000246be498f30_0 .net "stoptime_rld", 0 0, L_00000246be660560;  1 drivers
 v00000246be49a6f0_0 .net "tmr_irq", 0 0, o00000246be412b48;  0 drivers
-v00000246be4988f0_0 .net "tmr_irq_en", 0 0, L_00000246be661ec0;  alias, 1 drivers
+v00000246be4988f0_0 .net "mie_mtie", 0 0, L_00000246be661ec0;  alias, 1 drivers
 v00000246be498df0_0 .net "wbck_DCSR", 0 0, L_00000246be65fa70;  1 drivers
 v00000246be498fd0_0 .net "wbck_DPC", 0 0, L_00000246be65f610;  1 drivers
 v00000246be49aa10_0 .net "wbck_DSCRATCH0", 0 0, L_00000246be65fd10;  1 drivers
@@ -6633,7 +6633,7 @@ S_00000246be4a0b40 .scope module, "u_lnrv_exu" "lnrv_exu" 14 224, 16 2 0, S_0000
     .port_info 18 /INPUT 1 "dec_ifu_misalgn";
     .port_info 19 /INPUT 1 "dec_ifu_buserr";
     .port_info 20 /INPUT 1 "dec_ilegal_instr";
-    .port_info 21 /INPUT 1 "ifu_pc_vld";
+    .port_info 21 /INPUT 1 "ifu_vld";
     .port_info 22 /INPUT 32 "ifu_pc";
     .port_info 23 /INPUT 32 "rs1_rdata";
     .port_info 24 /INPUT 32 "rs2_rdata";
@@ -6647,9 +6647,9 @@ S_00000246be4a0b40 .scope module, "u_lnrv_exu" "lnrv_exu" 14 224, 16 2 0, S_0000
     .port_info 32 /INPUT 1 "sft_irq";
     .port_info 33 /INPUT 1 "ext_irq";
     .port_info 34 /INPUT 1 "tmr_irq";
-    .port_info 35 /INPUT 1 "sft_irq_en";
-    .port_info 36 /INPUT 1 "ext_irq_en";
-    .port_info 37 /INPUT 1 "tmr_irq_en";
+    .port_info 35 /INPUT 1 "mie_msie";
+    .port_info 36 /INPUT 1 "mie_meie";
+    .port_info 37 /INPUT 1 "mie_mtie";
     .port_info 38 /INPUT 1 "d_mode";
     .port_info 39 /INPUT 1 "m_mode";
     .port_info 40 /INPUT 1 "dbg_halt";
@@ -6800,13 +6800,13 @@ L_00000246be5e5708 .functor BUFT 1, C4<00000000000000000000000000000000>, C4<0>,
 v00000246be4dbcc0_0 .net "excp_pipe_flush_pc_op2", 31 0, L_00000246be5e5708;  1 drivers
 v00000246be4dbea0_0 .net "excp_pipe_flush_req", 0 0, L_00000246be64ec70;  1 drivers
 v00000246be4dbfe0_0 .net "ext_irq", 0 0, v00000246be5b38e0_0;  alias, 1 drivers
-v00000246be4dca80_0 .net "ext_irq_en", 0 0, L_00000246be662a90;  alias, 1 drivers
+v00000246be4dca80_0 .net "mie_meie", 0 0, L_00000246be662a90;  alias, 1 drivers
 v00000246be4dc260_0 .net "gpr_wbck_idx", 4 0, L_00000246be6505d0;  alias, 1 drivers
 v00000246be4dac80_0 .net "gpr_wbck_rdy", 0 0, L_00000246be5e82a0;  alias, 1 drivers
 v00000246be4dafa0_0 .net "gpr_wbck_vld", 0 0, L_00000246be64f060;  alias, 1 drivers
 v00000246be4dc300_0 .net "gpr_wbck_wdata", 31 0, L_00000246be5c4640;  alias, 1 drivers
 v00000246be4da640_0 .net "ifu_pc", 31 0, L_00000246be5b3660;  alias, 1 drivers
-v00000246be4daaa0_0 .net "ifu_pc_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
+v00000246be4daaa0_0 .net "ifu_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
 v00000246be4dad20_0 .net "irq_cmt_csr", 0 0, L_00000246be64c350;  1 drivers
 v00000246be4dc3a0_0 .net "irq_cmt_mcause", 31 0, L_00000246be5c05e0;  1 drivers
 v00000246be4dc440_0 .net "irq_cmt_mepc", 31 0, L_00000246be64c5f0;  1 drivers
@@ -6877,7 +6877,7 @@ v00000246be4deb00_0 .net "rglr_op_vld", 0 0, L_00000246be6499c0;  1 drivers
 v00000246be4dec40_0 .net "rs1_rdata", 31 0, L_00000246be6f1e00;  alias, 1 drivers
 v00000246be4df280_0 .net "rs2_rdata", 31 0, L_00000246be6f2650;  alias, 1 drivers
 v00000246be4dcb20_0 .net "sft_irq", 0 0, v00000246be5b56e0_0;  alias, 1 drivers
-v00000246be4dd520_0 .net "sft_irq_en", 0 0, L_00000246be6619f0;  alias, 1 drivers
+v00000246be4dd520_0 .net "mie_msie", 0 0, L_00000246be6619f0;  alias, 1 drivers
 v00000246be4dd5c0_0 .net "sys_excp_ebreak", 0 0, L_00000246be64b2b0;  1 drivers
 v00000246be4dd660_0 .net "sys_excp_ecall", 0 0, L_00000246be64a980;  1 drivers
 v00000246be4dd840_0 .net "sys_excp_rdy", 0 0, L_00000246be5bfc80;  1 drivers
@@ -6886,7 +6886,7 @@ v00000246be4ddc00_0 .net "sys_op_bus", 2 0, L_00000246be649170;  1 drivers
 v00000246be4ddd40_0 .net "sys_op_rdy", 0 0, L_00000246be5bb360;  1 drivers
 v00000246be4ddf20_0 .net "sys_op_vld", 0 0, L_00000246be649800;  1 drivers
 v00000246be4ddfc0_0 .net "tmr_irq", 0 0, v00000246be5b37a0_0;  alias, 1 drivers
-v00000246be4de060_0 .net "tmr_irq_en", 0 0, L_00000246be661ec0;  alias, 1 drivers
+v00000246be4de060_0 .net "mie_mtie", 0 0, L_00000246be661ec0;  alias, 1 drivers
 v00000246be4df6e0_0 .net "wfi_mode", 0 0, L_00000246be64a4b0;  alias, 1 drivers
 S_00000246be49fec0 .scope module, "u_lnrv_exu_alu" "lnrv_exu_alu" 16 636, 17 2 0, S_00000246be4a0b40;
  .timescale 0 0;
@@ -7738,7 +7738,7 @@ S_00000246be4a0cd0 .scope module, "u_lnrv_exu_debug" "lnrv_exu_debug" 16 569, 22
     .port_info 3 /INPUT 1 "dbg_trig";
     .port_info 4 /INPUT 1 "d_mode";
     .port_info 5 /OUTPUT 1 "dbg_taken";
-    .port_info 6 /INPUT 1 "ifu_pc_vld";
+    .port_info 6 /INPUT 1 "ifu_vld";
     .port_info 7 /INPUT 32 "ifu_pc";
     .port_info 8 /INPUT 1 "disp_idle";
     .port_info 9 /INPUT 1 "disp_hsked";
@@ -7796,7 +7796,7 @@ v00000246be4c3570_0 .net "debug_request", 0 0, L_00000246be64d620;  1 drivers
 v00000246be4c1b30_0 .net "disp_hsked", 0 0, L_00000246be648530;  alias, 1 drivers
 v00000246be4c3890_0 .net "disp_idle", 0 0, L_00000246be649330;  alias, 1 drivers
 v00000246be4c1e50_0 .net "ifu_pc", 31 0, L_00000246be5b3660;  alias, 1 drivers
-v00000246be4c2f30_0 .net "ifu_pc_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
+v00000246be4c2f30_0 .net "ifu_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
 v00000246be4c3f70_0 .net "not_in_debug_mode", 0 0, L_00000246be64da10;  1 drivers
 v00000246be4c1f90_0 .net "pipe_flush_ack", 0 0, L_00000246be64fe60;  alias, 1 drivers
 v00000246be4c25d0_0 .net "pipe_flush_hsked", 0 0, L_00000246be64e810;  1 drivers
@@ -8152,11 +8152,11 @@ S_00000246be4a09b0 .scope module, "u_lnrv_exu_irq" "lnrv_exu_irq" 16 481, 25 1 0
     .port_info 0 /INPUT 1 "sft_irq";
     .port_info 1 /INPUT 1 "ext_irq";
     .port_info 2 /INPUT 1 "tmr_irq";
-    .port_info 3 /INPUT 1 "sft_irq_en";
-    .port_info 4 /INPUT 1 "ext_irq_en";
-    .port_info 5 /INPUT 1 "tmr_irq_en";
+    .port_info 3 /INPUT 1 "mie_msie";
+    .port_info 4 /INPUT 1 "mie_meie";
+    .port_info 5 /INPUT 1 "mie_mtie";
     .port_info 6 /INPUT 1 "mstatus_mie";
-    .port_info 7 /INPUT 1 "ifu_pc_vld";
+    .port_info 7 /INPUT 1 "ifu_vld";
     .port_info 8 /INPUT 32 "ifu_pc";
     .port_info 9 /INPUT 1 "disp_idle";
     .port_info 10 /INPUT 1 "d_mode";
@@ -8222,10 +8222,10 @@ v00000246be4c9470_0 .net8 "dcsr_step", 0 0, RS_00000246be411c18;  alias, 2 drive
 v00000246be4caf50_0 .net8 "dcsr_stepie", 0 0, RS_00000246be411c48;  alias, 2 drivers
 v00000246be4ca910_0 .net "disp_idle", 0 0, L_00000246be649330;  alias, 1 drivers
 v00000246be4c93d0_0 .net "ext_irq", 0 0, v00000246be5b38e0_0;  alias, 1 drivers
-v00000246be4caff0_0 .net "ext_irq_en", 0 0, L_00000246be662a90;  alias, 1 drivers
+v00000246be4caff0_0 .net "mie_meie", 0 0, L_00000246be662a90;  alias, 1 drivers
 v00000246be4c9c90_0 .net "ext_irq_masked", 0 0, L_00000246be64cc80;  1 drivers
 v00000246be4ca870_0 .net "ifu_pc", 31 0, L_00000246be5b3660;  alias, 1 drivers
-v00000246be4c9510_0 .net "ifu_pc_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
+v00000246be4c9510_0 .net "ifu_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
 v00000246be4cb4f0_0 .net "irq_taken", 0 0, L_00000246be64c4a0;  alias, 1 drivers
 v00000246be4caeb0_0 .net8 "mstatus_mie", 0 0, RS_00000246be412428;  alias, 2 drivers
 v00000246be4cb8b0_0 .net "mtvec", 31 0, L_00000246be662780;  alias, 1 drivers
@@ -8236,10 +8236,10 @@ v00000246be4c96f0_0 .net "pipe_flush_pc_op2", 31 0, L_00000246be5e5048;  alias, 
 v00000246be4ca370_0 .net "pipe_flush_req", 0 0, L_00000246be64c040;  alias, 1 drivers
 v00000246be4c9790_0 .net "reset_n", 0 0, v00000246be5b51e0_0;  alias, 1 drivers
 v00000246be4cb090_0 .net "sft_irq", 0 0, v00000246be5b56e0_0;  alias, 1 drivers
-v00000246be4ca9b0_0 .net "sft_irq_en", 0 0, L_00000246be6619f0;  alias, 1 drivers
+v00000246be4ca9b0_0 .net "mie_msie", 0 0, L_00000246be6619f0;  alias, 1 drivers
 v00000246be4c9830_0 .net "sft_irq_masked", 0 0, L_00000246be64d2a0;  1 drivers
 v00000246be4caa50_0 .net "tmr_irq", 0 0, v00000246be5b37a0_0;  alias, 1 drivers
-v00000246be4cb310_0 .net "tmr_irq_en", 0 0, L_00000246be661ec0;  alias, 1 drivers
+v00000246be4cb310_0 .net "mie_mtie", 0 0, L_00000246be661ec0;  alias, 1 drivers
 v00000246be4c98d0_0 .net "tmr_irq_masked", 0 0, L_00000246be64c890;  1 drivers
 L_00000246be5c05e0 .concat8 [ 4 27 1 0], L_00000246be5c1620, L_00000246be5e50d8, L_00000246be5e5090;
 L_00000246be5bfbe0 .functor MUXZ 4, L_00000246be5e51f8, L_00000246be5e51b0, L_00000246be64cc80, C4<>;
@@ -10449,8 +10449,8 @@ L_00000246be5c7e80 .concat [ 5 3 0 0], L_00000246be6505d0, L_00000246be5e8018;
 L_00000246be5c9500 .cmp/eq 8, L_00000246be5c7e80, L_00000246be5e8060;
 S_00000246be5022b0 .scope module, "u_lnrv_idu" "lnrv_idu" 14 170, 32 2 0, S_00000246be49fba0;
  .timescale 0 0;
-    .port_info 0 /INPUT 1 "ifu_pc_vld";
-    .port_info 1 /OUTPUT 1 "ifu_pc_rdy";
+    .port_info 0 /INPUT 1 "ifu_vld";
+    .port_info 1 /OUTPUT 1 "ifu_rdy";
     .port_info 2 /INPUT 32 "ifu_ir";
     .port_info 3 /INPUT 32 "ifu_pc";
     .port_info 4 /INPUT 1 "ifu_misalgn";
@@ -10560,8 +10560,8 @@ v00000246be5a09c0_0 .net "idu_buf_push_rdy", 0 0, L_00000246be6477a0;  1 drivers
 v00000246be59f520_0 .net "idu_buf_push_vld", 0 0, L_00000246be646b60;  1 drivers
 v00000246be5a1500_0 .net "ifu_buserr", 0 0, L_00000246be5e3c50;  1 drivers
 v00000246be5a0ec0_0 .net "ifu_ir", 31 0, L_00000246be5b3520;  alias, 1 drivers
-v00000246be59f700_0 .net "ifu_pc_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
-v00000246be59f660_0 .net "ifu_pc_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
+v00000246be59f700_0 .net "ifu_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
+v00000246be59f660_0 .net "ifu_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
 v00000246be59f480_0 .net "ifu_misalgn", 0 0, L_00000246be5e3c08;  1 drivers
 v00000246be59f5c0_0 .net "ifu_no_err", 0 0, L_00000246be238760;  1 drivers
 v00000246be5a0a60_0 .net "ifu_pc", 31 0, L_00000246be5b3660;  alias, 1 drivers
@@ -11587,8 +11587,8 @@ S_00000246be4ff3d0 .scope module, "u_lnrv_ifu" "lnrv_ifu" 14 133, 34 3 0, S_0000
     .port_info 6 /INPUT 32 "pipe_flush_pc_op2";
     .port_info 7 /INPUT 1 "pipe_halt_req";
     .port_info 8 /OUTPUT 1 "pipe_halt_ack";
-    .port_info 9 /OUTPUT 1 "ifu_pc_vld";
-    .port_info 10 /INPUT 1 "ifu_pc_rdy";
+    .port_info 9 /OUTPUT 1 "ifu_vld";
+    .port_info 10 /INPUT 1 "ifu_rdy";
     .port_info 11 /OUTPUT 32 "ifu_pc";
     .port_info 12 /OUTPUT 32 "ifu_ir";
     .port_info 13 /OUTPUT 1 "ifu_misalgn";
@@ -11619,8 +11619,8 @@ v00000246be5a5d80_0 .net "ifu_cmd_wdata", 31 0, L_00000246be5e2cd8;  alias, 1 dr
 v00000246be5a61e0_0 .net "ifu_cmd_write", 0 0, L_00000246be5e2c90;  alias, 1 drivers
 v00000246be5a6280_0 .net "ifu_cmd_wstrb", 3 0, L_00000246be5e2d20;  alias, 1 drivers
 v00000246be5a47a0_0 .net "ifu_ir", 31 0, L_00000246be5b3520;  alias, 1 drivers
-v00000246be5a6500_0 .net "ifu_pc_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
-v00000246be5a5600_0 .net "ifu_pc_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
+v00000246be5a6500_0 .net "ifu_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
+v00000246be5a5600_0 .net "ifu_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
 L_00000246be5e2db0 .functor BUFT 1, C4<0>, C4<0>, C4<0>, C4<0>;
 v00000246be5a65a0_0 .net "ifu_misalgn", 0 0, L_00000246be5e2db0;  1 drivers
 v00000246be5a56a0_0 .net "ifu_pc", 31 0, L_00000246be5b3660;  alias, 1 drivers
@@ -11645,8 +11645,8 @@ S_00000246be5dc2d0 .scope module, "u_lnrv_ifu_ifetch" "lnrv_ifu_ifetch" 34 54, 3
     .port_info 4 /INPUT 32 "pipe_flush_pc_op2";
     .port_info 5 /INPUT 1 "pipe_halt_req";
     .port_info 6 /OUTPUT 1 "pipe_halt_ack";
-    .port_info 7 /OUTPUT 1 "ifu_pc_vld";
-    .port_info 8 /INPUT 1 "ifu_pc_rdy";
+    .port_info 7 /OUTPUT 1 "ifu_vld";
+    .port_info 8 /INPUT 1 "ifu_rdy";
     .port_info 9 /OUTPUT 32 "ifu_pc";
     .port_info 10 /OUTPUT 32 "ifu_ir";
     .port_info 11 /OUTPUT 1 "ifu_misalgn";
@@ -11764,8 +11764,8 @@ v00000246be5a24a0_0 .net "ifu_cmd_wstrb", 3 0, L_00000246be5e2d20;  alias, 1 dri
 v00000246be5a3e40_0 .net "ifu_ir", 31 0, L_00000246be5b3520;  alias, 1 drivers
 v00000246be5a3ee0_0 .net "ifu_ir_d", 31 0, o00000246be54a798;  0 drivers
 v00000246be5a3f80_0 .net "ifu_ir_hsked", 0 0, L_00000246be245650;  1 drivers
-v00000246be5a4020_0 .net "ifu_pc_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
-v00000246be5a40c0_0 .net "ifu_pc_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
+v00000246be5a4020_0 .net "ifu_rdy", 0 0, L_00000246be648fb0;  alias, 1 drivers
+v00000246be5a40c0_0 .net "ifu_vld", 0 0, L_00000246be245ff0;  alias, 1 drivers
 v00000246be5a1960_0 .net "ifu_ir_vld_clr", 0 0, L_00000246be245b20;  1 drivers
 v00000246be5a1a00_0 .net "ifu_ir_vld_d", 0 0, L_00000246be245b90;  1 drivers
 v00000246be5a1aa0_0 .var "ifu_ir_vld_q", 0 0;

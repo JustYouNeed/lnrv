@@ -220,13 +220,14 @@
 
 
 //译码信息总线类型
-`define     DEC_NONE_BUS                    `DEC_BUS_TYPE_WIDTH'd0
-`define     DEC_RGLR_BUS                    `DEC_BUS_TYPE_WIDTH'd1     //常规运算指令
-`define     DEC_BRCH_BUS                    `DEC_BUS_TYPE_WIDTH'd2     //分支运算指令
-`define     DEC_MDV_BUS                     `DEC_BUS_TYPE_WIDTH'd3     //乘除法指令
-`define     DEC_CSR_BUS                     `DEC_BUS_TYPE_WIDTH'd4     //CSR指令
-`define     DEC_MEM_BUS                     `DEC_BUS_TYPE_WIDTH'd5     //内存操作指令
-`define     DEC_SYS_BUS                     `DEC_BUS_TYPE_WIDTH'd6     //系统相关指令
+`define     DEC_NONE_BUS                    `DEC_OP_TYPE_WIDTH'd0
+`define     DEC_RGLR_BUS                    `DEC_OP_TYPE_WIDTH'd1     //常规运算指令
+`define     DEC_BRCH_BUS                    `DEC_OP_TYPE_WIDTH'd2     //分支运算指令
+`define     DEC_MDV_BUS                     `DEC_OP_TYPE_WIDTH'd3     //乘除法指令
+`define     DEC_CSR_BUS                     `DEC_OP_TYPE_WIDTH'd4     //CSR指令
+`define     DEC_LSU_BUS                     `DEC_OP_TYPE_WIDTH'd5     //内存操作指令
+`define     DEC_SYS_BUS                     `DEC_OP_TYPE_WIDTH'd6     //系统相关指令
+`define     DEC_AMO_BUS                     `DEC_OP_TYPE_WIDTH'd7     //原子指令
 
 
 /* 控制和状态寄存器地址 */

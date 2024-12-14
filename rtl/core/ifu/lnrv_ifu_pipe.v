@@ -11,7 +11,7 @@ module lnrv_ifu_pipe
     input[31 : 0]       ifu_instr_addr,
 
 
-    output              ifu_pc_vld,
+    output              ifu_vld,
 
     output              
     output              ifu_bus_err,
@@ -24,7 +24,7 @@ assign      ifu_buf_push_data = {
                                     instr_addr_q
                                 };
 
-assign      ifu_buf_pop_rdy = ifu_pc_rdy;
+assign      ifu_buf_pop_rdy = ifu_rdy;
 assign      {
                 ifu_buserr,
                 ifu_ir,
@@ -32,7 +32,7 @@ assign      {
             } = ifu_buf_pop_data;
 
 // assign      ifu_rsp_rdy = ifu_buf_push_rdy;
-assign      ifu_pc_vld = ifu_buf_pop_vld;
+assign      ifu_vld = ifu_buf_pop_vld;
 
 lnrv_gnrl_buffer#
 (

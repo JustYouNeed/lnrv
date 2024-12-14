@@ -17,7 +17,7 @@ module  lnrv_idu_decode
     input                               d_mode,
 
     // 非法指令
-    output                              dec_ilegl_instr,
+    output                              dec_excp_ilglir,
 
     output[`DEC_OP_BUS_WIDTH - 1 : 0]   dec_op_bus,
     output[`DEC_OP_TYPE_WIDTH -1 : 0]   dec_op_type
@@ -169,6 +169,7 @@ wire[4 : 0]                         rs1_idx;
 wire[4 : 0]                         rs2_idx;
 wire[4 : 0]                         rd_idx;
 wire[11 : 0]                        csr_idx;
+wire                                rs1_is_0;
 
 wire[`RGLR_OP_BUS_WIDTH - 1 : 0]    rglr_op_bus;
 wire[`BRCH_OP_BUS_WIDTH - 1 : 0]    brch_op_bus;
@@ -239,6 +240,8 @@ assign      rs1_idx = ir[19 : 15];
 assign      rs2_idx = ir[24 : 20];
 assign      rd_idx  = ir[11 : 7];
 assign      csr_idx = ir[31 : 20];
+
+assign      rs1_is_0 = ~(|rs1_idx);
 
 /*
     add 加，R-Type，RV32I and RV64I，		x[rd] = x[rs1] + x[rs2]，忽略算术溢出
@@ -1008,7 +1011,7 @@ assign      dec_brch_instr  = opcode_is_1100011 |
 assign      csr_op_bus[`CSR_CSRRC_LOC] = instr_is_csrrc | instr_is_csrrci;
 assign      csr_op_bus[`CSR_CSRRS_LOC] = instr_is_csrrs | instr_is_csrrsi;
 assign      csr_op_bus[`CSR_CSRRW_LOC] = instr_is_csrrw | instr_is_csrrwi;
-assign      csr_op_bus[`CSR_OP1_IS_ZERO] = csr_op_bus[`CSR_CSRRS_LOC];
+assign      csr_op_bus[`CSR_OP1_IS_ZERO] = rs1_is_0;
 assign      csr_op_bus[`CSR_OP2_IS_IMM] = instr_is_csrrci | instr_is_csrrsi | instr_is_csrrwi;
 assign      dec_csr_instr = opcode_is_1110011 & (~funct3_is_000);
 
@@ -1082,7 +1085,7 @@ assign      legl_exu =  dec_rglr_instr |
 
 assign      ilegl_exu = ~legl_exu;
 
-assign      dec_ilegl_instr =   ilegl_exu |
+assign      dec_excp_ilglir =   ilegl_exu |
                                 ilegl_sxxi | 
                                 ilegl_dret;
 

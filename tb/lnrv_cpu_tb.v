@@ -40,6 +40,7 @@ lnrv_cpu#(
 u_lnrv_cpu
 (
     .reset_vector       ( 32'h0000_0000         ),
+    .reset_mtvec        ( 32'd0                 ),
 
     .sft_irq            ( sft_irq               ),
     .tmr_irq            ( tmr_irq               ),
@@ -150,7 +151,7 @@ end
 always #10 clk = ~clk;
 
 initial begin
-    wait(u_lnrv_cpu.u_lnrv_core.u_lnrv_gpr.s10 == 32'b1)   // wait sim end, when x26 == 1
+    wait(u_lnrv_cpu.u_lnrv_core.u_lnrv_gpr.gp == 32'b1)   // wait sim end, when x26 == 1
     #1000;
     if (u_lnrv_cpu.u_lnrv_core.u_lnrv_gpr.s11 == 32'b1) begin
         $display("~~~~~~~~~~~~~~~~~~~ TEST_PASS ~~~~~~~~~~~~~~~~~~~");

@@ -1,6 +1,6 @@
 module lnrv_bpu
 (
-    input                       ifu_pc_vld,
+    input                       ifu_vld,
     input                       ifu_excp_buserr,
     input                       ifu_excp_misalgn,
     input                       idu_excp_ilgl_ir,
