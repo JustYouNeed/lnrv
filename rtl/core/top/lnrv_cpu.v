@@ -11,6 +11,8 @@ module  lnrv_cpu#
     input[31 : 0]                           reset_vector,
     input[31 : 0]                           reset_mtvec,
 
+    input                                   stop_on_reset,
+
     input                                   sft_irq,
     input                                   tmr_irq,
     input                                   ext_irq,
@@ -20,9 +22,10 @@ module  lnrv_cpu#
 
     // 
     output                                  wfi_mode,
+    output                                  d_mode,
 
-    output                                  stop_time,
-    output                                  stop_count,
+    output                                  dcsr_stoptime,
+    output                                  dcsr_stopcount,
 
     // 固件下载模式
     input                                   dlod_mode,
@@ -83,7 +86,7 @@ module  lnrv_cpu#
     input                                   slv_wvalid,
     output                                  slv_wready,
     input[31 : 0]                           slv_wdata,
-    input[31 : 0]                           slv_wstrb,
+    input[3 : 0]                            slv_wstrb,
     input                                   slv_wlast,
 
     input                                   slv_bready,
@@ -146,6 +149,7 @@ wire                            ifu_cmd_write;
 wire[31 : 0]                    ifu_cmd_addr;
 wire[31 : 0]                    ifu_cmd_wdata;
 wire[3 : 0]                     ifu_cmd_wstrb;
+wire[2 : 0]                     ifu_cmd_size;
 wire                            ifu_rsp_vld;
 wire                            ifu_rsp_rdy;
 wire[31 : 0]                    ifu_rsp_rdata;
@@ -158,6 +162,7 @@ wire                            exu_cmd_write;
 wire[31 : 0]                    exu_cmd_addr;
 wire[31 : 0]                    exu_cmd_wdata;
 wire[3 : 0]                     exu_cmd_wstrb;
+wire[2 : 0]                     exu_cmd_size;
 wire                            exu_rsp_vld;
 wire                            exu_rsp_rdy;
 wire[31 : 0]                    exu_rsp_rdata;
@@ -170,6 +175,7 @@ wire                            slv_cmd_write;
 wire[31 : 0]                    slv_cmd_addr;
 wire[31 : 0]                    slv_cmd_wdata;
 wire[3 : 0]                     slv_cmd_wstrb;
+wire[2  : 0]                    slv_cmd_size;
 wire                            slv_rsp_vld;
 wire                            slv_rsp_rdy;
 wire[31 : 0]                    slv_rsp_rdata;
@@ -181,6 +187,7 @@ wire                            ilm_cmd_write;
 wire[31 : 0]                    ilm_cmd_addr;
 wire[31 : 0]                    ilm_cmd_wdata;
 wire[3 : 0]                     ilm_cmd_wstrb;
+wire[2 : 0]                     ilm_cmd_size;
 wire                            ilm_rsp_vld;
 wire                            ilm_rsp_rdy;
 wire[31 : 0]                    ilm_rsp_rdata;
@@ -192,6 +199,7 @@ wire                            dlm_cmd_write;
 wire[31 : 0]                    dlm_cmd_addr;
 wire[31 : 0]                    dlm_cmd_wdata;
 wire[3 : 0]                     dlm_cmd_wstrb;
+wire[2 : 0]                     dlm_cmd_size;
 wire                            dlm_rsp_vld;
 wire                            dlm_rsp_rdy;
 wire[31 : 0]                    dlm_rsp_rdata;
@@ -204,6 +212,7 @@ wire                            sys_cmd_write;
 wire[31 : 0]                    sys_cmd_addr;
 wire[31 : 0]                    sys_cmd_wdata;
 wire[3 : 0]                     sys_cmd_wstrb;
+wire[2 : 0]                     sys_cmd_size;
 wire                            sys_rsp_vld;
 wire                            sys_rsp_rdy;
 wire[31 : 0]                    sys_rsp_rdata;
@@ -216,6 +225,7 @@ lnrv_core u_lnrv_core
 (           
     .reset_vector           ( reset_vector              ),
     .reset_mtvec            ( reset_mtvec               ),
+    .stop_on_reset          ( stop_on_reset             ),
 
     .sft_irq                ( sft_irq                   ),
     .ext_irq                ( ext_irq                   ),
@@ -225,9 +235,10 @@ lnrv_core u_lnrv_core
     .dbg_irq                ( dbg_irq                   ),
 
     .wfi_mode               ( wfi_mode                  ),
+    .d_mode                 ( d_mode                    ),
 
-    .stop_time              ( stop_time                 ),
-    .stop_count             ( stop_count                ),
+    .dcsr_stoptime          ( dcsr_stoptime             ),
+    .dcsr_stopcount         ( dcsr_stopcount            ),
 
     // ifu访存接口
     .ifu_cmd_vld            ( ifu_cmd_vld               ),
@@ -408,7 +419,7 @@ u_dlm_ctrl
     .icb_cmd_addr           ( dlm_cmd_addr              ),
     .icb_cmd_wdata          ( dlm_cmd_wdata             ),
     .icb_cmd_wstrb          ( dlm_cmd_wstrb             ),
-    .icb_cmd_size           ( icb_cmd_size              ),
+    .icb_cmd_size           ( dlm_cmd_size              ),
     .icb_rsp_rdy            ( dlm_rsp_rdy               ),
     .icb_rsp_vld            ( dlm_rsp_vld               ),
     .icb_rsp_rdata          ( dlm_rsp_rdata             ),
@@ -453,25 +464,29 @@ u_lnrv_icb2axi
     .axi_awburst            ( sys_awburst               ),
     .axi_awcache            ( sys_awcache               ),
     .axi_awprot             ( sys_awprot                ),
+
     .axi_wvalid             ( sys_wvalid                ),
     .axi_wready             ( sys_wready                ),
     .axi_wdata              ( sys_wdata                 ),
     .axi_wstrb              ( sys_wstrb                 ),
     .axi_wlast              ( sys_wlast                 ),
+
     .axi_bready             ( sys_bready                ),
     .axi_bvalid             ( sys_bvalid                ),
     .axi_bresp              ( sys_bresp                 ),
     .axi_bid                ( sys_bid                   ),
+
     .axi_arvalid            ( sys_arvalid               ),
     .axi_arready            ( sys_arready               ),
     .axi_arlock             ( sys_arlock                ),
-    .axi_awaddr             ( sys_awaddr                ),
+    .axi_araddr             ( sys_araddr                ),
     .axi_arid               ( sys_arid                  ),
     .axi_arlen              ( sys_arlen                 ),
     .axi_arsize             ( sys_arsize                ),
     .axi_arburst            ( sys_arburst               ),
     .axi_arcache            ( sys_arcache               ),
     .axi_arprot             ( sys_arprot                ),
+
     .axi_rready             ( sys_rready                ),
     .axi_rvalid             ( sys_rvalid                ),
     .axi_rdata              ( sys_rdata                 ),

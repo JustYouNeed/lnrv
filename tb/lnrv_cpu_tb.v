@@ -1,5 +1,11 @@
 module lnrv_cpu_tb; 
 
+`define PC_WRITE_TOHOST         32'h0000_0094
+`define PC_EXT_IRQ_ISR          32'h0000_00a8
+`define PC_SFT_IRQ_ISR          32'h0000_00c0
+`define PC_TMR_IRQ_ISR          32'h0000_00d8
+`define PC_POST_MTVEC_DONE      32'h0000_01b0
+
 
 localparam                      LP_ILM_ADDR_WIDTH = 16;
 localparam                      LP_ILM_SIZE = 2 ** LP_ILM_ADDR_WIDTH;
@@ -28,8 +34,23 @@ reg                             dbg_halt;
 reg                             dbg_irq;
 wire                            wfi_mode;
 
+reg                             stop_on_reset;
+
 reg                             clk;
 reg                             reset_n;
+
+wire[31 : 0]                    gp;
+wire[31 : 0]                    pc;
+wire                            cmt_vld;
+wire                            cmt_rdy;
+wire                            cmt_hsked;
+
+integer                         i;
+reg                             fireware_load_cplt;
+reg [31:0]                      pc_write_to_host_cnt;
+reg [31:0]                      pc_write_to_host_cycle;
+reg[8*300:1]                    testcase;
+
 
 lnrv_cpu#(
     .P_ILM_REGION_BASE  ( 32'h0000_0000         ),
@@ -41,6 +62,8 @@ u_lnrv_cpu
 (
     .reset_vector       ( 32'h0000_0000         ),
     .reset_mtvec        ( 32'd0                 ),
+
+    .stop_on_reset      ( stop_on_reset         ),
 
     .sft_irq            ( sft_irq               ),
     .tmr_irq            ( tmr_irq               ),
@@ -107,29 +130,87 @@ u_lnrv_dlm
 );
 
 
-integer         i;
+assign      gp = u_lnrv_cpu.u_lnrv_core.u_lnrv_gpr.gp;
+assign      pc = u_lnrv_cpu.u_lnrv_core.u_lnrv_cmt.idu_pc;
+assign      cmt_vld = u_lnrv_cpu.u_lnrv_core.u_lnrv_cmt.cmt_vld;
+assign      cmt_rdy = u_lnrv_cpu.u_lnrv_core.u_lnrv_cmt.cmt_rdy;
+assign      cmt_hsked = cmt_vld & cmt_rdy;
 
-// initial begin
-//     for(i = 0; i < 2 << 20; i = i + 1) begin
-//         u_lnrv_cpu.u_sys_ram.mem_q[i] = i;
-//     end
-// end
 
-reg         fireware_load_cplt;
+always @(posedge clk or negedge reset_n) begin 
+    if(reset_n == 1'b0) begin
+        pc_write_to_host_cnt <= 32'b0;
+    end else if (cmt_hsked & (pc == `PC_WRITE_TOHOST)) begin
+        pc_write_to_host_cnt <= pc_write_to_host_cnt + 1'b1;
+    end
+end
 
 initial begin
     clk = 1'b0;
     reset_n = 1'b0;
 
-    wait(fireware_load_cplt == 1'b1);
     #100;
     @(negedge clk) begin
         reset_n <= 1'b1;
     end
 
-    #20000000;
+    wait(stop_on_reset == 1'b0);
+    force u_lnrv_cpu.u_lnrv_core.u_lnrv_csr.mstatus_mie = 1'b0;
+
+    @(pc_write_to_host_cnt == 32'd8) #10 reset_n <=1;
+    #40000000;
     $finish;
 end
+
+always #10 clk = ~clk;
+
+
+
+initial begin
+    wait(pc == `PC_POST_MTVEC_DONE ); // Wait the program goes out the reset_vector program
+    wait(wfi_mode == 1'b1);
+    #100;
+    forever begin
+        repeat ($urandom_range(1, 1000)) @(posedge clk) ext_irq = 1'b0; // Wait random times
+        @(posedge clk) ext_irq = 1'b1;
+        wait(pc == `PC_EXT_IRQ_ISR); // Wait the program run into the IRQ handler by check PC values
+        @(posedge clk) ext_irq = 1'b0;
+        // if(stop_assert_irq) begin
+        //     break;
+        // end
+    end
+end
+
+// initial begin
+//     #100
+//     wait(pc == `PC_POST_MTVEC_DONE ); // Wait the program goes out the reset_vector program
+//     #100;
+//     forever begin
+//         repeat ($urandom_range(1, 1000)) @(posedge clk) sft_irq = 1'b0; // Wait random times
+//         @(posedge clk) sft_irq = 1'b1;
+//         wait(pc == `PC_SFT_IRQ_ISR); // Wait the program run into the IRQ handler by check PC values
+//         @(posedge clk) sft_irq = 1'b0;
+//         // if(stop_assert_irq) begin
+//         //     break;
+//         // end
+//     end
+// end
+
+// initial begin
+//     #100
+//     wait(pc == `PC_POST_MTVEC_DONE ); // Wait the program goes out the reset_vector program
+//     #100;
+//     forever begin
+//         repeat ($urandom_range(1, 1000)) @(posedge clk) tmr_irq = 1'b0; // Wait random times
+//         @(posedge clk) tmr_irq = 1'b1;
+//         wait(pc == `PC_TMR_IRQ_ISR); // Wait the program run into the IRQ handler by check PC values
+//         @(posedge clk) tmr_irq = 1'b0;
+//         // if(stop_assert_irq) begin
+//         //     break;
+//         // end
+//     end
+// end
+
 
 integer dumpwave;
 initial begin
@@ -148,40 +229,52 @@ initial begin
       end
     end
 end
-always #10 clk = ~clk;
+
 
 initial begin
-    wait(u_lnrv_cpu.u_lnrv_core.u_lnrv_gpr.gp == 32'b1)   // wait sim end, when x26 == 1
-    #1000;
-    if (u_lnrv_cpu.u_lnrv_core.u_lnrv_gpr.s11 == 32'b1) begin
-        $display("~~~~~~~~~~~~~~~~~~~ TEST_PASS ~~~~~~~~~~~~~~~~~~~");
-        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        $display("~~~~~~~~~ #####     ##     ####    #### ~~~~~~~~~");
-        $display("~~~~~~~~~ #    #   #  #   #       #     ~~~~~~~~~");
-        $display("~~~~~~~~~ #    #  #    #   ####    #### ~~~~~~~~~");
-        $display("~~~~~~~~~ #####   ######       #       #~~~~~~~~~");
-        $display("~~~~~~~~~ #       #    #  #    #  #    #~~~~~~~~~");
-        $display("~~~~~~~~~ #       #    #   ####    #### ~~~~~~~~~");
-        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        $finish;
-    end else begin
-        $display("~~~~~~~~~~~~~~~~~~~ TEST_FAIL ~~~~~~~~~~~~~~~~~~~~");
-        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        $display("~~~~~~~~~~######    ##       #    #     ~~~~~~~~~~");
-        $display("~~~~~~~~~~#        #  #      #    #     ~~~~~~~~~~");
-        $display("~~~~~~~~~~#####   #    #     #    #     ~~~~~~~~~~");
-        $display("~~~~~~~~~~#       ######     #    #     ~~~~~~~~~~");
-        $display("~~~~~~~~~~#       #    #     #    #     ~~~~~~~~~~");
-        $display("~~~~~~~~~~#       #    #     #    ######~~~~~~~~~~");
-        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        $display("fail testnum = %2d", u_lnrv_cpu.u_lnrv_core.u_lnrv_gpr.gp);
-        for (i = 0; i < 32; i = i + 1)
-            $display("x%2d = 0x%x", i, u_lnrv_cpu.u_lnrv_core.u_lnrv_gpr.gpr_q[i]);
-
-        $finish;
+    $display("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");  
+    if($value$plusargs("TESTCASE=%s",testcase))begin
+        $display("TESTCASE=%s",testcase);
     end
+
+    wait(pc_write_to_host_cnt == 32'd8) #10 reset_n <= 1'b0;
+
+    $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    $display("~~~~~~~~~~~~~ Test Result Summary ~~~~~~~~~~~~~~~~~~~~~~");
+    $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    // $display("~TESTCASE: %s ~~~~~~~~~~~~~", testcase);
+    // $display("~~~~~~~~~~~~~~Total cycle_count value: %d ~~~~~~~~~~~~~", cycle_count);
+    // $display("~~~~~~~~~~The valid Instruction Count: %d ~~~~~~~~~~~~~", valid_ir_cycle);
+    // $display("~~~~~The test ending reached at cycle: %d ~~~~~~~~~~~~~", pc_write_to_host_cycle);
+    $display("~~~~~~~~~~~~~~~The final gp Reg value:%d ~~~~~~~~~~~~~", gp);
+    $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    if (gp == 1) begin
+        $display("~~~~~~~~~~~~~~~~ TEST_PASS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~ #####     ##     ####    #### ~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~ #    #   #  #   #       #     ~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~ #    #  #    #   ####    #### ~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~ #####   ######       #       #~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~ #       #    #  #    #  #    #~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~ #       #    #   ####    #### ~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    end
+    else begin
+        $display("~~~~~~~~~~~~~~~~ TEST_FAIL ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~######    ##       #    #     ~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~#        #  #      #    #     ~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~#####   #    #     #    #     ~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~#       ######     #    #     ~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~#       #    #     #    #     ~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~#       #    #     #    ######~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    end
+    #10
+    $finish;
 end
-reg[8*300:1] testcase;
 
 initial begin
     sft_irq = 1'b0;
@@ -190,9 +283,9 @@ initial begin
     dbg_halt = 1'b0;
     dbg_irq = 1'b0;
 
-    if($value$plusargs("TESTCASE=%s",testcase))begin
-      $display("TESTCASE=%s",testcase);
-    end
+    // if($value$plusargs("TESTCASE=%s",testcase))begin
+    //   $display("TESTCASE=%s",testcase);
+    // end
 end
 
 //   integer i;
@@ -201,14 +294,14 @@ integer bin;
 
 reg [7:0] itcm_mem [0 : (LP_ILM_SIZE * 8)-1];
 initial begin
-    fireware_load_cplt = 1'b0;
+    stop_on_reset = 1'b1;
     
     $readmemh({testcase, ".verilog"}, itcm_mem);
     // $readmemh("../simulation/riscv-compliance/build_generated/rv32Zicsr/I-CSRRC-01.elf.bin", itcm_mem);
     // F:\CPU\lnrsv\simulation\riscv-compliance\build_generated\rv32Zicsr\I-CSRRC-01.elf.bin
 
     // bin = $fopen("../simulation/riscv-compliance/build_generated/rv32Zicsr/I-CSRRC-01.elf.bin", "rb");
-
+    wait(reset_n == 1'b1);
     for (i=0;i<LP_ILM_SIZE;i=i+1) begin
         u_lnrv_ilm.mem_q[i][7 : 0] = itcm_mem[i * 4 + 0];
         u_lnrv_ilm.mem_q[i][15 : 8] = itcm_mem[i * 4 + 1];
@@ -226,8 +319,9 @@ initial begin
     // for (i=0;i<100;i=i+1) begin
     //      $display("ilm mem[%d]: %x", i, u_lnrv_ilm.mem_q[i]);
     // end
+    #1000;
     @(posedge clk) begin
-        fireware_load_cplt <= 1'b1;
+        stop_on_reset <= 1'b0;
     end
 
         // $display("ITCM 0x00: %h", `ITCM.mem_r[8'h00]);

@@ -267,6 +267,7 @@ assign      icb_cmd_allow =    (axi_write_xfr_vld & axi_wvalid) |
 // 对于ICB总线，每个传输都会有一个地址信息，如果AXI传输信息有效，同时ots队列没有满，则可以继续发送指令
 assign      m_icb_cmd_vld   = no_ots_cmd & icb_cmd_allow;
 assign      m_icb_cmd_size  = axi_size_bufed;
+assign      m_icb_cmd_write = axi_write_xfr;
 assign      m_icb_cmd_wstrb = {(P_DATA_WIDTH/8){axi_write_xfr_vld}} & axi_wstrb;
 assign      m_icb_cmd_wdata = axi_wdata;
 assign      m_icb_cmd_addr  = axi_addr_bufed + ({8'd0, axi_xfr_cnt_q} << axi_size_bufed);

@@ -4,7 +4,8 @@ module lnrv_csr
     input[31 : 0]                   reset_mtvec,
 
     output[31 : 0]                  mepc,
-    output                          mtvec,
+    output[31 : 0]                  mtvec,
+    output                          m_mode,
 
     // debug csr
     output                          dcsr_step,
@@ -46,7 +47,7 @@ module lnrv_csr
     input[31 : 0]                   dpc_wdata,
 
     input                           dcause_wen,
-    input[31 : 0]                   dcause_wdata,
+    input[2 : 0]                    dcause_wdata,
 
     // 非法访问
     // 当访问不存在的csr时
@@ -193,6 +194,8 @@ wire[31 : 0]                        mstatus_full;
 
 wire[31 : 0]                        misa_full;
 
+wire[31 : 0]                        mimpid_full;
+
 // Machine interrupt enable register
 reg                                 mie_mtie_q;
 wire                                mie_mtie_rld;
@@ -304,14 +307,6 @@ reg[2 : 0]                          dcause_q;
 wire                                dcause_rld;
 wire[2 : 0]                         dcause_d;
 wire[31 : 0]                        dcause_full;
-
-wire                                mprven;
-
-
-wire[1 : 0]                         prv;
-
-wire[31 : 0]                        dcsr_full;
-
 
 reg[31 : 0]                         dpc_q;
 wire                                dpc_rld;
@@ -623,6 +618,11 @@ assign      mimpid_full = 32'd0;
 
 assign      mhartid_full = 32'd0;
 
+assign      misa_full = 32'd0;
+
+// 只支持Machine Mode
+assign      m_mode = 1'b1;
+
 assign      dpc_rld = dpc_wen | wbck_DPC;
 assign      dpc_d = dpc_wen ? dpc_wdata : wbck_wdata;
 always@(posedge clk or negedge reset_n) begin
@@ -645,7 +645,7 @@ always@(posedge clk or negedge reset_n) begin
     end
 end
 
-assign      dcause_full[31 : 3] = 'd0;
+assign      dcause_full[31 : 3] = 29'd0;
 assign      dcause_full[2 : 0] = dcause_q;
 
 // debug csr

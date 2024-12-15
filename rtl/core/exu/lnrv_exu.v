@@ -29,9 +29,23 @@ module  lnrv_exu#
     // 寄存器读取接口
     input[31 : 0]                           rs1_rdata,
     input[31 : 0]                           rs2_rdata,
+
+    // 通用寄存器写回接口
+    output                                  gpr_wbck_vld,
+    input                                   gpr_wbck_rdy,
+    output[4 : 0]                           gpr_wbck_idx,
+    output[31 : 0]                          gpr_wbck_wdata,
+
+    // CSR寄存器读取接口
     input[31 : 0]                           csr_rdata,
     input                                   csr_idx_err,
 
+    // CSR寄存器写回接口
+    output                                  csr_wbck_vld,
+    input                                   csr_wbck_rdy,
+    output[31 : 0]                          csr_wbck_wdata,
+
+    // 交付接口
     output                                  cmt_vld,
     input                                   cmt_rdy,
     output                                  cmt_brch_dret,
@@ -40,35 +54,20 @@ module  lnrv_exu#
     output                                  cmt_brch_jal,
     output                                  cmt_brch_jalr,
     output                                  cmt_brch_bjp,
-
     output                                  cmt_csr_idxerr,
     input                                   cmt_csr,
-
     output                                  cmt_rglr,
     output                                  cmt_ifu_excp_buserr,
     output                                  cmt_ifu_excp_misalgn,
     output                                  cmt_idu_excp_ilglir,
-    
     output                                  cmt_sys_ebreak,
     output                                  cmt_sys_ecall,
     output                                  cmt_sys_wfi,
-
     output                                  cmt_lsu_ld,
     output                                  cmt_lsu_st,
     output                                  cmt_lsu_excp_misalgn,
     output                                  cmt_lsu_excp_buserr,
     output[31 : 0]                          cmt_lsu_addr,
-
-    // 通用寄存器写回接口
-    output                                  gpr_wbck_vld,
-    input                                   gpr_wbck_rdy,
-    output[4 : 0]                           gpr_wbck_idx,
-    output[31 : 0]                          gpr_wbck_wdata,
-
-    // CSR寄存器写回接口
-    output                                  csr_wbck_vld,
-    input                                   csr_wbck_rdy,
-    output[31 : 0]                          csr_wbck_wdata,
 
     //访存接口
     output                                  lsu_cmd_vld,
@@ -132,8 +131,8 @@ wire                                brch_cmt_fence;
 wire                                brch_cmt_jal;
 wire                                brch_cmt_jalr;
 wire                                brch_cmt_mret;
-wire                                brch_cmt_gpr_wen;
-wire[31 : 0]                        brch_cmt_gpr_wdata;
+wire                                brch_gpr_wen;
+wire[31 : 0]                        brch_gpr_wdata;
 wire                                brch2alu_op_vld;
 wire                                brch2alu_op_rdy;
 wire[`ALU_OP_BUS_WIDTH - 1 : 0]     brch2alu_op_bus;
@@ -405,10 +404,10 @@ lnrv_exu_alu u_lnrv_exu_alu
 // 指令交付成功，且需要写回寄存器
 assign      gpr_wbck_vld =  cmt_vld & cmt_rdy & 
                             (
-                                rglr_gpr_wen | 
-                                csr_gpr_wen | 
-                                brch_gpr_wen | 
-                                lsu_gpr_wen | 
+                                (sel_rglr & rglr_gpr_wen) | 
+                                (sel_csr & csr_gpr_wen) | 
+                                (sel_brch & brch_gpr_wen) | 
+                                (sel_lsu & lsu_gpr_wen) | 
                                 1'b0
                             );
 
@@ -419,7 +418,7 @@ assign      gpr_wbck_wdata =    ({32{sel_rglr}} & rglr_gpr_wdata) |
                                 ({32{sel_lsu}} & lsu_gpr_wdata);
 
 // 交付接口
-assign      cmt_vld =   sel_lsu ? lsu_cmd_vld : 
+assign      cmt_vld =   sel_lsu ? lsu_cmt_vld : 
                         sel_rglr ? rglr_cmt_vld : 
                         sel_brch ? brch_cmt_vld : 
                         sel_sys ? sys_cmt_vld : 

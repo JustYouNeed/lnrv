@@ -55,13 +55,13 @@ wire                cmd_vld_clr;
 wire                cmd_vld_rld;
 wire                cmd_vld_d;
 
-// reg[31 : 0]         cmd_addr_q;
-// wire                cmd_addr_rld;
-// wire[31 : 0]        cmd_addr_d;
+reg[31 : 0]         cmd_addr_q;
+wire                cmd_addr_rld;
+wire[31 : 0]        cmd_addr_d;
 
-// reg[31 : 0]         cmd_wdata_q;
-// wire                cmd_wdata_rld;
-// wire[31 : 0]        cmd_wdata_d;
+reg[31 : 0]         cmd_wdata_q;
+wire                cmd_wdata_rld;
+wire[31 : 0]        cmd_wdata_d;
 
 reg[3 : 0]          cmd_wstrb_q;
 wire                cmd_wstrb_rld;
@@ -82,9 +82,15 @@ wire                cmt_vld_clr;
 wire                cmt_vld_rld;
 wire                cmt_vld_d;
 
-reg                 bus_err_q;
-wire                bus_err_rld;
-wire                bus_err_d;
+// reg                 bus_err_q;
+// wire                bus_err_rld;
+// wire                bus_err_d;
+
+reg                 cmd_hsked_q;
+wire                cmd_hsked_set;
+wire                cmd_hsked_clr;
+wire                cmd_hsked_rld;
+wire                cmd_hsked_d;
 
 wire                no_ots_cmd;
 
@@ -148,7 +154,7 @@ assign      addr_algn = (byte_access & addr_algn_byte) |
 
 assign      addr_misalgn = ~addr_algn;
 
-assign      no_ots_cmd = (~(cmd_ots_q | cmd_ots_set));
+assign      no_ots_cmd = (~(cmd_ots_q | cmd_ots_clr));
 
 // 访存的地址信息需要通过alu计算得到，因此我们只有在alu计算结束后，才可以输出总线访问请求，
 // 不支持非对齐访问
@@ -164,44 +170,28 @@ always@(posedge clk or negedge reset_n) begin
     end
 end
 
-
-
-// assign      cmd_wdata_rld = cmd_vld_set;
-// assign      cmd_wdata_d =   byte_access ? store_byte : 
-//                             half_access ? store_half : 
-//                             store_word;
-// always@(posedge clk or negedge reset_n) begin
-//     if(reset_n == 1'b0) begin
-//         cmd_wdata_q <= 32'b0;
-//     end else if(cmd_wdata_rld) begin
-//         cmd_wdata_q <= cmd_wdata_d;
-//     end
-// end
-
-// 滞外交易
-assign      cmd_ots_set = lsu_cmd_hsked;
-assign      cmd_ots_clr = lsu_rsp_hsked;
-assign      cmd_ots_rld = cmd_ots_set | cmd_ots_clr;
-assign      cmd_ots_d = (cmd_ots_set & cmd_ots_q) | 
-                        (~(cmd_ots_clr | cmd_ots_q));
+assign      cmd_wdata_rld = cmd_vld_set;
+assign      cmd_wdata_d =   byte_access ? store_byte : 
+                            half_access ? store_half : 
+                            store_word;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
-        cmd_ots_q <= 1'b0;
-    end else if(cmd_ots_rld) begin
-        cmd_ots_q <= cmd_ots_d;
+        cmd_wdata_q <= 32'b0;
+    end else if(cmd_wdata_rld) begin
+        cmd_wdata_q <= cmd_wdata_d;
     end
 end
 
 // 访问地址
-// assign      cmd_addr_rld = cmd_vld_set;
-// assign      cmd_addr_d = alu_res;
-// always@(posedge clk or negedge reset_n) begin
-//     if(reet_n == 1'b0) begin
-//         cmd_addr_q <= 32'd0;
-//     end else if(cmd_addr_rld) begin
-//         cmd_addr_q <= cmd_addr_d;
-//     end
-// end
+assign      cmd_addr_rld = cmd_vld_set;
+assign      cmd_addr_d = alu_res;
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
+        cmd_addr_q <= 32'd0;
+    end else if(cmd_addr_rld) begin
+        cmd_addr_q <= cmd_addr_d;
+    end
+end
 
 // 需要根据不同的访问以及地址来设置wstrb
 assign      byte_access_wstrb = 4'b0001 << alu_res[1 : 0];
@@ -226,7 +216,7 @@ assign      cmt_vld_set =   (addr_misalgn & op_vld) |
                             lsu_rsp_hsked;
 assign      cmt_vld_clr = cmt_rdy;
 assign      cmt_vld_rld = cmt_vld_set | cmt_vld_clr;
-assign      cmt_vld_d = cmt_vld_set & (~cmt_vld_clr);
+assign      cmt_vld_d = cmd_vld_q ? cmt_vld_set : (~cmt_vld_clr);
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         cmt_vld_q <= 1'b0;
@@ -235,16 +225,30 @@ always@(posedge clk or negedge reset_n) begin
     end
 end
 
-
-assign      bus_err_rld = lsu_rsp_hsked | cmt_rdy;
-assign      bus_err_d = lsu_rsp_hsked ? lsu_rsp_err : 1'b0;
+// 滞外交易
+assign      cmd_ots_set = lsu_cmd_hsked;
+assign      cmd_ots_clr = lsu_rsp_hsked;
+assign      cmd_ots_rld = cmd_ots_set | cmd_ots_clr;
+assign      cmd_ots_d = cmd_ots_q ? cmd_ots_set : (~cmd_ots_clr);
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
-        bus_err_q <= 1'b0;
-    end else if(bus_err_rld) begin
-        bus_err_q <= bus_err_d;
+        cmd_ots_q <= 1'b0;
+    end else if(cmd_ots_rld) begin
+        cmd_ots_q <= cmd_ots_d;
     end
 end
+
+
+
+// assign      bus_err_rld = lsu_rsp_hsked | cmt_rdy;
+// assign      bus_err_d = lsu_rsp_hsked ? lsu_rsp_err : 1'b0;
+// always@(posedge clk or negedge reset_n) begin
+//     if(reset_n == 1'b0) begin
+//         bus_err_q <= 1'b0;
+//     end else if(bus_err_rld) begin
+//         bus_err_q <= bus_err_d;
+//     end
+// end
 
 
 // assign      lsu_ld_access_fault = lsu_rsp_err & instr_is_load;
@@ -263,13 +267,11 @@ assign      store_word = rs2_rdata;
 
 // 请求lsu模块完成访存操作
 assign      lsu_cmd_vld     = cmd_vld_q;
-assign      lsu_cmd_addr    = alu_res;
+assign      lsu_cmd_addr    = cmd_addr_q;
 assign      lsu_cmd_write   = instr_is_store;
 assign      lsu_cmd_size    = ls_size;
 assign      lsu_cmd_wstrb   = cmd_wstrb_q;
-assign      lsu_cmd_wdata   =   byte_access ? store_byte : 
-                                half_access ? store_half : 
-                                store_word;
+assign      lsu_cmd_wdata   = cmd_wdata_q;
 
 assign      lsu_rsp_rdy = cmt_rdy;
 
@@ -282,15 +284,15 @@ assign      load_byte = (lsu_cmd_addr[1 : 0] == 2'b00) ? lsu_rsp_rdata[7 : 0] :
 assign      load_half = lsu_cmd_addr[1] ? lsu_rsp_rdata[31 : 16] : 
                         lsu_rsp_rdata[15 : 0];
 
-assign      sext_byte = {{24{load_byte[7]}}, load_byte};
-assign      uext_byte = {{24{1'b0}}, load_byte};
-assign      ext_byte = ls_uext ? uext_byte : sext_byte;
+assign      sext_byte   = {{24{load_byte[7]}}, load_byte};
+assign      uext_byte   = {{24{1'b0}}, load_byte};
+assign      ext_byte    = ls_uext ? uext_byte : sext_byte;
 
-assign      sext_half = {{16{load_half[15]}}, load_half};
-assign      uext_half = {{16{1'b0}}, load_half};
-assign      ext_half = ls_uext ? uext_half : sext_half;
+assign      sext_half   = {{16{load_half[15]}}, load_half};
+assign      uext_half   = {{16{1'b0}}, load_half};
+assign      ext_half    = ls_uext ? uext_half : sext_half;
 
-assign      alu_op_vld = op_vld;
+assign      alu_op_vld                  = op_vld;
 assign      alu_op_bus[`ALU_ADD_LOC]    = instr_is_load | instr_is_store;
 assign      alu_op_bus[`ALU_SUB_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_OR_LOC]     = 1'b0;
@@ -325,15 +327,15 @@ assign      alu_in2                     = imm;
 // lsu交付
 // 1、如果当前发生了地址非对齐错误，则不会有访问操作发出，直接将该指令交付，产生异常
 // 2、如果正常发出了访问操作，但是有错误，则产生总线错误异常
-assign      cmt_vld = addr_misalgn ? op_vld : lsu_rsp_vld;
-assign      cmt_excp_misalgn = addr_misalgn;
-assign      cmt_excp_buserr = bus_err_q;
-assign      cmt_ld = instr_is_load;
-assign      cmt_st = instr_is_store;
-assign      cmt_addr = lsu_cmd_addr;
+assign      cmt_vld             = addr_misalgn ? op_vld : lsu_rsp_vld;
+assign      cmt_excp_misalgn    = addr_misalgn;
+assign      cmt_excp_buserr     = lsu_rsp_err;
+assign      cmt_ld              = instr_is_load;
+assign      cmt_st              = instr_is_store;
+assign      cmt_addr            = lsu_cmd_addr;
 
 
-assign      no_excp = ~(addr_misalgn | bus_err_q);
+assign      no_excp = ~(addr_misalgn | lsu_rsp_err);
 
 assign      gpr_wen = instr_is_load & no_excp;
 assign      gpr_wdata = byte_access ? ext_byte : 

@@ -39,7 +39,6 @@ wire                                    op2_is_imm;
 wire[31 : 0]                            op1;
 wire[31 : 0]                            op2;
 
-wire                                    need_alu;
 wire                                    csr_wen;
 
 
@@ -53,12 +52,9 @@ assign      rs1_is_0        = op_bus[`CSR_OP1_IS_ZERO];
 assign      op1 = instr_is_csrrw ? 32'd0 : csr_rdata;
 assign      op2 = op2_is_imm ? imm : rs1_rdata;
 
-assign      need_alu = instr_is_csrrc | instr_is_csrrs;
-
-assign      alu_in1 = op1;
-assign      alu_in2 = instr_is_csrrc ? (~op2) : op2;
-assign      alu_op_vld = op_vld;
-
+assign      alu_op_vld                  = op_vld;
+assign      alu_in1                     = op1;
+assign      alu_in2                     = instr_is_csrrc ? (~op2) : op2;
 assign      alu_op_bus[`ALU_ADD_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_SUB_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_OR_LOC]     = instr_is_csrrs | instr_is_csrrw;
@@ -81,7 +77,7 @@ assign      gpr_wdata = csr_rdata;
 assign      op_rdy = cmt_rdy;
 
 assign      cmt_vld = alu_op_rdy;
-assign      cmt_idx_err = csr_idx_err;
+assign      cmt_idx_err = csr_idx_err & op_vld;
 
 // CSR寄存器写回接口
 assign      csr_wbck_vld =  cmt_rdy & 

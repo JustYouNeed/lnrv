@@ -3,6 +3,9 @@ module lnrv_idu
 (
     output                              idu_active,
 
+    input                               pipe_halt_req,
+    output                              pipe_halt_ack,
+
     input                               ifu_vld,
     output                              ifu_rdy,
     input[31 : 0]                       ifu_ir,
@@ -98,7 +101,7 @@ lnrv_idu_decode u_lnrv_idu_decode
 
 
 // 只有要ifu_ir有效，且没有暂停流水线请求的情况下，才会将译码信息送到下一级
-assign      idu_buf_push_vld = ifu_vld;
+assign      idu_buf_push_vld = ifu_vld & (~pipe_halt_req);
 assign      idu_buf_push_data = {
                                     dec_rs1_idx,
                                     dec_rs2_idx,
@@ -140,7 +143,7 @@ u_idu_pipe_stage
     .pop_data           ( idu_buf_pop_data          )
 );
 
-assign      ifu_rdy = idu_buf_push_rdy;
+assign      ifu_rdy = idu_buf_push_rdy & (~pipe_halt_req);
 
 assign      idu_buf_pop_rdy = idu_rdy;
 assign      idu_vld = idu_buf_pop_vld;
@@ -164,5 +167,7 @@ assign      idu_active = 1'b1;
 assign      bpu_pipe_flush_req = 1'b0;
 assign      bpu_pipe_flush_pc_op1 = 32'd0;
 assign      bpu_pipe_flush_pc_op2 = 32'd0;
+
+assign      pipe_halt_ack = idu_buf_push_rdy;
 
 endmodule //lnrv_idu

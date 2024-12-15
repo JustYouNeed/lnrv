@@ -20,7 +20,8 @@ module lnrv_cmt_irq
     // 有中断发生
     output                      irq_taken,
 
-    // output                      irq_pending,
+    // 原始中断有效信号，没有被mstatus_mie mask
+    output                      irq_req_raw,
 
     // 中断发生时需要修改mcsr寄存器
     output[31 : 0]              mepc_wdata,
@@ -58,12 +59,11 @@ assign      sft_irq_vld = sft_irq & mie_msie;
 assign      ext_irq_vld = ext_irq & mie_meie;
 assign      tmr_irq_vld = tmr_irq & mie_mtie;
 
-assign      any_irq_vld =   mstatus_mie & 
-                            (
-                                sft_irq_vld | 
-                                ext_irq_vld | 
-                                tmr_irq_vld
-                            );
+assign      irq_req_raw =   sft_irq_vld | 
+                            ext_irq_vld | 
+                            tmr_irq_vld;
+
+assign      any_irq_vld =   mstatus_mie & irq_req_raw;
 
 // 如果当前处于debug mode，或者单步调试模式且没有使能单步调试中断，则不会响应任何中断请求
 assign      dbg_msk_irq =   d_mode | 

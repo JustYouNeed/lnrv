@@ -17,7 +17,7 @@ module lnrv_cmt_brch
     input[31 : 0]               dpc,
     input[31 : 0]               mepc,
     input[31 : 0]               rs1_rdata,
-    input[31 : 0]               exu_pc,
+    input[31 : 0]               idu_pc,
     input[31 : 0]               imm,
 
     // 流水线冲刷请求
@@ -58,7 +58,7 @@ assign      pipe_flush_req = bpu_prdt_res ^ pipe_flush_req_pre;
 assign      pipe_flush_pc_op1 = cmt_brch_dret ? dpc : 
                                 cmt_brch_mret ? mepc : 
                                 cmt_brch_jalr ? rs1_rdata : 
-                                exu_pc;
+                                idu_pc;
 assign      pipe_flush_pc_op2 = cmt_brch_dret ? 32'd0 : 
                                 cmt_brch_mret ? 32'd0 : 
                                 cmt_brch_fence ? 32'd4 : 

@@ -8,34 +8,29 @@ module lnrv_cmt
     input[31 : 0]               idu_ir,
     input[31 : 0]               idu_imm,
 
+    // 来自exu模块的交付信号
     input                       cmt_vld,
     output                      cmt_rdy,
-
     input                       cmt_idu_excp_ilglir,
     input                       cmt_ifu_excp_buserr,
     input                       cmt_ifu_excp_misalgn,
-
     input                       cmt_brch_dret,
     input                       cmt_brch_mret,
     input                       cmt_brch_jal,
     input                       cmt_brch_jalr,
     input                       cmt_brch_fence,
     input                       cmt_brch_bjp,
-
     input                       cmt_csr,
     input                       cmt_csr_idxerr,
-
     input                       cmt_rglr,
-
     input                       cmt_sys_ebreak,
     input                       cmt_sys_ecall,
     input                       cmt_sys_wfi,
-
     input                       cmt_lsu_ld,
     input                       cmt_lsu_st,
     input                       cmt_lsu_excp_misalgn,
     input                       cmt_lsu_excp_buserr,
-    input[31 : 0]               cmt_lsu_baddr,
+    input[31 : 0]               cmt_lsu_addr,
 
     // 分支预测结果
     input                       bpu_prdt_res,
@@ -58,6 +53,7 @@ module lnrv_cmt
 
     // 调试模式
     input                       d_mode,
+    input                       m_mode,
     output                      wfi_mode,
 
     // 有中断发生
@@ -88,7 +84,7 @@ module lnrv_cmt
     output[31 : 0]              dpc_wdata,
 
     output                      dcause_wen,
-    output[31 : 0]              dcause_wdata,
+    output[2 : 0]               dcause_wdata,
 
     // 流水线冲刷请求
     output                      pipe_flush_req,
@@ -135,6 +131,9 @@ wire                            pipe_flush_ack_brch;
 wire[31 : 0]                    pipe_flush_pc_op1_brch;
 wire[31 : 0]                    pipe_flush_pc_op2_brch;
 
+wire                            irq_req_raw;
+wire                            dbg_req_raw;
+
 
 assign      exu_idle = cmt_vld | (~idu_vld);
 
@@ -158,10 +157,10 @@ lnrv_cmt_irq u_lnrv_cmt_irq
     .d_mode                 ( d_mode                        ),
 
     .irq_taken              ( irq_taken                     ),
+    .irq_req_raw            ( irq_req_raw                   ),
 
     .mepc_wdata             ( mepc_wdata_irq                ),
     .mcause_wdata           ( mcause_wdata_irq              ),
-
 
     .dcsr_step              ( dcsr_step                     ),
     .dcsr_stepie            ( dcsr_stepie                   ),
@@ -180,8 +179,8 @@ lnrv_cmt_irq u_lnrv_cmt_irq
 // 异常处理模块
 lnrv_cmt_excp u_lnrv_cmt_excp
 (
-    .exu_pc                 ( exu_pc                        ),
-    .exu_ir                 ( exu_ir                        ),
+    .idu_pc                 ( idu_pc                        ),
+    .idu_ir                 ( idu_ir                        ),
     
     .excp_taken             ( excp_taken                    ),
 
@@ -193,7 +192,7 @@ lnrv_cmt_excp u_lnrv_cmt_excp
     .cmt_lsu_st             ( cmt_lsu_st                    ),
     .cmt_lsu_buserr         ( cmt_lsu_excp_buserr           ),
     .cmt_lsu_misalgn        ( cmt_lsu_excp_misalgn          ),
-    .cmt_lsu_baddr          ( cmt_lsu_baddr                 ),
+    .cmt_lsu_addr           ( cmt_lsu_addr                  ),
     .cmt_sys_ebreak         ( cmt_sys_ebreak                ),
     .cmt_sys_ecall          ( cmt_sys_ecall                 ),
     .cmt_csr_idxerr         ( cmt_csr_idxerr                ),
@@ -220,7 +219,7 @@ lnrv_cmt_excp u_lnrv_cmt_excp
 // 调试相关请求处理模块
 lnrv_cmt_dbg u_lnrv_cmt_dbg
 (
-    .exu_pc                 ( exu_pc                        ),    
+    .idu_pc                 ( idu_pc                        ),    
 
     .ifu_vld                ( ifu_vld                       ),
     .ifu_pc                 ( ifu_pc                        ),
@@ -228,8 +227,7 @@ lnrv_cmt_dbg u_lnrv_cmt_dbg
     .cmt_vld                ( cmt_vld                       ),
     .cmt_sys_ebreak         ( cmt_sys_ebreak                ),
 
-    .dbg_step_req           ( dbg_step_req                  ),
-
+    .dbg_req_raw            ( dbg_req_raw                   ),
     .dbg_taken              ( dbg_taken                     ),
 
     .dbg_irq                ( dbg_irq                       ),
@@ -254,7 +252,7 @@ lnrv_cmt_dbg u_lnrv_cmt_dbg
     .reset_n                ( reset_n                       )
 );
 
-
+// 分支指令交付处理模块
 lnrv_cmt_brch u_lnrv_cmt_brch
 (
     .cmt_vld                ( cmt_vld                       ),
@@ -272,7 +270,7 @@ lnrv_cmt_brch u_lnrv_cmt_brch
     .dpc                    ( dpc                           ),
     .mepc                   ( mepc                          ),
     .rs1_rdata              ( rs1_rdata                     ),
-    .exu_pc                 ( idu_pc                        ),
+    .idu_pc                 ( idu_pc                        ),
     .imm                    ( idu_imm                       ),
     
     .pipe_flush_req         ( pipe_flush_req_brch           ),
@@ -282,6 +280,30 @@ lnrv_cmt_brch u_lnrv_cmt_brch
 
     .clk                    ( clk                           ),
     .reset_n                ( reset_n                       )
+);
+
+
+lnrv_cmt_wfi u_lnrv_cmt_wfi
+(
+    .clk                    ( clk                           ),      // I
+    .reset_n                ( reset_n                       ),      // I
+
+    .exu_idle               ( exu_idle                      ),      // I
+
+    .cmt_vld                ( cmt_vld                       ),      // I
+    .cmt_sys_wfi            ( cmt_sys_wfi                   ),      // I
+
+    .wfi_mode               ( wfi_mode                      ),      // O
+
+    .pipe_halt_req          ( pipe_halt_req                 ),      // O
+    .pipe_halt_ack          ( pipe_halt_ack                 ),      // I
+
+    .excp_req_raw           ( excp_taken                    ),      // I
+    .irq_req_raw            ( irq_req_raw                   ),      // I
+    .dbg_req_raw            ( dbg_req_raw                   ),      // I
+
+    .d_mode                 ( d_mode                        ),      // I
+    .dcsr_step              ( dcsr_step                     )       // I
 );
 
 // 流水线冲刷请求优先级如下：
@@ -354,10 +376,7 @@ assign      cmted_mret = cmt_brch_mret & brch_taken;
 assign      cmted_dret = cmt_brch_dret & brch_taken;
 
 // 如果需要冲刷流水线，则需要等流水线冲刷完成，否则可以直接交付
-assign      cmt_rdy = pipe_flush_req ? pipe_flush_ack : 1'b1;
-
-
-assign      pipe_halt_req = 1'b0;
+assign      cmt_rdy = pipe_flush_req ? pipe_flush_ack : cmt_vld;
 
 endmodule
 

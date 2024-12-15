@@ -82,29 +82,27 @@ assign      op1_is_pc       = op_bus[`RGLR_OP1_IS_PC];
 assign      op2_is_imm      = op_bus[`RGLR_OP2_IS_IMM];
 
 
-assign      alu_op_bus[`ALU_ADD_LOC]   = instr_is_add;
-assign      alu_op_bus[`ALU_SUB_LOC]   = instr_is_sub;
-assign      alu_op_bus[`ALU_OR_LOC]    = instr_is_or | instr_is_auipc | instr_is_lui;
-assign      alu_op_bus[`ALU_AND_LOC]   = instr_is_and;
-assign      alu_op_bus[`ALU_XOR_LOC]   = instr_is_xor;
-assign      alu_op_bus[`ALU_SLL_LOC]   = instr_is_sll;
-assign      alu_op_bus[`ALU_SRL_LOC]   = instr_is_srl;
-assign      alu_op_bus[`ALU_SRA_LOC]   = instr_is_sra;
-assign      alu_op_bus[`ALU_LT_LOC]    = instr_is_slt;
-assign      alu_op_bus[`ALU_LTU_LOC]   = instr_is_sltu;
-assign      alu_op_bus[`ALU_GTEU_LOC]  = 1'b0;
-assign      alu_op_bus[`ALU_GTE_LOC]   = 1'b0;
-assign      alu_op_bus[`ALU_NEQ_LOC]   = 1'b0;
-assign      alu_op_bus[`ALU_EQ_LOC]    = 1'b0;
-
-assign      alu_op_vld                 = op_vld;
+assign      alu_op_bus[`ALU_ADD_LOC]    = instr_is_add;
+assign      alu_op_bus[`ALU_SUB_LOC]    = instr_is_sub;
+assign      alu_op_bus[`ALU_OR_LOC]     = instr_is_or | instr_is_auipc | instr_is_lui;
+assign      alu_op_bus[`ALU_AND_LOC]    = instr_is_and;
+assign      alu_op_bus[`ALU_XOR_LOC]    = instr_is_xor;
+assign      alu_op_bus[`ALU_SLL_LOC]    = instr_is_sll;
+assign      alu_op_bus[`ALU_SRL_LOC]    = instr_is_srl;
+assign      alu_op_bus[`ALU_SRA_LOC]    = instr_is_sra;
+assign      alu_op_bus[`ALU_LT_LOC]     = instr_is_slt;
+assign      alu_op_bus[`ALU_LTU_LOC]    = instr_is_sltu;
+assign      alu_op_bus[`ALU_GTEU_LOC]   = 1'b0;
+assign      alu_op_bus[`ALU_GTE_LOC]    = 1'b0;
+assign      alu_op_bus[`ALU_NEQ_LOC]    = 1'b0;
+assign      alu_op_bus[`ALU_EQ_LOC]     = 1'b0;
+assign      alu_op_vld                  = op_vld;
 
 // 选择输出到alu的数据
-assign      alu_in1 =   op1_is_pc ? pc : 
-                        instr_is_lui ? 32'd0 : 
-                        rs1_rdata;
-
-assign      alu_in2 = op2_is_imm ? imm : rs2_rdata;
+assign      alu_in1                     =   op1_is_pc ? pc : 
+                                            instr_is_lui ? 32'd0 : 
+                                            rs1_rdata;
+assign      alu_in2                     = op2_is_imm ? imm : rs2_rdata;
 
 // 所有常规指令都需要写回GPR
 assign      gpr_wen = op_vld;

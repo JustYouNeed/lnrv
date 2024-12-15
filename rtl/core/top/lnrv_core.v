@@ -4,6 +4,8 @@ module  lnrv_core
     input[31 : 0]                           reset_vector,
     input[31 : 0]                           reset_mtvec,
 
+    input                                   stop_on_reset,
+
     // 中断信号
     input                                   sft_irq,
     input                                   ext_irq,
@@ -18,8 +20,8 @@ module  lnrv_core
     // debug mode指示信号
     output                                  d_mode,
 
-    output                                  stop_time,
-    output                                  stop_count,
+    output                                  dcsr_stoptime,
+    output                                  dcsr_stopcount,
 
     // 取指总线
     output                                  ifu_cmd_vld,
@@ -101,11 +103,8 @@ wire                                    idu_rv16;
 
 wire                                    pipe_halt_req;
 wire                                    pipe_halt_ack;
-
-wire                                    pipe_flush_req;
-wire                                    pipe_flush_ack;
-wire[31 : 0]                            pipe_flush_pc_op1;
-wire[31 : 0]                            pipe_flush_pc_op2;
+wire                                    pipe_halt_ack_ifu;
+wire                                    pipe_halt_ack_idu;
 
 wire                                    cmt_vld;
 wire                                    cmt_rdy;
@@ -171,18 +170,19 @@ wire[31 : 0]                            csr_wbck_wdata;
 wire                                    dcsr_ebreakm;
 wire                                    dcsr_stepie;
 wire                                    dcsr_step;
-wire                                    dcsr_stopcount;
-wire                                    dcsr_stoptime;
 
 
-wire [31 : 0]                           mepc;
+wire[31 : 0]                            mepc;
 wire[31 : 0]                            dpc;
-wire [31 : 0]                           mtvec;
+wire[31 : 0]                            mtvec;
 wire                                    mie_msie;
 wire                                    mie_mtie;
 wire                                    mie_meie;
 wire                                    mstatus_mie;
 
+
+assign      cmt_pipe_flush_ack = cmt_pipe_flush_ack_ifu & cmt_pipe_flush_ack_idu;
+assign      pipe_halt_ack = pipe_halt_ack_ifu & pipe_halt_ack_idu;
 
 // 取指模块
 lnrv_ifu u_lnrv_ifu
@@ -192,7 +192,7 @@ lnrv_ifu u_lnrv_ifu
 
     .ifu_active                 ( ifu_active                ),
 
-    .firmware_loading           ( firmware_loading          ),
+    .stop_on_reset              ( stop_on_reset             ),
 
     .reset_vector               ( reset_vector              ),
 
@@ -207,7 +207,7 @@ lnrv_ifu u_lnrv_ifu
     .bpu_pipe_flush_pc_op2      ( bpu_pipe_flush_pc_op2     ),
 
     .pipe_halt_req              ( pipe_halt_req             ),
-    .pipe_halt_ack              ( pipe_halt_ack             ),
+    .pipe_halt_ack              ( pipe_halt_ack_ifu         ),
 
     .ifu_vld                    ( ifu_vld                   ),
     .ifu_rdy                    ( ifu_rdy                   ),
@@ -229,12 +229,13 @@ lnrv_ifu u_lnrv_ifu
     .ifu_rsp_err                ( ifu_rsp_err               )
 );
 
-assign      idu_pipe_flush_req = pipe_flush_req;
-
 // 译码模块
 lnrv_idu u_lnrv_idu
 (
     .idu_active                 ( idu_active                ),
+
+    .pipe_halt_req              ( pipe_halt_req             ),
+    .pipe_halt_ack              ( pipe_halt_ack_idu         ),
 
     .ifu_vld                    ( ifu_vld                   ),
     .ifu_rdy                    ( ifu_rdy                   ),
@@ -277,12 +278,13 @@ lnrv_idu u_lnrv_idu
     .reset_n                    ( reset_n                   )
 );
 
-assign      cmt_pipe_flush_ack = cmt_pipe_flush_ack_ifu & cmt_pipe_flush_ack_idu;
-
 // 指令执行模块
 lnrv_exu u_lnrv_exu
 (
     .exu_active                 ( exu_active                ),
+
+    // .pipe_halt_req              ( pipe_halt_req             ),
+    // .pipe_halt_ack              ( pipe_halt_ack_exu         ),
 
     // 译码模块输入
     .idu_vld                    ( idu_vld                   ),
@@ -390,7 +392,7 @@ lnrv_cmt u_lnrv_cmt
     .cmt_lsu_st                 ( cmt_lsu_st                ),
     .cmt_lsu_excp_misalgn       ( cmt_lsu_excp_misalgn      ),
     .cmt_lsu_excp_buserr        ( cmt_lsu_excp_buserr       ),
-    .cmt_lsu_baddr              ( cmt_lsu_baddr             ),
+    .cmt_lsu_addr               ( cmt_lsu_addr              ),
 
     .bpu_prdt_res               ( 1'b0                      ),
 
@@ -409,6 +411,7 @@ lnrv_cmt u_lnrv_cmt
     .rs1_rdata                  ( rs1_rdata                 ),
 
     .d_mode                     ( d_mode                    ),
+    .m_mode                     ( m_mode                    ),
     .wfi_mode                   ( wfi_mode                  ),
 
     .irq_taken                  ( irq_taken                 ),
@@ -492,6 +495,7 @@ lnrv_csr u_lnrv_csr
     .dcsr_stopcount             ( dcsr_stopcount            ),
     .dpc                        ( dpc                       ),
     .d_mode                     ( d_mode                    ),
+    .m_mode                     ( m_mode                    ),
 
     .sft_irq                    ( sft_irq                   ),
     .tmr_irq                    ( tmr_irq                   ),

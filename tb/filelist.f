@@ -14,7 +14,6 @@
 ~/proj/lnrv/rtl/core/biu/lnrv_biu.v
 ~/proj/lnrv/rtl/core/top/lnrv_core.v
 ~/proj/lnrv/rtl/core/top/lnrv_cpu.v
-~/proj/lnrv/rtl/core/ifu/lnrv_ifu_ifetch.v
 ~/proj/lnrv/rtl/core/ifu/lnrv_ifu.v
 
 ~/proj/lnrv/rtl/core/exu/lnrv_exu_csr.v
@@ -32,6 +31,7 @@
 ~/proj/lnrv/rtl/core/cmt/lnrv_cmt_irq.v
 ~/proj/lnrv/rtl/core/cmt/lnrv_cmt_brch.v
 ~/proj/lnrv/rtl/core/cmt/lnrv_cmt_dbg.v
+~/proj/lnrv/rtl/core/cmt/lnrv_cmt_wfi.v
 
 
 ~/proj/lnrv/rtl/core/reg/lnrv_csr.v

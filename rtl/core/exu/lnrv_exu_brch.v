@@ -90,7 +90,6 @@ assign      need_alu = ~(
                         );
 
 assign      alu_op_vld                  = op_vld & need_alu;
-
 assign      alu_op_bus[`ALU_ADD_LOC]    = instr_is_jal | instr_is_jalr;
 assign      alu_op_bus[`ALU_SLL_LOC]    = 1'b0;
 assign      alu_op_bus[`ALU_SUB_LOC]    = 1'b0;
@@ -107,8 +106,8 @@ assign      alu_op_bus[`ALU_GTEU_LOC]   = instr_is_bgeu;
 assign      alu_op_bus[`ALU_GTE_LOC]    = instr_is_bge;
 
 // 如果是直接跳转指令，需要执行pc + 4，否则就是比较x[rs1]和x[rs2]两个寄存器中的值
-assign      alu_in1 = op1_is_pc ? pc : rs1_rdata;
-assign      alu_in2 = op2_is_imm ? 32'd4 : rs2_rdata;
+assign      alu_in1                     = op1_is_pc ? pc : rs1_rdata;
+assign      alu_in2                     = op2_is_imm ? 32'd4 : rs2_rdata;
 
 
 assign      cmt_bjp    = instr_is_bxx & alu_res[0];
