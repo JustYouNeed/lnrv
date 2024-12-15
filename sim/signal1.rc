@@ -1,0 +1,75 @@
+Magic 271485
+Revision Verdi3_L-2016.06-1
+
+; Window Layout <x> <y> <width> <height> <signalwidth> <valuewidth>
+viewPort 0 28 1850 457 184 65
+
+; File list:
+; openDirFile [-d delimiter] [-s time_offset] [-rf auto_bus_rule_file] path_name file_name
+openDirFile -d / "" "/home/pluto/proj/lnrv/sim/run/rv32ui-p-auipc/lnrv_cpu_tb.fsdb"
+
+; file time scale:
+; fileTimeScale ### s|ms|us|ns|ps
+
+; signal spacing:
+signalSpacing 5
+
+; windowTimeUnit is used for zoom, cursor & marker
+; waveform viewport range
+zoom 53385943.161059 53444361.980280
+cursor 53419000.000000
+marker 0.000000
+
+; user define markers
+; userMarker time_pos marker_name color linestyle
+; visible top row signal index
+top 6
+; marker line index
+markerPos 21
+
+; event list
+; addEvent event_name event_expression
+; curEvent event_name
+
+
+
+COMPLEX_EVENT_BEGIN
+
+
+COMPLEX_EVENT_END
+
+
+
+; toolbar current search type
+; curSTATUS search_type
+curSTATUS ByValue
+
+
+addGroup "G1"
+activeDirFile "" "/home/pluto/proj/lnrv/sim/run/rv32ui-p-auipc/lnrv_cpu_tb.fsdb"
+addSignal -h 15 /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_exu/idu_vld
+addSignal -h 15 -UNSIGNED -HEX -holdScope idu_pc[31:0]
+addSignal -h 15 /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_exu/u_lnrv_exu_rglr/instr_is_auipc
+addSignal -h 15 -holdScope op1_is_pc
+addSignal -h 15 -holdScope op1_is_pc
+addSignal -h 15 -UNSIGNED -HEX -holdScope imm[31:0]
+addSignal -h 15 -UNSIGNED -HEX /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_exu/idu_ir[31:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope idu_rd_idx[4:0]
+addSignal -h 15 -UNSIGNED -HEX /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_gpr/a0[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope a1[31:0]
+addSignal -h 15 /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_exu/u_lnrv_exu_brch/instr_is_jal
+addSignal -h 15 -holdScope instr_is_jalr
+addSignal -h 15 -UNSIGNED -HEX /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_gpr/t4[31:0]
+addSignal -h 15 -UNSIGNED -HEX /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_exu/u_lnrv_exu_brch/alu_in1[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope alu_in2[31:0]
+addSignal -h 15 -holdScope gpr_wen
+addSignal -h 15 -UNSIGNED -HEX -holdScope gpr_wdata[31:0]
+addSignal -h 15 /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_gpr/wr_vld
+addSignal -h 15 -UNSIGNED -UDEC -holdScope wr_idx[4:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope wr_data[31:0]
+addSignal -h 15 /lnrv_cpu_tb/u_lnrv_cpu/u_lnrv_core/u_lnrv_exu/brch_gpr_wdata
+addGroup "G2"
+
+; getSignalForm Scope Hierarchy Status
+; active file of getSignalForm
+

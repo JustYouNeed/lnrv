@@ -3,7 +3,7 @@ RUN_DIR      	:= ${SIM_DIR}/run
 TB_DIR 			:= ${SIM_DIR}/../tb
 TB_TOP 			:= lnrv_cpu_tb
 
-TEST_NAME     	:= rv32ui-p-addi
+TEST_NAME     	:= rv32ui-p-fence_i
 TEST_CASE     	:= ${RUN_DIR}/../../riscv-tools/riscv-tests/isa/generated/${TEST_NAME}
 
 SIM_TOOL       	:= vcs 
@@ -53,12 +53,15 @@ regress_prepare:
 	make compile
 	@-rm -rf ${RUN_DIR}/rv32*.log
 regress_run:
-	$(foreach tst,$(SELF_TESTS), make run_test DUMPWAVE=0 TESTCASE=$(tst);)
+	$(foreach tst,$(SELF_TESTS), make run_test DUMPWAVE=0 TEST_CASE=$(tst) RUN_DIR=${RUN_DIR};)
 regress_collect:
 	@-rm -rf ${RUN_DIR}/regress.res
 	@find ${RUN_DIR} -name "rv32*.log" -exec bin/find_test_fail.csh {} >> ${RUN_DIR}/regress.res \;
 	@cat ${RUN_DIR}/regress.res
 regress: regress_prepare regress_run regress_collect 
+
+echo:
+	echo ${SELF_TESTS}
 
 clean:
 	rm -rf run
