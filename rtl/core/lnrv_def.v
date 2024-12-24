@@ -197,21 +197,23 @@
 `define     MDV_OP_BUS_WIDTH                    6
 
 // alu模块操作总线
-`define     ALU_ADD_LOC                         0
-`define     ALU_SUB_LOC                         1
-`define     ALU_AND_LOC                         2
-`define     ALU_OR_LOC                          3
-`define     ALU_XOR_LOC                         4
-`define     ALU_SLL_LOC                         5
-`define     ALU_SRL_LOC                         6
-`define     ALU_SRA_LOC                         7
-`define     ALU_EQ_LOC                          8
-`define     ALU_GTEU_LOC                        9
-`define     ALU_GTE_LOC                         10
-`define     ALU_LT_LOC                          11
-`define     ALU_LTU_LOC                         12
-`define     ALU_NEQ_LOC                         13
-`define     ALU_OP_BUS_WIDTH                    14
+`define     ALU_IN1_IS_UNSIGED                  0 +: 1
+`define     ALU_IN2_IS_UNSIGED                  1 +: 1
+`define     ALU_ADD_LOC                         2 +: 1
+`define     ALU_SUB_LOC                         3 +: 1
+`define     ALU_AND_LOC                         4 +: 1
+`define     ALU_OR_LOC                          5 +: 1
+`define     ALU_XOR_LOC                         6 +: 1
+`define     ALU_SLL_LOC                         7 +: 1
+`define     ALU_SRL_LOC                         8 +: 1
+`define     ALU_SRA_LOC                         9 +: 1
+`define     ALU_EQ_LOC                          10 +: 1
+`define     ALU_GTEU_LOC                        11 +: 1
+`define     ALU_GTE_LOC                         12 +: 1
+`define     ALU_LT_LOC                          13 +: 1
+`define     ALU_LTU_LOC                         14 +: 1
+`define     ALU_NEQ_LOC                         15 +: 1
+`define     ALU_OP_BUS_WIDTH                    16
 
 // 
 `define     DEC_OP_TYPE_WIDTH                   3

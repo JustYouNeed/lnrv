@@ -6,8 +6,9 @@ TB_DIR 			:= ${SIM_DIR}/../tb
 RTL_DIR 		:= ${SIM_DIR}/../design/rtl
 
 TEST_CASE 		:= ${SIM_DIR}/../riscv-tools/riscv-tests/isa/generated/rv32ui-p-addi
-TEST_NAME 		:= $(notdir $(patsubst %.dump,%,${TESTCASE}.dump))
+TEST_NAME 		:= $(notdir $(patsubst %.dump,%,${TEST_CASE}.dump))
 TEST_RUNDIR  	:= ${TEST_NAME}
+DUMPWAVE        := 1
 
 
 
@@ -101,13 +102,13 @@ compile.flg: ${RTL_V_FILES} ${TB_V_FILES}
 compile: compile.flg 
 
 wave: 
-	gvim -p ${TESTCASE}.spike.log ${TESTCASE}.dump &
+# gvim -p ${TEST_CASE}.spike.log ${TEST_CASE}.dump &
 	${WAV_TOOL} ${WAV_OPTIONS} ${WAV_INC} ${WAV_RTL} ${WAV_FILE}  & 
 
 run: compile
 	rm -rf ${TEST_RUNDIR}
 	mkdir ${TEST_RUNDIR}
-	cd ${TEST_RUNDIR}; ${SIM_EXEC} +DUMPWAVE=${DUMPWAVE} +TESTCASE=${TESTCASE} +SIM_TOOL=${SIM_TOOL} 2>&1 | tee ${TESTNAME}.log; cd ${RUN_DIR}; 
+	cd ${TEST_RUNDIR}; ${SIM_EXEC} +DUMPWAVE=${DUMPWAVE} +TEST_CASE=${TEST_CASE} +SIM_TOOL=${SIM_TOOL} 2>&1 | tee ${TEST_NAME}.log; cd ${RUN_DIR}; 
 
 
 .PHONY: run clean all 

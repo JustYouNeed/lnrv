@@ -4,14 +4,14 @@
 
   initial begin
     $display("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");  
-    if($value$plusargs("TESTCASE=%s",testcase))begin
-      $display("TESTCASE=%s",testcase);
+    if($value$plusargs("TEST_CASE=%s",testcase))begin
+      $display("TEST_CASE=%s",testcase);
     end
   
   initial begin
 
-    if($value$plusargs("TESTCASE=%s",testcase))begin
-      $display("TESTCASE=%s",testcase);
+    if($value$plusargs("TEST_CASE=%s",testcase))begin
+      $display("TEST_CASE=%s",testcase);
     end
     
     if($value$plusargs("DUMPWAVE=%d",dumpwave)) begin

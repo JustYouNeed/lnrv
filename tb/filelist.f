@@ -42,6 +42,7 @@
 ~/proj/lnrv/rtl/bus/lnrv_icb_mux.v
 ~/proj/lnrv/rtl/bus/lnrv_icb_demux.v
 ~/proj/lnrv/rtl/bus/lnrv_axi2icb.v
+/home/pluto/proj/lnrv/tb/booth4_mul32x32.v
 #~/proj/lnrv/rtl/bus/lnrv_ahb2icb.v
 #~/proj/lnrv/rtl/bus/lnrv_icb2ahb.v
 #~/proj/lnrv/rtl/bus/lnrv_apb2icb.v

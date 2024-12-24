@@ -14,9 +14,9 @@ module lnrv_exu_csr
     output                              alu_op_vld,
     input                               alu_op_rdy,
     output[`ALU_OP_BUS_WIDTH - 1 : 0]   alu_op_bus,
-    output[31 : 0]                      alu_in1,
-    output[31 : 0]                      alu_in2,
-    input[31 : 0]                       alu_res,
+    output[32 : 0]                      alu_in1,
+    output[32 : 0]                      alu_in2,
+    input[34 : 0]                       alu_res,
 
     output                              gpr_wen,
     output[31 : 0]                      gpr_wdata,
@@ -52,23 +52,28 @@ assign      rs1_is_0        = op_bus[`CSR_OP1_IS_ZERO];
 assign      op1 = instr_is_csrrw ? 32'd0 : csr_rdata;
 assign      op2 = op2_is_imm ? imm : rs1_rdata;
 
-assign      alu_op_vld                  = op_vld;
-assign      alu_in1                     = op1;
-assign      alu_in2                     = instr_is_csrrc ? (~op2) : op2;
-assign      alu_op_bus[`ALU_ADD_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_SUB_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_OR_LOC]     = instr_is_csrrs | instr_is_csrrw;
-assign      alu_op_bus[`ALU_XOR_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_AND_LOC]    = instr_is_csrrc;
-assign      alu_op_bus[`ALU_SLL_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_SRL_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_SRA_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_LT_LOC]     = 1'b0;
-assign      alu_op_bus[`ALU_LTU_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_GTE_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_GTEU_LOC]   = 1'b0;
-assign      alu_op_bus[`ALU_NEQ_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_EQ_LOC]     = 1'b0;
+assign      alu_op_vld                          = op_vld;
+assign      alu_op_bus[`ALU_ADD_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_SUB_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_OR_LOC]             = instr_is_csrrs | instr_is_csrrw;
+assign      alu_op_bus[`ALU_XOR_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_AND_LOC]            = instr_is_csrrc;
+assign      alu_op_bus[`ALU_SLL_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_SRL_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_SRA_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_LT_LOC]             = 1'b0;
+assign      alu_op_bus[`ALU_LTU_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_GTE_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_GTEU_LOC]           = 1'b0;
+assign      alu_op_bus[`ALU_NEQ_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_EQ_LOC]             = 1'b0;
+assign      alu_op_bus[`ALU_IN1_IS_UNSIGED]     = 1'b0;
+assign      alu_op_bus[`ALU_IN2_IS_UNSIGED]     = 1'b0;
+
+assign      alu_in1[0 +: 32]                    = op1;
+assign      alu_in1[32 +: 1]                    = alu_in1[31];
+assign      alu_in2[0 +: 32]                    = instr_is_csrrc ? (~op2) : op2;
+assign      alu_in2[32 +: 1]                    = alu_in2[31];
 
 // 所有csr相关的指令都需要写回，除非csr寄存器索引错误
 assign      gpr_wen = (~csr_idx_err);
@@ -85,6 +90,6 @@ assign      csr_wbck_vld =  cmt_rdy &
                                 instr_is_csrrw | 
                                 ((instr_is_csrrc | instr_is_csrrs) & (~rs1_is_0))
                             );
-assign      csr_wbck_wdata = alu_res;
+assign      csr_wbck_wdata = alu_res[0 +: 32];
 
 endmodule

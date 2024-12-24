@@ -13,9 +13,9 @@ module lnrv_exu_brch
     output                                  alu_op_vld,
     input                                   alu_op_rdy,
     output[`ALU_OP_BUS_WIDTH - 1 : 0]       alu_op_bus,
-    output[31 : 0]                          alu_in1,
-    output[31 : 0]                          alu_in2,
-    input[31 : 0]                           alu_res,
+    output[32 : 0]                          alu_in1,
+    output[32 : 0]                          alu_in2,
+    input[34 : 0]                           alu_res,
 
     output                                  cmt_vld,
     input                                   cmt_rdy,
@@ -89,25 +89,29 @@ assign      need_alu = ~(
                             instr_is_fence
                         );
 
-assign      alu_op_vld                  = op_vld & need_alu;
-assign      alu_op_bus[`ALU_ADD_LOC]    = instr_is_jal | instr_is_jalr;
-assign      alu_op_bus[`ALU_SLL_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_SUB_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_SRL_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_SRA_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_XOR_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_OR_LOC]     = 1'b0;
-assign      alu_op_bus[`ALU_AND_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_LT_LOC]     = instr_is_blt;
-assign      alu_op_bus[`ALU_LTU_LOC]    = instr_is_bltu;
-assign      alu_op_bus[`ALU_NEQ_LOC]    = instr_is_bne;
-assign      alu_op_bus[`ALU_EQ_LOC]     = instr_is_beq;
-assign      alu_op_bus[`ALU_GTEU_LOC]   = instr_is_bgeu;
-assign      alu_op_bus[`ALU_GTE_LOC]    = instr_is_bge;
+assign      alu_op_vld                          = op_vld & need_alu;
+assign      alu_op_bus[`ALU_ADD_LOC]            = instr_is_jal | instr_is_jalr;
+assign      alu_op_bus[`ALU_SLL_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_SUB_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_SRL_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_SRA_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_XOR_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_OR_LOC]             = 1'b0;
+assign      alu_op_bus[`ALU_AND_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_LT_LOC]             = instr_is_blt;
+assign      alu_op_bus[`ALU_LTU_LOC]            = instr_is_bltu;
+assign      alu_op_bus[`ALU_NEQ_LOC]            = instr_is_bne;
+assign      alu_op_bus[`ALU_EQ_LOC]             = instr_is_beq;
+assign      alu_op_bus[`ALU_GTEU_LOC]           = instr_is_bgeu;
+assign      alu_op_bus[`ALU_GTE_LOC]            = instr_is_bge;
+assign      alu_op_bus[`ALU_IN1_IS_UNSIGED]     = instr_is_bltu | instr_is_bgeu;
+assign      alu_op_bus[`ALU_IN2_IS_UNSIGED]     = instr_is_bltu | instr_is_bgeu;
 
 // 如果是直接跳转指令，需要执行pc + 4，否则就是比较x[rs1]和x[rs2]两个寄存器中的值
-assign      alu_in1                     = op1_is_pc ? pc : rs1_rdata;
-assign      alu_in2                     = op2_is_imm ? 32'd4 : rs2_rdata;
+assign      alu_in1[0 +: 32]                    = op1_is_pc ? pc : rs1_rdata;
+assign      alu_in1[32 +: 1]                    = alu_in1[31];
+assign      alu_in2[0 +: 32]                    = op2_is_imm ? 32'd4 : rs2_rdata;
+assign      alu_in2[32 +: 1]                    = alu_in2[31];
 
 
 assign      cmt_bjp    = instr_is_bxx & alu_res[0];

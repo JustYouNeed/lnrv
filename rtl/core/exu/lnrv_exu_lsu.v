@@ -26,9 +26,9 @@ module lnrv_exu_lsu
     output                              alu_op_vld,
     input                               alu_op_rdy,
     output[`ALU_OP_BUS_WIDTH - 1 : 0]   alu_op_bus,
-    output[31 : 0]                      alu_in1,
-    output[31 : 0]                      alu_in2,
-    input[31 : 0]                       alu_res,
+    output[32 : 0]                      alu_in1,
+    output[32 : 0]                      alu_in2,
+    input[34 : 0]                       alu_res,
 
     // 系统总线
     output                              lsu_cmd_vld,
@@ -184,7 +184,7 @@ end
 
 // 访问地址
 assign      cmd_addr_rld = cmd_vld_set;
-assign      cmd_addr_d = alu_res;
+assign      cmd_addr_d = alu_res[0 +: 32];
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         cmd_addr_q <= 32'd0;
@@ -258,11 +258,11 @@ end
 // assign      lsu_bad_addr = alu_res;
 
 // 根据当前地址以及访问模式决定输出数据
-assign      store_byte =    (lsu_cmd_addr[1 : 0] == 2'b00) ? {24'd0, rs2_rdata[7 : 0]} : 
-                            (lsu_cmd_addr[1 : 0] == 2'b01) ? {16'd0, rs2_rdata[7 : 0], 8'd0}: 
-                            (lsu_cmd_addr[1 : 0] == 2'b10) ? {8'd0, rs2_rdata[7 : 0], 16'd0} : 
+assign      store_byte =    (alu_res[1 : 0] == 2'b00) ? {24'd0, rs2_rdata[7 : 0]} : 
+                            (alu_res[1 : 0] == 2'b01) ? {16'd0, rs2_rdata[7 : 0], 8'd0}: 
+                            (alu_res[1 : 0] == 2'b10) ? {8'd0, rs2_rdata[7 : 0], 16'd0} : 
                             {rs2_rdata[7 : 0], 24'd0};
-assign      store_half = lsu_cmd_addr[1] ? {rs2_rdata[15 : 0], 16'd0} : {16'd0, rs2_rdata[15 : 0]};
+assign      store_half = alu_res[1] ? {rs2_rdata[15 : 0], 16'd0} : {16'd0, rs2_rdata[15 : 0]};
 assign      store_word = rs2_rdata;
 
 // 请求lsu模块完成访存操作
@@ -292,24 +292,28 @@ assign      sext_half   = {{16{load_half[15]}}, load_half};
 assign      uext_half   = {{16{1'b0}}, load_half};
 assign      ext_half    = ls_uext ? uext_half : sext_half;
 
-assign      alu_op_vld                  = op_vld;
-assign      alu_op_bus[`ALU_ADD_LOC]    = instr_is_load | instr_is_store;
-assign      alu_op_bus[`ALU_SUB_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_OR_LOC]     = 1'b0;
-assign      alu_op_bus[`ALU_AND_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_XOR_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_SLL_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_SRL_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_SRA_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_LT_LOC]     = 1'b0;
-assign      alu_op_bus[`ALU_LTU_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_GTE_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_GTEU_LOC]   = 1'b0;
-assign      alu_op_bus[`ALU_NEQ_LOC]    = 1'b0;
-assign      alu_op_bus[`ALU_EQ_LOC]     = 1'b0;
-assign      alu_in1                     = rs1_rdata;
-assign      alu_in2                     = imm;
+assign      alu_op_vld                          = op_vld;
+assign      alu_op_bus[`ALU_ADD_LOC]            = instr_is_load | instr_is_store;
+assign      alu_op_bus[`ALU_SUB_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_OR_LOC]             = 1'b0;
+assign      alu_op_bus[`ALU_AND_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_XOR_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_SLL_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_SRL_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_SRA_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_LT_LOC]             = 1'b0;
+assign      alu_op_bus[`ALU_LTU_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_GTE_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_GTEU_LOC]           = 1'b0;
+assign      alu_op_bus[`ALU_NEQ_LOC]            = 1'b0;
+assign      alu_op_bus[`ALU_EQ_LOC]             = 1'b0;
+assign      alu_op_bus[`ALU_IN1_IS_UNSIGED]     = 1'b0;
+assign      alu_op_bus[`ALU_IN2_IS_UNSIGED]     = 1'b0;
 
+assign      alu_in1[0 +: 32]                    = rs1_rdata;
+assign      alu_in1[32 +: 1]                    = alu_in1[31];
+assign      alu_in2[0 +: 32]                    = imm;
+assign      alu_in2[32 +: 1]                    = alu_in2[31];
 
 
 // // 在没有发生异常的情况下才可以写回
@@ -337,7 +341,7 @@ assign      cmt_addr            = lsu_cmd_addr;
 
 assign      no_excp = ~(addr_misalgn | lsu_rsp_err);
 
-assign      gpr_wen = instr_is_load & no_excp;
+assign      gpr_wen = instr_is_load & no_excp & cmt_rdy;
 assign      gpr_wdata = byte_access ? ext_byte : 
                         half_access ? ext_half : 
                         lsu_rsp_rdata;

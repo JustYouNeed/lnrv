@@ -233,8 +233,8 @@ end
 
 initial begin
     $display("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");  
-    if($value$plusargs("TESTCASE=%s",testcase))begin
-        $display("TESTCASE=%s",testcase);
+    if($value$plusargs("TEST_CASE=%s",testcase))begin
+        $display("TEST_CASE=%s",testcase);
     end
 
     wait(pc_write_to_host_cnt == 32'd8) #10 reset_n <= 1'b0;
@@ -244,7 +244,7 @@ initial begin
     $display("~~~~~~~~~~~~~ Test Result Summary ~~~~~~~~~~~~~~~~~~~~~~");
     $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    // $display("~TESTCASE: %s ~~~~~~~~~~~~~", testcase);
+    // $display("~TEST_CASE: %s ~~~~~~~~~~~~~", testcase);
     // $display("~~~~~~~~~~~~~~Total cycle_count value: %d ~~~~~~~~~~~~~", cycle_count);
     // $display("~~~~~~~~~~The valid Instruction Count: %d ~~~~~~~~~~~~~", valid_ir_cycle);
     // $display("~~~~~The test ending reached at cycle: %d ~~~~~~~~~~~~~", pc_write_to_host_cycle);
@@ -283,8 +283,8 @@ initial begin
     dbg_halt = 1'b0;
     dbg_irq = 1'b0;
 
-    // if($value$plusargs("TESTCASE=%s",testcase))begin
-    //   $display("TESTCASE=%s",testcase);
+    // if($value$plusargs("TEST_CASE=%s",testcase))begin
+    //   $display("TEST_CASE=%s",testcase);
     // end
 end
 

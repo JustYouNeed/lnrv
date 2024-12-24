@@ -3,7 +3,7 @@ RUN_DIR      	:= ${SIM_DIR}/run
 TB_DIR 			:= ${SIM_DIR}/../tb
 TB_TOP 			:= lnrv_cpu_tb
 
-TEST_NAME     	:= rv32si-p-wfi
+TEST_NAME     	:= rv32um-p-mulhsu
 TEST_CASE     	:= ${RUN_DIR}/../../riscv-tools/riscv-tests/isa/generated/${TEST_NAME}
 
 SIM_TOOL       	:= vcs 
@@ -30,19 +30,20 @@ ${RUN_DIR}:
 
 # 编译代码
 compile: ${RUN_DIR}
-	make compile RUN_DIR=${RUN_DIR} SIM_TOOL=${SIM_TOOL} -C ${RUN_DIR}
+	make compile RUN_DIR=${RUN_DIR} SIM_TOOL=${SIM_TOOL} TB_TOP=${TB_TOP} -C ${RUN_DIR}
 
 # 打开波形文件
 wave: ${RUN_DIR}
-	make wave TESTCASE=${TEST_CASE} SIM_TOOL=${SIM_TOOL} RUN_DIR=${RUN_DIR} -C ${RUN_DIR}
+	make wave TEST_CASE=${TEST_CASE} SIM_TOOL=${SIM_TOOL} RUN_DIR=${RUN_DIR} TB_TOP=${TB_TOP}  -C ${RUN_DIR}
 
 # 运行测试
 run_test: compile
-	make run DUMPWAVE=${DUMPWAVE} TESTCASE=${TEST_CASE} SIM_TOOL=${SIM_TOOL} RUN_DIR=${RUN_DIR} -C ${RUN_DIR}
+	make run DUMPWAVE=${DUMPWAVE} TEST_CASE=${TEST_CASE} SIM_TOOL=${SIM_TOOL} TB_TOP=${TB_TOP}  RUN_DIR=${RUN_DIR} -C ${RUN_DIR}
 
-SELF_TESTS := $(patsubst %.dump,%,$(wildcard ${SIM_DIR}/../riscv-tools/riscv-tests/isa/generated/rv32uc-p*.dump))
+# SELF_TESTS := $(patsubst %.dump,%,$(wildcard ${SIM_DIR}/../riscv-tools/riscv-tests/isa/generated/rv32uc-p*.dump))
+SELF_TESTS += $(patsubst %.dump,%,$(wildcard ${SIM_DIR}/../riscv-tools/riscv-tests/isa/generated/rv32um-p-m*.dump))
+
 ifeq ($(core_name),${E203})
-SELF_TESTS += $(patsubst %.dump,%,$(wildcard ${SIM_DIR}/../riscv-tools/riscv-tests/isa/generated/rv32um-p*.dump))
 SELF_TESTS += $(patsubst %.dump,%,$(wildcard ${SIM_DIR}/../riscv-tools/riscv-tests/isa/generated/rv32ua-p*.dump))
 endif
 
@@ -56,7 +57,7 @@ regress_run:
 	$(foreach tst,$(SELF_TESTS), make run_test DUMPWAVE=0 TEST_CASE=$(tst) RUN_DIR=${RUN_DIR};)
 regress_collect:
 	@-rm -rf ${RUN_DIR}/regress.res
-	@find ${RUN_DIR} -name "rv32*.log" -exec bin/find_test_fail.csh {} >> ${RUN_DIR}/regress.res \;
+	@find ${RUN_DIR} -name "rv32*.log" -exec ./bin/find_test_fail.csh {} >> ${RUN_DIR}/regress.res \;
 	@cat ${RUN_DIR}/regress.res
 regress: regress_prepare regress_run regress_collect 
 

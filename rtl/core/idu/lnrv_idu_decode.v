@@ -1077,7 +1077,7 @@ assign      legl_exu =  dec_rglr_instr |
                         dec_sys_instr | 
                         dec_brch_instr | 
                         dec_lsu_instr | 
-                        // dec_mdv_instr | 
+                        dec_mdv_instr | 
                         // dec_fpu_instr | 
                         dec_csr_instr |
                         // dec_amo_instr | 
