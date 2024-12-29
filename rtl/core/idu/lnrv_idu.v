@@ -52,8 +52,6 @@ module lnrv_idu
 
 localparam                              LP_BUFF_WIDTH = 126 + `DEC_OP_BUS_WIDTH + `DEC_OP_TYPE_WIDTH;
 
-
-
 wire[LP_BUFF_WIDTH - 1 : 0]             idu_buf_push_data;
 wire                                    idu_buf_push_vld;
 wire                                    idu_buf_push_rdy;
@@ -62,43 +60,90 @@ wire[LP_BUFF_WIDTH - 1 : 0]             idu_buf_pop_data;
 wire                                    idu_buf_pop_vld;
 wire                                    idu_buf_pop_rdy;
 
-wire[31 : 0]                            dec_ir;
 wire[4 : 0]                             dec_rs1_idx;
 wire[4 : 0]                             dec_rs2_idx;
 wire[4 : 0]                             dec_rd_idx;
 wire[11 : 0]                            dec_csr_idx;
 wire[31 : 0]                            dec_imm;
-wire                                    dec_rv32;
-wire                                    dec_rv16;
-wire                                    dec_excp_ilglir;
+wire                                    dec_ilegl_ir;
 wire[`DEC_OP_BUS_WIDTH - 1 : 0]         dec_op_bus;
 wire[`DEC_OP_TYPE_WIDTH - 1 : 0]        dec_op_type;
 
-wire                                    no_errors;
+wire                                    dec_rv32_sel;
+wire[31 : 0]                            ir_rv32;
+wire[15 : 0]                            ir_rv16;
 
 
-assign      no_errors = (~(ifu_excp_buserr | ifu_excp_misalgn | dec_excp_ilglir));
+wire[4 : 0]                             dec_rs1_idx_rv32;
+wire[4 : 0]                             dec_rs2_idx_rv32;
+wire[4 : 0]                             dec_rd_idx_rv32;
+wire[11 : 0]                            dec_csr_idx_rv32;
+wire[31 : 0]                            dec_imm_rv32;
+wire                                    dec_ilegl_ir_rv32;
+wire[`DEC_OP_BUS_WIDTH - 1 : 0]         dec_op_bus_rv32;
+wire[`DEC_OP_TYPE_WIDTH - 1 : 0]        dec_op_type_rv32;
 
-lnrv_idu_decode u_lnrv_idu_decode
+wire[4 : 0]                             dec_rs1_idx_rv16;
+wire[4 : 0]                             dec_rs2_idx_rv16;
+wire[4 : 0]                             dec_rd_idx_rv16;
+wire[31 : 0]                            dec_imm_rv16;
+wire                                    dec_ilegl_ir_rv16;
+wire[`DEC_OP_BUS_WIDTH - 1 : 0]         dec_op_bus_rv16;
+wire[`DEC_OP_TYPE_WIDTH - 1 : 0]        dec_op_type_rv16;
+
+
+
+assign      dec_rv32_sel    = (ifu_ir[1 : 0] == 2'b11);
+assign      ir_rv16         = {16{~dec_rv32_sel}} & ifu_ir[15 : 0];
+assign      ir_rv32         = {32{dec_rv32_sel}} & ifu_ir;
+
+
+// 16位指令解析模块
+lnrv_idu_rv16   u_lnrv_idu_rv16
 (
-    .ir                 ( ifu_ir                    ),
+    .ir                 ( ir_rv16                   ),
 
-    .dec_rs1_idx        ( dec_rs1_idx               ),
-    .dec_rs2_idx        ( dec_rs2_idx               ),
-    .dec_rd_idx         ( dec_rd_idx                ),
-    .dec_csr_idx        ( dec_csr_idx               ),
-    .dec_imm            ( dec_imm                   ),
+    .dec_rd_idx         ( dec_rd_idx_rv16           ),
+    .dec_rs1_idx        ( dec_rs1_idx_rv16          ),
+    .dec_rs2_idx        ( dec_rs2_idx_rv16          ),
 
-    .dec_rv32           ( dec_rv32                  ),
-    .dec_rv16           ( dec_rv16                  ),
+    .dec_imm            ( dec_imm_rv16              ),
+
+    .dec_ilegl_ir       ( dec_ilegl_ir_rv16         ),
+
+    .dec_op_bus         ( dec_op_bus_rv16           ),
+    .dec_op_type        ( dec_op_type_rv16          )
+);
+
+
+// 32位指令解析模块
+lnrv_idu_rv32   u_lnrv_idu_rv32
+(
+    .ir                 ( ir_rv32                   ),
 
     .d_mode             ( d_mode                    ),
 
-    .dec_excp_ilglir    ( dec_excp_ilglir           ),
-    .dec_op_bus         ( dec_op_bus                ),
-    .dec_op_type        ( dec_op_type               )
+    .dec_rd_idx         ( dec_rd_idx_rv32           ),
+    .dec_rs1_idx        ( dec_rs1_idx_rv32          ),
+    .dec_rs2_idx        ( dec_rs2_idx_rv32          ),
+    .dec_csr_idx        ( dec_csr_idx_rv32          ),
+    .dec_imm            ( dec_imm_rv32              ),
+
+    .dec_ilegl_ir       ( dec_ilegl_ir_rv32         ),
+
+    .dec_op_bus         ( dec_op_bus_rv32           ),
+    .dec_op_type        ( dec_op_type_rv32          )
 );
 
+
+assign      dec_imm         = dec_rv32_sel ? dec_imm_rv32 : dec_imm_rv16;
+assign      dec_rd_idx      = dec_rv32_sel ? dec_rd_idx_rv32 : dec_rd_idx_rv16;
+assign      dec_rs1_idx     = dec_rv32_sel ? dec_rs1_idx_rv32 : dec_rs1_idx_rv16;
+assign      dec_rs2_idx     = dec_rv32_sel ? dec_rs2_idx_rv32 : dec_rs2_idx_rv16;
+assign      dec_csr_idx     = dec_csr_idx_rv32;
+assign      dec_ilegl_ir    = dec_rv32_sel ? dec_ilegl_ir_rv32 : dec_ilegl_ir_rv16;
+assign      dec_op_bus      = dec_rv32_sel ? dec_op_bus_rv32 : dec_op_bus_rv16;
+assign      dec_op_type     = dec_rv32_sel ? dec_op_type_rv32 : dec_op_type_rv16;
 
 // 只有要ifu_ir有效，且没有暂停流水线请求的情况下，才会将译码信息送到下一级
 assign      idu_buf_push_vld = ifu_vld & (~pipe_halt_req);
@@ -112,7 +157,7 @@ assign      idu_buf_push_data = {
                                     dec_op_type,
                                     ifu_excp_buserr,
                                     ifu_excp_misalgn,
-                                    dec_excp_ilglir,
+                                    dec_ilegl_ir,
                                     ifu_pc,
                                     ifu_ir
                                 };

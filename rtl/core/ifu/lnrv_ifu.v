@@ -84,6 +84,25 @@ wire                                    reset_pend_d;
 reg                                     fetch_enable_q;
 wire                                    fetch_enable_d;
 
+
+reg[15 : 0]                             ir_left_hi_q;
+wire                                    ir_left_hi_rld;
+wire[15 : 0]                            ir_left_hi_d;
+
+reg                                     ir_left_hi_vld_q;
+wire                                    ir_left_hi_vld_set;
+wire                                    ir_left_hi_vld_clr;
+wire                                    ir_left_hi_vld_rld;
+wire                                    ir_left_hi_vld_d;
+
+
+reg[4 : 0]                              fetch_pc_offset_q;
+wire                                    fetch_pc_offset_rld;
+wire[4: 0]                              fetch_pc_offet_d;
+
+wire                                    ir;
+wire                                    ir;
+
 // 指令地址
 reg[31 : 0]                             instr_addr_q;
 wire                                    instr_addr_rld;
@@ -121,6 +140,13 @@ wire[LP_IFU_BUF_WIDTH - 1 : 0]          ifu_buf_push_data;
 wire                                    ifu_buf_pop_vld;
 wire                                    ifu_buf_pop_rdy;
 wire[LP_IFU_BUF_WIDTH - 1 : 0]          ifu_buf_pop_data;
+
+reg                                     pipe_runing_q;
+wire                                    pipe_runing_set;
+wire                                    pipe_runing_clr;
+wire                                    pipe_runing_rld;
+wire                                    pipe_runing_d;
+
 
 
 // 如果分支预测模块和指令执行模块同时请求冲刷流水线，则优先响应指令执行模块，因为指令执行模块的冲刷请求有可能来自中断或者异常，
@@ -193,16 +219,39 @@ assign      instr_addr_op2 =    bpu_pipe_flush_req ? bpu_pipe_flush_pc_op1 :
                                 cmt_pipe_flush_req ? cmt_pipe_flush_pc_op2 : 
                                 flush_req_pend_q ? 32'd0 : 
                                 reset_pend_q ? 32'd0 : 
-                                32'd4;
+                                ir ? 32'd4 : 
+                                32'd2;
 assign      instr_addr_rld = ifu_cmd_hsked | pipe_flush_hsked;
 assign      instr_addr_d = instr_addr_op1 + instr_addr_op2;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
-        instr_addr_q <= reset_vector;
+        instr_addr_q <= 32'd0;
     end else if(instr_addr_rld) begin
         instr_addr_q <= instr_addr_d;
     end
 end
+
+assign      pipe_runing_set = ifu_rsp_hsked;
+assign      pipe_runing_clr = pipe_flush_hsked;
+assign      pipe_runing_rld = pipe_runing_set | pipe_runing_clr;
+assign      pipe_runing_d = pipe_runing_set & (~pipe_runing_clr);
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
+        pipe_runing_q <= 1'b0;
+    end else if(pipe_runing_rld) begin
+        pipe_runing_q <= pipe_runing_d;
+    end
+end
+
+// assign      fetch_pc_offset_rld = instr_addr_rld;
+// assign      fetch_pc_offet_d =  ifu_cmd_hsked ? (fetch_pc_offset_q + 5'd4) : 
+//                                 {instr_addr_d[4 : 1], 1'b0};
+// always@(posedge clk or negedge reset_n) begin
+//     if(reset_n == 1'b0) begin
+//         fetch_pc_offset_q <= 5'd0;
+//     end else if(fetch_pc_offset_rld) begin
+//     end
+// end
 
 // 地址非对齐
 assign      instr_addr_misalgn  = |ifu_cmd_addr[1 : 0];
@@ -243,6 +292,14 @@ assign      ifu_buf_push_data = {
                                     instr_addr_q
                                 };
 
+
+// 只要指令的最低两比特不是2'b11，那就是16位指令
+// assign      ir = ~(&push_ir[1 : 0]);
+
+// // ir[4 : 0] = 5'bxxx11，xxx!=111就是32位指令
+// assign      ir = &push_ir[1 : 0] & (~(&push_ir[2 +: 3]));
+assign      ir = 1'b1;
+
 lnrv_gnrl_buffer#
 (
     .P_DATA_WIDTH       ( LP_IFU_BUF_WIDTH          ),
@@ -278,7 +335,7 @@ assign      ifu_vld = ifu_buf_pop_vld;
 
 // 只要没有滞外请求，且没有halt请求，地址对齐，就可以发出新的指令请求
 assign      ifu_cmd_vld     = no_cmd_ots & (~pipe_halt_req) & instr_addr_algn & fetch_enable_q;
-assign      ifu_cmd_addr    = instr_addr_d;
+assign      ifu_cmd_addr    = ((~pipe_runing_q) | pipe_runing_clr) ? {instr_addr_d[31 : 2], 2'b00} : ({instr_addr_q[31 : 2], 2'b0} + 3'd4);
 assign      ifu_cmd_write   = 1'b0;
 assign      ifu_cmd_wdata   = 32'd0;
 assign      ifu_cmd_wstrb   = 4'd0;
