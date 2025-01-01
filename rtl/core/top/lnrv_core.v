@@ -92,10 +92,10 @@ wire                                    idu_excp_buserr;
 wire[31 : 0]                            idu_ir;
 wire[31 : 0]                            idu_pc;
 wire[31 : 0]                            idu_imm;
-wire[4 : 0]                             idu_rs1_idx;
-wire[4 : 0]                             idu_rs2_idx;
-wire[4 : 0]                             idu_rd_idx;
-wire[11 : 0]                            idu_csr_idx;
+wire[4 : 0]                             idu_rs1;
+wire[4 : 0]                             idu_rs2;
+wire[4 : 0]                             idu_rd;
+wire[11 : 0]                            idu_csr;
 wire[`DEC_OP_BUS_WIDTH - 1 : 0]         idu_op_bus;
 wire[`DEC_OP_TYPE_WIDTH - 1 : 0]        idu_op_type;
 wire                                    idu_rv32;
@@ -263,16 +263,13 @@ lnrv_idu u_lnrv_idu
     .idu_ir                     ( idu_ir                    ),
     .idu_pc                     ( idu_pc                    ),
     .idu_imm                    ( idu_imm                   ),
-    .idu_rs1_idx                ( idu_rs1_idx               ),
-    .idu_rs2_idx                ( idu_rs2_idx               ),
-    .idu_csr_idx                ( idu_csr_idx               ),
-    .idu_rd_idx                 ( idu_rd_idx                ),
+    .idu_rs1                    ( idu_rs1                   ),
+    .idu_rs2                    ( idu_rs2                   ),
+    .idu_csr                    ( idu_csr                   ),
+    .idu_rd                     ( idu_rd                    ),
     .idu_op_bus                 ( idu_op_bus                ),
     .idu_op_type                ( idu_op_type               ),
-
-
     .idu_rv32                   ( idu_rv32                  ),
-    .idu_rv16                   ( idu_rv16                  ),
     
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   )
@@ -294,10 +291,11 @@ lnrv_exu u_lnrv_exu
     .idu_imm                    ( idu_imm                   ),
     .idu_pc                     ( idu_pc                    ),
     .idu_ir                     ( idu_ir                    ),
-    .idu_rd_idx                 ( idu_rd_idx                ),
+    .idu_rd                     ( idu_rd                    ),
     .idu_excp_ilglir            ( idu_excp_ilglir           ),
     .idu_excp_misalgn           ( idu_excp_misalgn          ),
     .idu_excp_buserr            ( idu_excp_buserr           ),
+    .idu_rv32                   ( idu_rv32                  ),
 
     // 寄存器读接口
     .rs1_rdata                  ( rs1_rdata                 ),
@@ -464,9 +462,9 @@ lnrv_gpr#(
 )
 u_lnrv_gpr
 (
-    .rs1_idx                    ( idu_rs1_idx               ),
+    .rs1_idx                    ( idu_rs1                   ),
     .rs1_rdata                  ( rs1_rdata                 ),
-    .rs2_idx                    ( idu_rs2_idx               ),
+    .rs2_idx                    ( idu_rs2                   ),
     .rs2_rdata                  ( rs2_rdata                 ),
 
     .wr_vld                     ( gpr_wbck_vld              ),
@@ -525,7 +523,7 @@ lnrv_csr u_lnrv_csr
     .dcause_wdata               ( dcause_wdata              ),
 
     .csr_idx_err                ( csr_idx_err               ),
-    .csr_idx                    ( idu_csr_idx               ),
+    .csr_idx                    ( idu_csr               ),
     .csr_rdata                  ( csr_rdata                 ),
 
     .wbck_vld                   ( csr_wbck_vld              ),

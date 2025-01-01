@@ -84,45 +84,32 @@ wire                                    reset_pend_d;
 reg                                     fetch_enable_q;
 wire                                    fetch_enable_d;
 
-
-reg[15 : 0]                             ir_left_hi_q;
-wire                                    ir_left_hi_rld;
-wire[15 : 0]                            ir_left_hi_d;
-
-reg                                     ir_left_hi_vld_q;
-wire                                    ir_left_hi_vld_set;
-wire                                    ir_left_hi_vld_clr;
-wire                                    ir_left_hi_vld_rld;
-wire                                    ir_left_hi_vld_d;
-
-
-reg[4 : 0]                              fetch_pc_offset_q;
-wire                                    fetch_pc_offset_rld;
-wire[4: 0]                              fetch_pc_offet_d;
-
 wire                                    ir;
 wire                                    ir;
 
 // 指令地址
-reg[31 : 0]                             instr_addr_q;
-wire                                    instr_addr_rld;
-wire[31 : 0]                            instr_addr_d;
+reg[31 : 0]                             fetch_addr_q;
+wire                                    fetch_addr_rld;
+wire[31 : 0]                            fetch_addr_d;
 
-wire[31 : 0]                            instr_addr_op1;
-wire[31 : 0]                            instr_addr_op2;
+wire[31 : 0]                            fetch_addr_op1;
+wire[31 : 0]                            fetch_addr_op2;
 
-wire                                    instr_addr_algn;
-wire                                    instr_addr_misalgn;
+wire                                    fetch_addr_algn;
+wire                                    fetch_addr_misalgn;
+
+reg                                     first_fetch_q;
+wire                                    first_fetch_set;
+wire                                    first_fetch_clr;
+wire                                    first_fetch_rld;
+wire                                    first_fetch_d;
+
 
 //PC寄存器，输出到下一级流水
 reg[31 : 0]                             ifu_pc_q;
 wire                                    ifu_pc_rld;
 wire[31 : 0]                            ifu_pc_d;
 
-//instruction寄存器，输出到下一级流水
-reg[31 : 0]                             ifu_ir_q;
-wire                                    ifu_ir_rld;
-wire[31 : 0]                            ifu_ir_d;
 
 // 滞外请求标志
 reg                                     cmd_ots_q;
@@ -130,23 +117,42 @@ wire                                    cmd_ots_set;
 wire                                    cmd_ots_clr;
 wire                                    cmd_ots_rld;
 wire                                    cmd_ots_d;
-// 没有滞外请求
+
+// 没有滞外交易
 wire                                    no_cmd_ots;
+
+// 没有流水线暂停请求
+wire                                    no_halt_req;
+
+// 没有流水线冲刷请求
+wire                                    no_flush_req;
+
+// 剩余指令缓存
+reg[15 : 0]                             leftover_buf_q;
+wire                                    leftover_buf_rld;
+wire[15 : 0]                            leftover_buf_d;
+
+// 剩余指令缓存有效
+reg                                     leftover_buf_vld_q;
+wire                                    leftover_buf_vld_set;
+wire                                    leftover_buf_vld_clr;
+wire                                    leftover_buf_vld_rld;
+wire                                    leftover_buf_vld_d;
+wire                                    leftover_buf_empty;
 
 wire                                    ifu_buf_push_vld;
 wire                                    ifu_buf_push_rdy;
 wire[LP_IFU_BUF_WIDTH - 1 : 0]          ifu_buf_push_data;
+wire                                    ifu_buf_push_hsked;
 
 wire                                    ifu_buf_pop_vld;
 wire                                    ifu_buf_pop_rdy;
 wire[LP_IFU_BUF_WIDTH - 1 : 0]          ifu_buf_pop_data;
+wire                                    ifu_buf_pop_hsked;
 
-reg                                     pipe_runing_q;
-wire                                    pipe_runing_set;
-wire                                    pipe_runing_clr;
-wire                                    pipe_runing_rld;
-wire                                    pipe_runing_d;
-
+wire[31 : 0]                            ifu_push_ir;
+wire                                    ifu_pc_algn_half;
+wire                                    rv32_ir;
 
 
 // 如果分支预测模块和指令执行模块同时请求冲刷流水线，则优先响应指令执行模块，因为指令执行模块的冲刷请求有可能来自中断或者异常，
@@ -209,53 +215,40 @@ end
 assign      pipe_flush_vld = pipe_flush_req | flush_req_pend_q;
 
 // 这里将指令地址分为两个操作数相加
-assign      instr_addr_op1 =    bpu_pipe_flush_req ? bpu_pipe_flush_pc_op1 :
+assign      fetch_addr_op1 =    bpu_pipe_flush_req ? bpu_pipe_flush_pc_op1 :
                                 cmt_pipe_flush_req ? cmt_pipe_flush_pc_op1 :          // 流水线冲刷请求
-                                flush_req_pend_q ? instr_addr_q :     // 流水线冲刷请求并不一定能被立即处理
+                                flush_req_pend_q ? fetch_addr_q :     // 流水线冲刷请求并不一定能被立即处理
                                 reset_pend_q ? reset_vector : 
-                                instr_addr_q;
+                                fetch_addr_q;
 
-assign      instr_addr_op2 =    bpu_pipe_flush_req ? bpu_pipe_flush_pc_op1 :
+assign      fetch_addr_op2 =    bpu_pipe_flush_req ? bpu_pipe_flush_pc_op1 :
                                 cmt_pipe_flush_req ? cmt_pipe_flush_pc_op2 : 
                                 flush_req_pend_q ? 32'd0 : 
                                 reset_pend_q ? 32'd0 : 
-                                ir ? 32'd4 : 
-                                32'd2;
-assign      instr_addr_rld = ifu_cmd_hsked | pipe_flush_hsked;
-assign      instr_addr_d = instr_addr_op1 + instr_addr_op2;
+                                32'd4;
+assign      fetch_addr_rld = ifu_cmd_hsked | pipe_flush_hsked;
+assign      fetch_addr_d = fetch_addr_op1 + fetch_addr_op2;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
-        instr_addr_q <= 32'd0;
-    end else if(instr_addr_rld) begin
-        instr_addr_q <= instr_addr_d;
+        fetch_addr_q <= 32'd0;
+    end else if(fetch_addr_rld) begin
+        fetch_addr_q <= fetch_addr_d;
     end
 end
 
-assign      pipe_runing_set = ifu_rsp_hsked;
-assign      pipe_runing_clr = pipe_flush_hsked;
-assign      pipe_runing_rld = pipe_runing_set | pipe_runing_clr;
-assign      pipe_runing_d = pipe_runing_set & (~pipe_runing_clr);
+// 该寄存器保存真实执行的pc值
+assign      ifu_pc_rld = pipe_flush_hsked | (reset_pend_q & ifu_cmd_hsked) | ifu_buf_push_hsked;
+assign      ifu_pc_d = (pipe_flush_vld | reset_pend_q) ? fetch_addr_d : 
+                        ifu_pc_q + (rv32_ir ? 32'd4 : 32'd2);
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
-        pipe_runing_q <= 1'b0;
-    end else if(pipe_runing_rld) begin
-        pipe_runing_q <= pipe_runing_d;
+        ifu_pc_q <= 32'd0;
+    end else if(ifu_pc_rld) begin
+        ifu_pc_q <= ifu_pc_d;
     end
 end
 
-// assign      fetch_pc_offset_rld = instr_addr_rld;
-// assign      fetch_pc_offet_d =  ifu_cmd_hsked ? (fetch_pc_offset_q + 5'd4) : 
-//                                 {instr_addr_d[4 : 1], 1'b0};
-// always@(posedge clk or negedge reset_n) begin
-//     if(reset_n == 1'b0) begin
-//         fetch_pc_offset_q <= 5'd0;
-//     end else if(fetch_pc_offset_rld) begin
-//     end
-// end
-
-// 地址非对齐
-assign      instr_addr_misalgn  = |ifu_cmd_addr[1 : 0];
-assign      instr_addr_algn     = ~instr_addr_misalgn;
+assign      ifu_pc_algn_half = ifu_pc_q[1];
 
 // 指令请求滞外交易标志，如果需要从总线取指，则可能需要几个周期才能读取到结果，在这期间不可以再次发送
 // 新的指令请求
@@ -277,29 +270,84 @@ end
 // 没有滞外请求
 assign      no_cmd_ots = cmd_ots_clr | (~cmd_ots_q);
 
+
+assign      leftover_buf_rld = ifu_rsp_hsked;
+assign      leftover_buf_d = ifu_rsp_rdata[31 : 16];
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
+        leftover_buf_q <= 16'd0;
+    end else if(leftover_buf_rld) begin
+        leftover_buf_q <= leftover_buf_d;
+    end
+end
+
+// leftover_buf将会在以下条件成立时置位
+// 当前取指总线的应答被接收，同时以下任一条件满足
+//      1、当前leftover_buf有效，则一定有数据会被写入leftover_buf，因为取指总线是32位的
+//      2、当前leftover_buf无效，但是当前pc值没有对齐到4字节，且取回来的指令是32位指令，我们需要
+//          将高16位指令先保存到leftover_buf，或者当前pc值对齐到4字节，但是取回来的指令是16位的，
+//          我们需要将高16位指令保存到leftover_buf
+assign      leftover_buf_vld_set =  ifu_rsp_hsked & 
+                                    (
+                                        leftover_buf_vld_q | 
+                                        (~(ifu_pc_algn_half ^ rv32_ir))
+                                    );
+// 当成功往流水线中push了指令，或者流水线有冲刷请求，leftover_buf中的数据就会无效
+assign      leftover_buf_vld_clr = ifu_buf_push_hsked | pipe_flush_vld;
+assign      leftover_buf_vld_rld = leftover_buf_vld_set | leftover_buf_vld_clr;
+// 在置位时要确保没有流水线冲刷请求，因为冲刷流水线时，读回来的指令会一直接收，但是无效
+assign      leftover_buf_vld_d = leftover_buf_vld_set & no_flush_req;
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
+        leftover_buf_vld_q <= 1'b0;
+    end else if(leftover_buf_vld_rld) begin
+        leftover_buf_vld_q <= leftover_buf_vld_d;
+    end
+end
+
+assign      no_halt_req = ~pipe_halt_req;
+assign      no_flush_req = ~pipe_flush_vld;
+
+// 如果当前leftover_buf中的数据无效，或者当前是32位指令，都表示leftover_buf为空，
+// 因为如果当前是32位指令，则前一条指令执行完成时，leftover_buf中的数据会被送入流水线，
+// 此时ifu_rsp_rdata的数据可以放到leftover_buf中
+assign      leftover_buf_empty = (~leftover_buf_vld_q) | rv32_ir;
+
+// 由于支持C扩展，因此不可能发生取指非对齐错误
+assign      fetch_addr_misalgn = 1'b0;
+
+// 根据leftover_buf中是否有剩余数据来决定push_ir
+// 1、如果leftover_buf有效，则直接使用leftover_buf和ifu_rsp_rdata[15 : 0]作为指令，同时将ifu_rsp_rdata·31:16]保存到leftover_buf
+// 2、如果leftover_buf无效，则下列两种情况肯定有一种成立:
+//          a) 当前是复位后第一次取指
+//          b) 流水线被冲刷了
+//      因为如果流水线中有指令在执行，且前一条指令是16位指令，则ifu_rsp_rdata[31:16]一定被保存在leftover_buf，leftover_buf一定是有效的，
+//      或者前一条指令是32位的，且前一条指令的地址本身就是对齐到2字节的，同样的，上一次的ifu_rsp_rdata[31:16]一定被保存了;
+//      或者前一条指令是32位的，且前一条指令的地址是对齐到4字节的，则不会有数据被保存到leftover_buf中，当前指令的地址一定也是对齐到4字节的，直接使用ifu_rsp_rdata即可
+assign      ifu_push_ir =   leftover_buf_vld_q ? {ifu_rsp_rdata[15 : 0], leftover_buf_q} : 
+                            ifu_pc_algn_half ? {16'd0, ifu_rsp_rdata[31 : 16]} : 
+                            ifu_rsp_rdata;
+
+// 只要指令的最低两比特是2'b11，那就是32位指令
+assign      rv32_ir = &ifu_push_ir[1 : 0];
+
 // 我们会在以下情况发生时将指令相关信息push到Buff中
-// 1、取指总线有应答
-// 2、当前没有滞外交易，但是指令地址非对齐，需要产生异常
 assign      ifu_buf_push_vld =  (~pipe_flush_vld) & 
                                 (
-                                    ifu_rsp_vld | 
-                                    ((~cmd_ots_q) & instr_addr_misalgn)
+                                    // 如果是32位指令，只要不是第一取指，且指令对齐到2字节，就可以push
+                                    // 如果不是32位指令，只要leftover_buf非空，或者ifu_rsp_vld就可以push
+                                    rv32_ir ? (((~ifu_pc_algn_half) | leftover_buf_vld_q) & ifu_rsp_vld) :
+                                    (ifu_rsp_vld | leftover_buf_vld_q)
                                 );
 assign      ifu_buf_push_data = {
-                                    instr_addr_misalgn,
+                                    fetch_addr_misalgn,
                                     ifu_rsp_err,
-                                    ifu_rsp_rdata,
-                                    instr_addr_q
+                                    ifu_push_ir,
+                                    ifu_pc_q
                                 };
+assign      ifu_buf_push_hsked = ifu_buf_push_vld & ifu_buf_push_rdy;
 
-
-// 只要指令的最低两比特不是2'b11，那就是16位指令
-// assign      ir = ~(&push_ir[1 : 0]);
-
-// // ir[4 : 0] = 5'bxxx11，xxx!=111就是32位指令
-// assign      ir = &push_ir[1 : 0] & (~(&push_ir[2 +: 3]));
-assign      ir = 1'b1;
-
+// 指令缓存
 lnrv_gnrl_buffer#
 (
     .P_DATA_WIDTH       ( LP_IFU_BUF_WIDTH          ),
@@ -331,11 +379,13 @@ assign      {
                 ifu_pc
             } = ifu_buf_pop_data;
 assign      ifu_buf_pop_rdy = ifu_rdy;
+assign      ifu_buf_pop_hsked = ifu_buf_pop_vld & ifu_buf_pop_rdy;
+
 assign      ifu_vld = ifu_buf_pop_vld;
 
 // 只要没有滞外请求，且没有halt请求，地址对齐，就可以发出新的指令请求
-assign      ifu_cmd_vld     = no_cmd_ots & (~pipe_halt_req) & instr_addr_algn & fetch_enable_q;
-assign      ifu_cmd_addr    = ((~pipe_runing_q) | pipe_runing_clr) ? {instr_addr_d[31 : 2], 2'b00} : ({instr_addr_q[31 : 2], 2'b0} + 3'd4);
+assign      ifu_cmd_vld     = no_cmd_ots & no_halt_req & fetch_enable_q & leftover_buf_empty;
+assign      ifu_cmd_addr    = {fetch_addr_d[31 : 2], 2'b00};
 assign      ifu_cmd_write   = 1'b0;
 assign      ifu_cmd_wdata   = 32'd0;
 assign      ifu_cmd_wstrb   = 4'd0;
@@ -343,7 +393,7 @@ assign      ifu_cmd_size    = 3'd2;
 
 // 如果当前有流水线冲刷请求，则可以接收新的指令，
 // 或者当前指令已经执行完成，也可以接收新的指令。
-assign      ifu_rsp_rdy = pipe_flush_vld | ifu_buf_push_rdy;
+assign      ifu_rsp_rdy = pipe_flush_vld | (ifu_buf_push_rdy & leftover_buf_empty);
 
 // 当所有滞外指令都回来时，流水线暂停成功
 assign      pipe_halt_ack = no_cmd_ots;

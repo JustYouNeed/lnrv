@@ -21,10 +21,11 @@ module  lnrv_exu#
     input[31 : 0]                           idu_imm,
     input[31 : 0]                           idu_pc,
     input[31 : 0]                           idu_ir,
-    input[4 : 0]                            idu_rd_idx,
+    input[4 : 0]                            idu_rd,
     input                                   idu_excp_buserr,
     input                                   idu_excp_ilglir,
     input                                   idu_excp_misalgn,
+    input                                   idu_rv32,
 
     // 寄存器读取接口
     input[31 : 0]                           rs1_rdata,
@@ -285,6 +286,7 @@ lnrv_exu_brch u_lnrv_exu_brch
     .rs2_rdata                  ( rs2_rdata                 ),
     .pc                         ( idu_pc                    ),
     .imm                        ( idu_imm                   ),
+    .rv32_ir                    ( idu_rv32                  ),
     
     .alu_op_vld                 ( brch2alu_op_vld           ),
     .alu_op_rdy                 ( brch2alu_op_rdy           ),
@@ -440,7 +442,7 @@ assign      gpr_wbck_vld =  cmt_vld & cmt_rdy &
                                 1'b0
                             );
 
-assign      gpr_wbck_idx = idu_rd_idx;
+assign      gpr_wbck_idx = idu_rd;
 assign      gpr_wbck_wdata =    ({32{sel_rglr}} & rglr_gpr_wdata) | 
                                 ({32{sel_csr}} & csr_gpr_wdata) | 
                                 ({32{sel_brch}} & brch_gpr_wdata) | 

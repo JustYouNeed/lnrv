@@ -82,9 +82,9 @@ assign      op2_is_imm      = op_bus[`RGLR_OP2_IS_IMM];
 
 // 生成ALU操作总线
 assign      alu_op_vld                          = op_vld;
-assign      alu_op_bus[`ALU_ADD_LOC]            = instr_is_add;
+assign      alu_op_bus[`ALU_ADD_LOC]            = instr_is_add | instr_is_auipc;
 assign      alu_op_bus[`ALU_SUB_LOC]            = instr_is_sub;
-assign      alu_op_bus[`ALU_OR_LOC]             = instr_is_or | instr_is_auipc | instr_is_lui;
+assign      alu_op_bus[`ALU_OR_LOC]             = instr_is_or | instr_is_lui;
 assign      alu_op_bus[`ALU_AND_LOC]            = instr_is_and;
 assign      alu_op_bus[`ALU_XOR_LOC]            = instr_is_xor;
 assign      alu_op_bus[`ALU_SLL_LOC]            = instr_is_sll;

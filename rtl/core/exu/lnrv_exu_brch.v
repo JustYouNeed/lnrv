@@ -9,6 +9,7 @@ module lnrv_exu_brch
     input[31 : 0]                           rs2_rdata,
     input[31 : 0]                           pc,
     input[31 : 0]                           imm,
+    input                                   rv32_ir,
 
     output                                  alu_op_vld,
     input                                   alu_op_rdy,
@@ -110,7 +111,7 @@ assign      alu_op_bus[`ALU_IN2_IS_UNSIGED]     = instr_is_bltu | instr_is_bgeu;
 // 如果是直接跳转指令，需要执行pc + 4，否则就是比较x[rs1]和x[rs2]两个寄存器中的值
 assign      alu_in1[0 +: 32]                    = op1_is_pc ? pc : rs1_rdata;
 assign      alu_in1[32 +: 1]                    = alu_in1[31];
-assign      alu_in2[0 +: 32]                    = op2_is_imm ? 32'd4 : rs2_rdata;
+assign      alu_in2[0 +: 32]                    = op2_is_imm ? (rv32_ir ? 32'd4 : 32'd2) : rs2_rdata;
 assign      alu_in2[32 +: 1]                    = alu_in2[31];
 
 

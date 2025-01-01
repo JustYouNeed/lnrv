@@ -2,10 +2,10 @@ module lnrv_idu_rv32
 (
     input[31 : 0]                       ir,
 
-    output[4 : 0]                       dec_rs1_idx,
-    output[4 : 0]                       dec_rs2_idx,
-    output[4 : 0]                       dec_rd_idx,
-    output[11 : 0]                      dec_csr_idx,
+    output[4 : 0]                       dec_rs1,
+    output[4 : 0]                       dec_rs2,
+    output[4 : 0]                       dec_rd,
+    output[11 : 0]                      dec_csr,
     output[31 : 0]                      dec_imm,
 
     input                               d_mode,
@@ -16,9 +16,6 @@ module lnrv_idu_rv32
     output[`DEC_OP_BUS_WIDTH - 1 : 0]   dec_op_bus,
     output[`DEC_OP_TYPE_WIDTH -1 : 0]   dec_op_type
 );
-
-
-
 
 wire[6 : 0]                         opcode;
 wire                                opcode_is_0110111;
@@ -33,7 +30,8 @@ wire                                opcode_is_0110011;
 wire                                opcode_is_0001111;
 wire                                opcode_is_1110011;
 wire                                opcode_is_0101111;
-wire                                funct7_is_0001000;
+wire                                opcode_is_1111111;
+wire                                opcode_is_0000000;
 
 
 wire[2 : 0]                         funct3;
@@ -50,6 +48,8 @@ wire[6 : 0]                         funct7;
 wire                                funct7_is_0000000;
 wire                                funct7_is_0100000;
 wire                                funct7_is_0000001;
+wire                                funct7_is_0001000;
+wire                                funct7_is_1111111;
 
 // 指令类型
 wire                                instr_u_type;
@@ -82,7 +82,6 @@ wire                                instr_srl;
 wire                                instr_srli;
 wire                                instr_sub;
 wire                                instr_lui;
-wire                                rglr_op_bus_sel;
 
 // csr相关指令
 wire                                instr_csrrc;
@@ -91,7 +90,6 @@ wire                                instr_csrrw;
 wire                                instr_csrrwi;
 wire                                instr_csrrs;
 wire                                instr_csrrsi;
-wire                                dec_csr_instr;
 
 // 分支相关指令
 wire                                instr_beq;
@@ -102,7 +100,6 @@ wire                                instr_bltu;
 wire                                instr_bne;
 wire                                instr_jal;
 wire                                instr_jalr;
-wire                                brch_op_bus_sel;
 
 // 系统相关指令
 wire                                instr_ebreak;
@@ -112,7 +109,6 @@ wire                                instr_mret;
 wire                                instr_fence;
 wire                                instr_fencei;
 wire                                instr_wfi;
-wire                                sys_op_bus_sel;
 
 // load and store相关指令
 wire                                instr_lb;
@@ -125,7 +121,6 @@ wire                                instr_scw;
 wire                                instr_sb;
 wire                                instr_sh;
 wire                                instr_sw;
-wire                                lsu_op_bus_sel;
 
 wire                                instr_div;
 wire                                instr_divu;
@@ -135,10 +130,6 @@ wire                                instr_mulhsu;
 wire                                instr_mulhu;
 wire                                instr_rem;
 wire                                instr_remu;
-wire                                dec_mdv_instr;
-
-wire                                amo_op_bus_sel;
-wire                                fpu_op_bus_sel;
 
 // 不同类型指令的立即数位置不同
 wire[31 : 0]                        imm_i_type;
@@ -148,23 +139,39 @@ wire[31 : 0]                        imm_b_type_bxx;
 wire[31 : 0]                        imm_b_type_jal;
 wire[31 : 0]                        imm_s_type;
 wire[31 : 0]                        imm_u_type;
-wire[31 : 0]                        j_type_imm;
 
 wire                                imm_i_type_sel;
-wire                                sel_i_type_shamt;
 wire                                imm_i_type_csr_sel;
 wire                                imm_b_type_bxx_sel;
 wire                                imm_b_type_jal_sel;
 wire                                imm_s_type_sel;
 wire                                imm_u_type_sel;
 
-
-wire[4 : 0]                         rs1_idx;
-wire[4 : 0]                         rs2_idx;
-wire[4 : 0]                         rd_idx;
-wire[11 : 0]                        csr_idx;
+wire[4 : 0]                         rs1;
 wire                                rs1_is_0;
 wire                                rs1_not_0;
+wire                                rs1_is_31;
+
+wire[4 : 0]                         rs2;
+wire                                rs2_is_0;
+wire                                rs2_not_0;
+wire                                rs2_is_31;
+
+wire[4 : 0]                         rd;
+wire                                rd_is_0;
+wire                                rd_not_0;
+wire                                rd_is_31;
+
+wire[11 : 0]                        csr;
+
+wire                                csr_op_bus_sel;
+wire                                amo_op_bus_sel;
+wire                                fpu_op_bus_sel;
+wire                                brch_op_bus_sel;
+wire                                lsu_op_bus_sel;
+wire                                mdv_op_bus_sel;
+wire                                sys_op_bus_sel;
+wire                                rglr_op_bus_sel;
 
 wire[`RGLR_OP_BUS_WIDTH - 1 : 0]    rglr_op_bus;
 wire[`BRCH_OP_BUS_WIDTH - 1 : 0]    brch_op_bus;
@@ -174,6 +181,12 @@ wire[`CSR_OP_BUS_WIDTH - 1 : 0]     csr_op_bus;
 wire[`MDV_OP_BUS_WIDTH - 1 : 0]     mdv_op_bus;
 wire[`DEC_OP_BUS_WIDTH : 0]         dec_op_bus_mux;
 
+wire                                instr_one_of_rv32m;
+wire                                instr_one_of_load;
+wire                                instr_one_of_store;
+
+wire                                ir_all_1_ilegl;
+wire                                ir_all_0_ilegl;
 wire                                instr_dret_ilegl;
 wire                                instr_dret_legl;
 wire                                shamt_ilegl;
@@ -195,7 +208,7 @@ assign      opcode_is_0110011   = (opcode == 7'b0110011);
 assign      opcode_is_0001111   = (opcode == 7'b0001111);
 assign      opcode_is_1110011   = (opcode == 7'b1110011);
 assign      opcode_is_0101111   = (opcode == 7'b0101111);
-
+assign      opcode_is_0000000   = (opcode == 7'b0000000);
 
 assign      funct3              = `GET_INSTR_FUNCT3(ir);
 assign      funct3_is_000       = (funct3 == 3'b000);
@@ -212,6 +225,7 @@ assign      funct7_is_0000000   = (funct7 == 7'b0000000);
 assign      funct7_is_0100000   = (funct7 == 7'b0100000);
 assign      funct7_is_0000001   = (funct7 == 7'b0000001);
 assign      funct7_is_0001000   = (funct7 == 7'b0001000);
+assign      funct7_is_1111111   = (funct7 == 7'b1111111);
 
 
 // 判断指令类型
@@ -230,17 +244,27 @@ assign      instr_b_type =   opcode_is_1100011;
 assign      instr_s_type =   opcode_is_0100011;
 assign      instr_r_type =   opcode_is_0110011;
 
+assign      instr_one_of_rv32m = funct7_is_0000001 & opcode_is_0110011;
+assign      instr_one_of_load = opcode_is_0000011;
+assign      instr_one_of_store = opcode_is_0100011;
+
 // 提取寄存器索引
-assign      rs1_idx = ir[19 : 15];
-assign      rs2_idx = ir[24 : 20];
-assign      rd_idx  = ir[11 : 7];
-assign      csr_idx = ir[31 : 20];
+assign      rs1 = ir[19 : 15];
+assign      rs2 = ir[24 : 20];
+assign      rd  = ir[11 : 7];
+assign      csr = ir[31 : 20];
 
-assign      rs1_not_0   = |rs1_idx
+assign      rs2_not_0   = |rs2;
+assign      rs2_is_0    = ~rs2_not_0;
+assign      rs2_is_31   = &rs2;
+
+assign      rs1_not_0   = |rs1;
 assign      rs1_is_0    = ~rs1_not_0;
+assign      rs1_is_31   = &rs1;
 
-
-
+assign      rd_not_0    = |rd;
+assign      rd_is_0     = ~rd_not_0;
+assign      rd_is_31    = &rd;
 
 /*********************************** 指令立即数解析/选择部分 ****************************************/
 /*
@@ -252,13 +276,18 @@ assign      rs1_is_0    = ~rs1_not_0;
 */
 // 从指令中解析出立即数
 assign      imm_i_type          = `GET_I_TYPE_IMM(ir);
+assign      imm_i_type_shamt    = `GET_I_TYPE_SHAMT(ir);
+assign      imm_i_type_csr      = `GET_I_TYPE_ZIMM(ir);
+assign      imm_b_type_bxx      = `GET_B_TYPE_BXX_IMM(ir);
+assign      imm_b_type_jal      = `GET_B_TYPE_JAL_IMM(ir);
+assign      imm_s_type          = `GET_S_TYPE_IMM(ir);
+assign      imm_u_type          = `GET_U_TYPE_IMM(ir);
+
+
 assign      imm_i_type_sel =    opcode_is_0010011  | 
                                 instr_jalr | 
                                 opcode_is_0000011;
 
-assign      imm_i_type_shamt    = `GET_I_TYPE_SHAMT(ir);
-
-assign      imm_i_type_csr      = `GET_I_TYPE_ZIMM(ir);
 // csrrci csrrsi csrrwi需要使用zimm
 assign      imm_i_type_csr_sel = opcode_is_1110011 & 
                                 (
@@ -267,16 +296,10 @@ assign      imm_i_type_csr_sel = opcode_is_1110011 &
                                     funct3_is_111
                                 );
 
-assign      imm_b_type_bxx      = `GET_B_TYPE_BXX_IMM(ir);
 assign      imm_b_type_bxx_sel = opcode_is_1100011;
 
-assign      imm_b_type_jal      = `GET_B_TYPE_JAL_IMM(ir);
 assign      imm_b_type_jal_sel = instr_jal;
-
-assign      imm_s_type          = `GET_S_TYPE_IMM(ir);
 assign      imm_s_type_sel = opcode_is_0100011;
-
-assign      imm_u_type          = `GET_U_TYPE_IMM(ir);
 assign      imm_u_type_sel = instr_lui | instr_auipc;
 
 
@@ -885,7 +908,7 @@ assign      instr_wfi = funct7_is_0001000 & funct3_is_000 & opcode_is_1110011;
     |        0000001        |     rs2     |     rs1     |   100   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_div = opcode_is_0110011 & funct3_is_100 & funct7_is_0000001;
+assign      instr_div = instr_one_of_rv32m & funct3_is_100;
 
 /*
     divu    rd, rs1, rs2                            x[rd] = x[rs1] / x[rs2]
@@ -897,7 +920,7 @@ assign      instr_div = opcode_is_0110011 & funct3_is_100 & funct7_is_0000001;
     |        0000001        |     rs2     |     rs1     |   101   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_divu = opcode_is_0110011 & funct3_is_101 & funct7_is_0000001;
+assign      instr_divu = instr_one_of_rv32m & funct3_is_101;
 
 /*
     mul     rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2]
@@ -909,7 +932,7 @@ assign      instr_divu = opcode_is_0110011 & funct3_is_101 & funct7_is_0000001;
     |        0000001        |     rs2     |     rs1     |   000   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_mul = opcode_is_0110011 & funct3_is_000 & funct7_is_0000001;
+assign      instr_mul = instr_one_of_rv32m & funct3_is_000;
 
 /*
     mulh    rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2] >> 32
@@ -921,7 +944,7 @@ assign      instr_mul = opcode_is_0110011 & funct3_is_000 & funct7_is_0000001;
     |        0000001        |     rs2     |     rs1     |   001   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_mulh = opcode_is_0110011 & funct3_is_001 & funct7_is_0000001;
+assign      instr_mulh = instr_one_of_rv32m & funct3_is_001;
 
 /*
     mulhsu  rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2] >> XLEN
@@ -934,7 +957,7 @@ assign      instr_mulh = opcode_is_0110011 & funct3_is_001 & funct7_is_0000001;
     |        0000001        |     rs2     |     rs1     |   010   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_mulhsu = opcode_is_0110011 & funct3_is_010 & funct7_is_0000001;
+assign      instr_mulhsu = instr_one_of_rv32m & funct3_is_010;
 
 /*
     mulhu   rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2] >> XLEN
@@ -946,7 +969,7 @@ assign      instr_mulhsu = opcode_is_0110011 & funct3_is_010 & funct7_is_0000001
     |        0000001        |     rs2     |     rs1     |   001   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_mulhu = opcode_is_0110011 & funct3_is_011 & funct7_is_0000001;
+assign      instr_mulhu = instr_one_of_rv32m & funct3_is_011;
 
 /*
     rem    rd, rs1, rs2                             x[rd] = x[rs1] % x[rs2]
@@ -958,7 +981,7 @@ assign      instr_mulhu = opcode_is_0110011 & funct3_is_011 & funct7_is_0000001;
     |        0000001        |     rs2     |     rs1     |   110   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_rem = opcode_is_0110011 & funct3_is_110 & funct7_is_0000001;
+assign      instr_rem = instr_one_of_rv32m & funct3_is_110;
 
 /*
     rem    rd, rs1, rs2                             x[rd] = x[rs1] % x[rs2]
@@ -970,7 +993,7 @@ assign      instr_rem = opcode_is_0110011 & funct3_is_110 & funct7_is_0000001;
     |        0000001        |     rs2     |     rs1     |   111   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_remu = opcode_is_0110011 & funct3_is_111 & funct7_is_0000001;
+assign      instr_remu = instr_one_of_rv32m & funct3_is_111;
 
 
 /* 将指令分为以下几类
@@ -1011,7 +1034,9 @@ assign      lsu_op_bus[`LSU_STORE_LOC]  = instr_sb | instr_sh | instr_sw;
 assign      lsu_op_bus[`LSU_SIZE_LOC]   =   (instr_lb | instr_lbu | instr_sb) ?  2'd0 : 
                                             (instr_lh | instr_lhu | instr_sh) ? 2'd1 : 
                                             2'd2;
-assign      lsu_op_bus[`LSU_UEXT_LOC]   = instr_lbu | instr_lhu;
+//  lbu指令和lhu指令需要无符号扩展，我们这里只判断funct3，不判断opcode，因为如果不是访存指令，
+//  我们这里拉高也没有问题，最终也不会选择lus_op_bus作为译码结果
+assign      lsu_op_bus[`LSU_UEXT_LOC]   = funct3_is_100 | funct3_is_101;
 
 // ===========================================================================
 //                                      分支指令
@@ -1028,34 +1053,33 @@ assign      brch_op_bus[`BRCH_MRET_LOC]     = instr_mret;
 assign      brch_op_bus[`BRCH_DRET_LOC]     = instr_dret;
 assign      brch_op_bus[`BRCH_FENCE_LOC]    = instr_fence | instr_fencei;
 assign      brch_op_bus[`BRCH_OP1_IS_PC]    = instr_jal | instr_jalr;
-assign      brch_op_bus[`BRCH_OP2_IS_IMM] = instr_jal | instr_jalr;
+assign      brch_op_bus[`BRCH_OP2_IS_IMM]   = instr_jal | instr_jalr;
 
 // ===========================================================================
 //                                      CSR指令
 // ===========================================================================
-assign      csr_op_bus[`CSR_CSRRC_LOC] = instr_csrrc | instr_csrrci;
-assign      csr_op_bus[`CSR_CSRRS_LOC] = instr_csrrs | instr_csrrsi;
-assign      csr_op_bus[`CSR_CSRRW_LOC] = instr_csrrw | instr_csrrwi;
-assign      csr_op_bus[`CSR_OP1_IS_ZERO] = rs1_is_0;
-assign      csr_op_bus[`CSR_OP2_IS_IMM] = instr_csrrci | instr_csrrsi | instr_csrrwi;
+assign      csr_op_bus[`CSR_CSRRC_LOC]      = instr_csrrc | instr_csrrci;
+assign      csr_op_bus[`CSR_CSRRS_LOC]      = instr_csrrs | instr_csrrsi;
+assign      csr_op_bus[`CSR_CSRRW_LOC]      = instr_csrrw | instr_csrrwi;
+assign      csr_op_bus[`CSR_OP1_IS_ZERO]    = rs1_is_0;
+assign      csr_op_bus[`CSR_OP2_IS_IMM]     = instr_csrrci | instr_csrrsi | instr_csrrwi;
 
 // ===========================================================================
 //                                      系统相关指令
 // ===========================================================================
-assign      sys_op_bus[`SYS_WFI_LOC] = instr_wfi;
-assign      sys_op_bus[`SYS_EBREAK_LOC] = instr_ebreak;
-assign      sys_op_bus[`SYS_ECALL_LOC] = instr_ecall;
+assign      sys_op_bus[`SYS_WFI_LOC]        = instr_wfi;
+assign      sys_op_bus[`SYS_EBREAK_LOC]     = instr_ebreak;
+assign      sys_op_bus[`SYS_ECALL_LOC]      = instr_ecall;
 
 // ===========================================================================
 //                                      整数乘除指令
 // ===========================================================================
-assign      mdv_op_bus[`MDV_DIV_LOC] = instr_div | instr_divu;
-assign      mdv_op_bus[`MDV_MUL_LOC] = instr_mul | instr_mulh | instr_mulhsu | instr_mulhu;
-assign      mdv_op_bus[`MDV_REM_LOC] = instr_rem | instr_remu;
-assign      mdv_op_bus[`MDV_OP1_UNSIGNED_LOC] = instr_divu | instr_mulhu | instr_remu;
-assign      mdv_op_bus[`MDV_OP2_UNSIGNED_LOC] = instr_divu | instr_mulhsu | instr_mulhu | instr_remu;
-assign      mdv_op_bus[`MDV_RES_HIGH_LOC] = instr_mulh | instr_mulhsu | instr_mulhu;
-assign      dec_mdv_instr = opcode_is_0110011 & funct7_is_0000001;
+assign      mdv_op_bus[`MDV_DIV_LOC]            = instr_div | instr_divu;
+assign      mdv_op_bus[`MDV_MUL_LOC]            = instr_mul | instr_mulh | instr_mulhsu | instr_mulhu;
+assign      mdv_op_bus[`MDV_REM_LOC]            = instr_rem | instr_remu;
+assign      mdv_op_bus[`MDV_OP1_UNSIGNED_LOC]   = instr_divu | instr_mulhu | instr_remu;
+assign      mdv_op_bus[`MDV_OP2_UNSIGNED_LOC]   = instr_divu | instr_mulhsu | instr_mulhu | instr_remu;
+assign      mdv_op_bus[`MDV_RES_HIGH_LOC]       = instr_mulh | instr_mulhsu | instr_mulhu;
 
 // ===========================================================================
 //                                      原子指令
@@ -1074,7 +1098,7 @@ assign      rglr_op_bus_sel =   opcode_is_0010011 |
                                 instr_lui | 
                                 instr_auipc;
 
-assign      lsu_op_bus_sel = opcode_is_0000011 | opcode_is_0100011;
+assign      lsu_op_bus_sel = instr_one_of_load | instr_one_of_store;
 
 assign      brch_op_bus_sel =   opcode_is_1100011 | 
                                 instr_jal |
@@ -1083,9 +1107,11 @@ assign      brch_op_bus_sel =   opcode_is_1100011 |
                                 instr_fencei | instr_fence |
                                 instr_dret_legl;
 
-assign      dec_csr_instr = opcode_is_1110011 & (~funct3_is_000);
+assign      csr_op_bus_sel = opcode_is_1110011 & (~funct3_is_000);
 
 assign      sys_op_bus_sel = instr_wfi | instr_ebreak | instr_ecall;
+
+assign      mdv_op_bus_sel = instr_one_of_rv32m;
 
 assign      amo_op_bus_sel = 1'b0;
 
@@ -1094,17 +1120,17 @@ assign      fpu_op_bus_sel = 1'b0;
 assign      dec_op_bus_mux =    ({(`DEC_OP_BUS_WIDTH + 1){rglr_op_bus_sel}} & {{(`DEC_OP_BUS_WIDTH + 1 - `RGLR_OP_BUS_WIDTH){1'b0}},    rglr_op_bus}) | 
                                 ({(`DEC_OP_BUS_WIDTH + 1){brch_op_bus_sel}} & {{(`DEC_OP_BUS_WIDTH + 1 - `BRCH_OP_BUS_WIDTH){1'b0}},    brch_op_bus}) | 
                                 ({(`DEC_OP_BUS_WIDTH + 1){lsu_op_bus_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `LSU_OP_BUS_WIDTH){1'b0}},     lsu_op_bus}) | 
-                                ({(`DEC_OP_BUS_WIDTH + 1){dec_csr_instr}}   & {{(`DEC_OP_BUS_WIDTH + 1 - `CSR_OP_BUS_WIDTH){1'b0}},     csr_op_bus}) | 
+                                ({(`DEC_OP_BUS_WIDTH + 1){csr_op_bus_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `CSR_OP_BUS_WIDTH){1'b0}},     csr_op_bus}) | 
                                 ({(`DEC_OP_BUS_WIDTH + 1){sys_op_bus_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `SYS_OP_BUS_WIDTH){1'b0}},     sys_op_bus}) | 
-                                ({(`DEC_OP_BUS_WIDTH + 1){dec_mdv_instr}}   & {{(`DEC_OP_BUS_WIDTH + 1 - `MDV_OP_BUS_WIDTH){1'b0}},     mdv_op_bus});
+                                ({(`DEC_OP_BUS_WIDTH + 1){mdv_op_bus_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `MDV_OP_BUS_WIDTH){1'b0}},     mdv_op_bus});
 
 assign      dec_op_bus = dec_op_bus_mux[0 +: `DEC_OP_BUS_WIDTH];
 assign      dec_op_type =   rglr_op_bus_sel ? `DEC_RGLR_BUS : 
                             brch_op_bus_sel ? `DEC_BRCH_BUS : 
                             lsu_op_bus_sel ? `DEC_LSU_BUS : 
-                            dec_csr_instr ? `DEC_CSR_BUS : 
+                            csr_op_bus_sel ? `DEC_CSR_BUS : 
                             sys_op_bus_sel ? `DEC_SYS_BUS : 
-                            dec_mdv_instr ? `DEC_MDV_BUS : 
+                            mdv_op_bus_sel ? `DEC_MDV_BUS : 
                             `DEC_NONE_BUS;
 
 // 判断非法指令
@@ -1121,23 +1147,28 @@ assign      support_instr =     rglr_op_bus_sel |
                                 sys_op_bus_sel | 
                                 brch_op_bus_sel | 
                                 lsu_op_bus_sel | 
-                                dec_mdv_instr | 
+                                mdv_op_bus_sel | 
                                 fpu_op_bus_sel | 
-                                dec_csr_instr |
+                                csr_op_bus_sel |
                                 amo_op_bus_sel | 
                                 1'b0;
 assign      unsupport_instr = ~support_instr;
 
+assign      ir_all_0_ilegl = opcode_is_0000000 & rd_is_0 & funct3_is_000 & rs1_is_0 & rs2_is_0 & funct7_is_0000000;
+assign      ir_all_1_ilegl = opcode_is_1111111 & rd_is_31 & funct3_is_111 & rs1_is_31 & rs2_is_31 & funct7_is_1111111;
+
 // 非法指令
 assign      dec_ilegl_ir =  unsupport_instr |
                             instr_sxxi_ilegl | 
-                            instr_dret_ilegl;
+                            instr_dret_ilegl | 
+                            ir_all_0_ilegl | 
+                            ir_all_1_ilegl;
 
 // 寄存器索引
-assign      dec_rs1_idx = rs1_idx;
-assign      dec_rs2_idx = rs2_idx;
-assign      dec_rd_idx  = rd_idx;
-assign      dec_csr_idx = csr_idx;
+assign      dec_rs1 = rs1;
+assign      dec_rs2 = rs2;
+assign      dec_rd  = rd;
+assign      dec_csr = csr;
 
 
 endmodule
