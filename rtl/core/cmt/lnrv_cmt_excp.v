@@ -17,7 +17,7 @@ module lnrv_cmt_excp
     input[31 : 0]               cmt_lsu_addr,
     input                       cmt_sys_ebreak,
     input                       cmt_sys_ecall,
-    input                       cmt_csr_idxerr,
+    input                       cmt_csr_idx_err,
 
     output[31 : 0]              mepc_wdata,
     output[31 : 0]              mcause_wdata,
@@ -78,7 +78,7 @@ assign      ifu_excp_pending = cmt_ifu_excp_buserr | cmt_ifu_excp_misalgn;
 assign      ebreak4excp = (d_mode | (~dcsr_ebreakm)) & cmt_sys_ebreak;
 assign      sys_excp_pending = cmt_sys_ecall | ebreak4excp;
 
-assign      csr_excp_pending = cmt_csr_idxerr;
+assign      csr_excp_pending = cmt_csr_idx_err;
 
 assign      any_excp_pending =  lsu_excp_pending | 
                                 idu_excp_pending | 
@@ -108,7 +108,7 @@ assign      mcause_wdata[31] = 1'b0;
 assign      mcause_wdata[30 : 4] = 27'd0;
 assign      mcause_wdata[3 : 0] =   cmt_ifu_excp_misalgn ? 4'd0 : 
                                     cmt_ifu_excp_buserr ? 4'd1 : 
-                                    (cmt_idu_excp_ilglir | cmt_csr_idxerr) ? 4'd2 : 
+                                    (cmt_idu_excp_ilglir | cmt_csr_idx_err) ? 4'd2 : 
                                     ebreak4excp ? 4'd3 : 
                                     (cmt_lsu_ld & cmt_lsu_misalgn) ? 4'd4 :
                                     (cmt_lsu_ld & cmt_lsu_buserr) ? 4'd5 : 
@@ -122,7 +122,7 @@ assign      mcause_wdata[3 : 0] =   cmt_ifu_excp_misalgn ? 4'd0 :
 // 如果是取指时发生错误，则将错误更新到mtval寄存器
 // 如果是译码时发现是非法指令，则将指令本身更新到mtval寄存器
 assign      mtval_wdata =   (cmt_ifu_excp_buserr | cmt_ifu_excp_misalgn) ? idu_pc : 
-                            (cmt_idu_excp_ilglir | cmt_csr_idxerr) ? idu_ir : 
+                            (cmt_idu_excp_ilglir | cmt_csr_idx_err) ? idu_ir : 
                             lsu_excp_pending ? cmt_lsu_addr : 
                             32'd0;
 

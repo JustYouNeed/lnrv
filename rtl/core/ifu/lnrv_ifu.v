@@ -7,23 +7,23 @@ module	lnrv_ifu
 
     output                              ifu_active,
 
-    // 正在加载代码到
-    input                               stop_on_reset,
+    // 在正加载固件，该信号在复位后，如果为高，则不会启动取指
+    input                               firmware_loading,
 
     // 复位向量
     input[31 : 0]                       reset_vector,
 
     // 来自执行单元的流水线冲刷请求
-    input                               cmt_pipe_flush_req,
-    output                              cmt_pipe_flush_ack,
-    input[31 : 0]                       cmt_pipe_flush_pc_op1,
-    input[31 : 0]                       cmt_pipe_flush_pc_op2,
+    input                               pipe_flush_req_cmt,
+    output                              pipe_flush_ack_cmt,
+    input[31 : 0]                       pipe_flush_pc_op1_cmt,
+    input[31 : 0]                       pipe_flush_pc_op2_cmt,
 
     // 来自分支预测模块的流水线冲刷请求
-    input                               bpu_pipe_flush_req,
-    output                              bpu_pipe_flush_ack,
-    input[31 : 0]                       bpu_pipe_flush_pc_op1,
-    input[31 : 0]                       bpu_pipe_flush_pc_op2,
+    input                               pipe_flush_req_bpu,
+    output                              pipe_flush_ack_bpu,
+    input[31 : 0]                       pipe_flush_pc_op1_bpu,
+    input[31 : 0]                       pipe_flush_pc_op2_bpu,
 
     // 流水线暂停请求
     input                               pipe_halt_req,
@@ -84,9 +84,6 @@ wire                                    reset_pend_d;
 reg                                     fetch_enable_q;
 wire                                    fetch_enable_d;
 
-wire                                    ir;
-wire                                    ir;
-
 // 指令地址
 reg[31 : 0]                             fetch_addr_q;
 wire                                    fetch_addr_rld;
@@ -95,21 +92,12 @@ wire[31 : 0]                            fetch_addr_d;
 wire[31 : 0]                            fetch_addr_op1;
 wire[31 : 0]                            fetch_addr_op2;
 
-wire                                    fetch_addr_algn;
 wire                                    fetch_addr_misalgn;
-
-reg                                     first_fetch_q;
-wire                                    first_fetch_set;
-wire                                    first_fetch_clr;
-wire                                    first_fetch_rld;
-wire                                    first_fetch_d;
-
 
 //PC寄存器，输出到下一级流水
 reg[31 : 0]                             ifu_pc_q;
 wire                                    ifu_pc_rld;
 wire[31 : 0]                            ifu_pc_d;
-
 
 // 滞外请求标志
 reg                                     cmd_ots_q;
@@ -154,15 +142,20 @@ wire[31 : 0]                            ifu_push_ir;
 wire                                    ifu_pc_algn_half;
 wire                                    rv32_ir;
 
+wire                                    firmware_loaded;
+
+
+
+// 接收所有的流水线冲刷请求，且应答是立即的
+assign      pipe_flush_req      = pipe_flush_req_cmt | pipe_flush_req_bpu;
+assign      pipe_flush_ack      = 1'b1;
+assign      pipe_flush_hsked    = pipe_flush_req & pipe_flush_ack;
 
 // 如果分支预测模块和指令执行模块同时请求冲刷流水线，则优先响应指令执行模块，因为指令执行模块的冲刷请求有可能来自中断或者异常，
 // 需要优先处理
-assign      pipe_flush_req      = cmt_pipe_flush_req | bpu_pipe_flush_req;
-// 接收所有的流水线冲刷请求
-assign      pipe_flush_ack      = 1'b1;
-assign      pipe_flush_pc_op1   = cmt_pipe_flush_req ? cmt_pipe_flush_pc_op1 : bpu_pipe_flush_pc_op1;
-assign      pipe_flush_pc_op2   = cmt_pipe_flush_req ? cmt_pipe_flush_pc_op2 : bpu_pipe_flush_pc_op2;
-assign      pipe_flush_hsked    = pipe_flush_req & pipe_flush_ack;
+assign      pipe_flush_pc_op1   = pipe_flush_req_cmt ? pipe_flush_pc_op1_cmt : pipe_flush_pc_op1_bpu;
+assign      pipe_flush_pc_op2   = pipe_flush_req_cmt ? pipe_flush_pc_op2_cmt : pipe_flush_pc_op2_bpu;
+
 
 /* 应答通道握手 */
 assign      ifu_rsp_hsked = ifu_rsp_vld & ifu_rsp_rdy;
@@ -170,9 +163,15 @@ assign      ifu_rsp_hsked = ifu_rsp_vld & ifu_rsp_rdy;
 /* 请求通道握手 */
 assign      ifu_cmd_hsked = ifu_cmd_vld & ifu_cmd_rdy;
 
+// 外部流水线冲刷信号有效，或者内部保持信号有效，都表示当前有流水线冲刷请求
+assign      pipe_flush_vld = pipe_flush_req | flush_req_pend_q;
 
-// 复位释放后并不一定能取指，需要等释放stop_on_reset信号，表示固件加载完成
-assign      fetch_enable_d = (~stop_on_reset) | fetch_enable_q;
+
+assign      firmware_loaded = (~firmware_loading);
+
+
+// 复位释放后并不一定能取指，需要等固件加载完成，同时，该信号只有一次有效，如果复位释放后，再拉低该信号是无效的
+assign      fetch_enable_d = firmware_loaded | fetch_enable_q;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         fetch_enable_q <= 1'b0;
@@ -180,7 +179,6 @@ always@(posedge clk or negedge reset_n) begin
         fetch_enable_q <= fetch_enable_d;
     end
 end
-
 
 // 复位为我们需要从reset_vector取指，由于取指PC直接由组合逻辑输出，因此在第一个取指请求没有成功握手
 //      之前，需要保持住复位标志
@@ -196,7 +194,6 @@ always@(posedge clk or negedge reset_n) begin
     end
 end
 
-
 // 流水线冲刷请求是立即响应的，但是流水线冲刷并不能立即完成，因为有可能上一个取指请求还没有返回，
 // 如果当前不能立即冲刷流水线，就需要锁存流水线冲刷请求，直到新地址的取指请求发出，且被接收。
 assign      flush_req_pend_set = pipe_flush_req & (~ifu_cmd_hsked);
@@ -211,18 +208,15 @@ always@(posedge clk or negedge reset_n) begin
     end
 end
 
-// 外部流水线冲刷信号有效，或者内部保持信号有效，都表示当前有流水线冲刷请求
-assign      pipe_flush_vld = pipe_flush_req | flush_req_pend_q;
-
 // 这里将指令地址分为两个操作数相加
-assign      fetch_addr_op1 =    bpu_pipe_flush_req ? bpu_pipe_flush_pc_op1 :
-                                cmt_pipe_flush_req ? cmt_pipe_flush_pc_op1 :          // 流水线冲刷请求
+assign      fetch_addr_op1 =    pipe_flush_req_bpu ? pipe_flush_pc_op1_bpu :
+                                pipe_flush_req_cmt ? pipe_flush_pc_op1_cmt :          // 流水线冲刷请求
                                 flush_req_pend_q ? fetch_addr_q :     // 流水线冲刷请求并不一定能被立即处理
-                                reset_pend_q ? reset_vector : 
+                                reset_pend_q ? reset_vector :       // 复位时我们使用复位向量
                                 fetch_addr_q;
 
-assign      fetch_addr_op2 =    bpu_pipe_flush_req ? bpu_pipe_flush_pc_op1 :
-                                cmt_pipe_flush_req ? cmt_pipe_flush_pc_op2 : 
+assign      fetch_addr_op2 =    pipe_flush_req_bpu ? pipe_flush_pc_op2_bpu :
+                                pipe_flush_req_cmt ? pipe_flush_pc_op2_cmt : 
                                 flush_req_pend_q ? 32'd0 : 
                                 reset_pend_q ? 32'd0 : 
                                 32'd4;
@@ -270,7 +264,7 @@ end
 // 没有滞外请求
 assign      no_cmd_ots = cmd_ots_clr | (~cmd_ots_q);
 
-
+// 如果当前是16位指令，则需要将剩下的一半指令保存下来，下次使用
 assign      leftover_buf_rld = ifu_rsp_hsked;
 assign      leftover_buf_d = ifu_rsp_rdata[31 : 16];
 always@(posedge clk or negedge reset_n) begin
@@ -385,6 +379,7 @@ assign      ifu_vld = ifu_buf_pop_vld;
 
 // 只要没有滞外请求，且没有halt请求，地址对齐，就可以发出新的指令请求
 assign      ifu_cmd_vld     = no_cmd_ots & no_halt_req & fetch_enable_q & leftover_buf_empty;
+// 我们取指地址总是4字节对齐，因此低2比特固定为0
 assign      ifu_cmd_addr    = {fetch_addr_d[31 : 2], 2'b00};
 assign      ifu_cmd_write   = 1'b0;
 assign      ifu_cmd_wdata   = 32'd0;
@@ -400,7 +395,7 @@ assign      pipe_halt_ack = no_cmd_ots;
 
 assign      ifu_active = 1'b1;
 
-assign      cmt_pipe_flush_ack = pipe_flush_ack;
-assign      bpu_pipe_flush_ack = pipe_flush_ack;
+assign      pipe_flush_ack_cmt = pipe_flush_ack;
+assign      pipe_flush_ack_bpu = pipe_flush_ack;
 
 endmodule

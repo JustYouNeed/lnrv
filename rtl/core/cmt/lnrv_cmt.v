@@ -21,7 +21,7 @@ module lnrv_cmt
     input                       cmt_brch_fence,
     input                       cmt_brch_bjp,
     input                       cmt_csr,
-    input                       cmt_csr_idxerr,
+    input                       cmt_csr_idx_err,
     input                       cmt_rglr,
     input                       cmt_sys_ebreak,
     input                       cmt_sys_ecall,
@@ -195,7 +195,7 @@ lnrv_cmt_excp u_lnrv_cmt_excp
     .cmt_lsu_addr           ( cmt_lsu_addr                  ),
     .cmt_sys_ebreak         ( cmt_sys_ebreak                ),
     .cmt_sys_ecall          ( cmt_sys_ecall                 ),
-    .cmt_csr_idxerr         ( cmt_csr_idxerr                ),
+    .cmt_csr_idx_err         ( cmt_csr_idx_err                ),
 
     .mepc_wdata             ( mepc_wdata_excp               ),
     .mcause_wdata           ( mcause_wdata_excp             ),

@@ -2,35 +2,35 @@
 module	lnrv_exu_alu
 (
     // 有四个模块需要使用alu，但是不会同时使用，因为是单发射流水线
-    input                               rglr2alu_op_vld,
-    output                              rglr2alu_op_rdy,
-    input[`ALU_OP_BUS_WIDTH - 1 : 0]    rglr2alu_op_bus,
-    input[32 : 0]                       rglr2alu_in1,
-    input[32 : 0]                       rglr2alu_in2,
+    input                               alu_op_vld_rglr,
+    output                              alu_op_rdy_rglr,
+    input[`ALU_OP_BUS_WIDTH - 1 : 0]    alu_op_bus_rglr,
+    input[32 : 0]                       alu_in1_rglr,
+    input[32 : 0]                       alu_in2_rglr,
 
-    input                               brch2alu_op_vld,
-    output                              brch2alu_op_rdy,
-    input[`ALU_OP_BUS_WIDTH - 1 : 0]    brch2alu_op_bus,
-    input[32 : 0]                       brch2alu_in1,
-    input[32 : 0]                       brch2alu_in2,
+    input                               alu_op_vld_brch,
+    output                              alu_op_rdy_brch,
+    input[`ALU_OP_BUS_WIDTH - 1 : 0]    alu_op_bus_brch,
+    input[32 : 0]                       alu_in1_brch,
+    input[32 : 0]                       alu_in2_brch,
 
-    input                               csr2alu_op_vld,
-    output                              csr2alu_op_rdy,
-    input[`ALU_OP_BUS_WIDTH - 1 : 0]    csr2alu_op_bus,
-    input[32 : 0]                       csr2alu_in1,
-    input[32 : 0]                       csr2alu_in2,
+    input                               alu_op_vld_csr,
+    output                              alu_op_rdy_csr,
+    input[`ALU_OP_BUS_WIDTH - 1 : 0]    alu_op_bus_csr,
+    input[32 : 0]                       alu_in1_csr,
+    input[32 : 0]                       alu_in2_csr,
 
-    input                               lsu2alu_op_vld,
-    output                              lsu2alu_op_rdy,
-    input[`ALU_OP_BUS_WIDTH - 1 : 0]    lsu2alu_op_bus,
-    input[32 : 0]                       lsu2alu_in1,
-    input[32 : 0]                       lsu2alu_in2,
+    input                               alu_op_vld_lsu,
+    output                              alu_op_rdy_lsu,
+    input[`ALU_OP_BUS_WIDTH - 1 : 0]    alu_op_bus_lsu,
+    input[32 : 0]                       alu_in1_lsu,
+    input[32 : 0]                       alu_in2_lsu,
 
-    input                               mdv2alu_op_vld,
-    output                              mdv2alu_op_rdy,
-    input[`ALU_OP_BUS_WIDTH - 1 : 0]    mdv2alu_op_bus,
-    input[32 : 0]                       mdv2alu_in1,
-    input[32 : 0]                       mdv2alu_in2,
+    input                               alu_op_vld_mdv,
+    output                              alu_op_rdy_mdv,
+    input[`ALU_OP_BUS_WIDTH - 1 : 0]    alu_op_bus_mdv,
+    input[32 : 0]                       alu_in1_mdv,
+    input[32 : 0]                       alu_in2_mdv,
 
     output[34 : 0]                      alu_res
 );
@@ -94,23 +94,23 @@ wire[31 : 0]                            sra_mask;
 
 integer                                 i;
 
-assign      alu_op_bus = {{`ALU_OP_BUS_WIDTH{rglr2alu_op_vld}} & rglr2alu_op_bus} | 
-                         {{`ALU_OP_BUS_WIDTH{brch2alu_op_vld}} & brch2alu_op_bus} | 
-                         {{`ALU_OP_BUS_WIDTH{csr2alu_op_vld}} & csr2alu_op_bus} | 
-                         {{`ALU_OP_BUS_WIDTH{mdv2alu_op_vld}} & mdv2alu_op_bus} | 
-                         {{`ALU_OP_BUS_WIDTH{lsu2alu_op_vld}} & lsu2alu_op_bus};
+assign      alu_op_bus = {{`ALU_OP_BUS_WIDTH{alu_op_vld_rglr}} & alu_op_bus_rglr} | 
+                         {{`ALU_OP_BUS_WIDTH{alu_op_vld_brch}} & alu_op_bus_brch} | 
+                         {{`ALU_OP_BUS_WIDTH{alu_op_vld_csr}} & alu_op_bus_csr} | 
+                         {{`ALU_OP_BUS_WIDTH{alu_op_vld_mdv}} & alu_op_bus_mdv} | 
+                         {{`ALU_OP_BUS_WIDTH{alu_op_vld_lsu}} & alu_op_bus_lsu};
 
-assign      alu_in1             =   ({33{rglr2alu_op_vld}} & rglr2alu_in1) | 
-                                    ({33{brch2alu_op_vld}} & brch2alu_in1) |
-                                    ({33{csr2alu_op_vld}} & csr2alu_in1) |
-                                    ({33{lsu2alu_op_vld}} & lsu2alu_in1) |
-                                    ({33{mdv2alu_op_vld}} & mdv2alu_in1) |
+assign      alu_in1             =   ({33{alu_op_vld_rglr}} & alu_in1_rglr) | 
+                                    ({33{alu_op_vld_brch}} & alu_in1_brch) |
+                                    ({33{alu_op_vld_csr}} & alu_in1_csr) |
+                                    ({33{alu_op_vld_lsu}} & alu_in1_lsu) |
+                                    ({33{alu_op_vld_mdv}} & alu_in1_mdv) |
                                     33'd0;
-assign      alu_in2             =   ({33{rglr2alu_op_vld}} & rglr2alu_in2) | 
-                                    ({33{brch2alu_op_vld}} & brch2alu_in2) |
-                                    ({33{csr2alu_op_vld}} & csr2alu_in2) |
-                                    ({33{lsu2alu_op_vld}} & lsu2alu_in2) |
-                                    ({33{mdv2alu_op_vld}} & mdv2alu_in2) |
+assign      alu_in2             =   ({33{alu_op_vld_rglr}} & alu_in2_rglr) | 
+                                    ({33{alu_op_vld_brch}} & alu_in2_brch) |
+                                    ({33{alu_op_vld_csr}} & alu_in2_csr) |
+                                    ({33{alu_op_vld_lsu}} & alu_in2_lsu) |
+                                    ({33{alu_op_vld_mdv}} & alu_in2_mdv) |
                                     33'd0;
 
 
@@ -218,10 +218,10 @@ assign      alu_res =   (alu_op_add | alu_op_sub) ? in1_add_in2 :
                         35'd0;
 
 // alu运算模块是纯组合逻辑，只要valid拉高，ready就有效
-assign      rglr2alu_op_rdy = rglr2alu_op_vld;
-assign      brch2alu_op_rdy = brch2alu_op_vld;
-assign      csr2alu_op_rdy = csr2alu_op_vld;
-assign      lsu2alu_op_rdy = lsu2alu_op_vld;
-assign      mdv2alu_op_rdy = mdv2alu_op_vld;
+assign      alu_op_rdy_rglr = alu_op_vld_rglr;
+assign      alu_op_rdy_brch = alu_op_vld_brch;
+assign      alu_op_rdy_csr = alu_op_vld_csr;
+assign      alu_op_rdy_lsu = alu_op_vld_lsu;
+assign      alu_op_rdy_mdv = alu_op_vld_mdv;
 
 endmodule

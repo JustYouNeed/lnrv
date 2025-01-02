@@ -9,27 +9,27 @@ module	lnrv_exu_disp
 
     // 常规指令 
     output                              sel_rglr,
-    output[`RGLR_OP_BUS_WIDTH - 1 : 0]  rglr_op_bus,
+    output[`RGLR_OP_BUS_WIDTH - 1 : 0]  op_bus_rglr,
 
     // 访问指令
     output                              sel_lsu,
-    output[`LSU_OP_BUS_WIDTH - 1 : 0]   lsu_op_bus,
+    output[`LSU_OP_BUS_WIDTH - 1 : 0]   op_bus_lsu,
 
     // 分支指令
     output                              sel_brch,
-    output[`BRCH_OP_BUS_WIDTH - 1 : 0]  brch_op_bus,
+    output[`BRCH_OP_BUS_WIDTH - 1 : 0]  op_bus_brch,
 
     // csr相关指令 
     output                              sel_csr,
-    output[`CSR_OP_BUS_WIDTH - 1 : 0]   csr_op_bus,
+    output[`CSR_OP_BUS_WIDTH - 1 : 0]   op_bus_csr,
 
     // 系统指令
     output                              sel_sys,
-    output[`SYS_OP_BUS_WIDTH - 1 : 0]   sys_op_bus,
+    output[`SYS_OP_BUS_WIDTH - 1 : 0]   op_bus_sys,
 
     // 乘除法指令
     output                              sel_mdv,
-    output[`MDV_OP_BUS_WIDTH - 1 : 0]   mdv_op_bus
+    output[`MDV_OP_BUS_WIDTH - 1 : 0]   op_bus_mdv
 );
 
 wire                                    idu_rglr_instr;
@@ -58,27 +58,27 @@ assign      idu_mdv_instr = (idu_op_type == `DEC_MDV_BUS) & disp_enable;
 
 // 派发到常规指令模块执行
 assign      sel_rglr = idu_rglr_instr;
-assign      rglr_op_bus = {`RGLR_OP_BUS_WIDTH{sel_rglr}} & idu_op_bus[0 +: `RGLR_OP_BUS_WIDTH];
+assign      op_bus_rglr = {`RGLR_OP_BUS_WIDTH{sel_rglr}} & idu_op_bus[0 +: `RGLR_OP_BUS_WIDTH];
 
 // 派发到访存模块执行
 assign      sel_lsu = idu_lsu_instr; 
-assign      lsu_op_bus = {`LSU_OP_BUS_WIDTH{sel_lsu}} & idu_op_bus[0 +: `LSU_OP_BUS_WIDTH];
+assign      op_bus_lsu = {`LSU_OP_BUS_WIDTH{sel_lsu}} & idu_op_bus[0 +: `LSU_OP_BUS_WIDTH];
 
 // 派发到分支模块执行
 assign      sel_brch = idu_brch_instr;
-assign      brch_op_bus = {`BRCH_OP_BUS_WIDTH{sel_brch}} & idu_op_bus[0 +: `BRCH_OP_BUS_WIDTH];
+assign      op_bus_brch = {`BRCH_OP_BUS_WIDTH{sel_brch}} & idu_op_bus[0 +: `BRCH_OP_BUS_WIDTH];
 
 // 派发到CSR模块执行
 assign      sel_csr = idu_csr_instr;
-assign      csr_op_bus = {`CSR_OP_BUS_WIDTH{sel_csr}} & idu_op_bus[0 +: `CSR_OP_BUS_WIDTH];
+assign      op_bus_csr = {`CSR_OP_BUS_WIDTH{sel_csr}} & idu_op_bus[0 +: `CSR_OP_BUS_WIDTH];
 
 // 派发到系统指令模块执行
 assign      sel_sys = idu_sys_instr;
-assign      sys_op_bus = {`SYS_OP_BUS_WIDTH{sel_sys}} & idu_op_bus[0 +: `SYS_OP_BUS_WIDTH];
+assign      op_bus_sys = {`SYS_OP_BUS_WIDTH{sel_sys}} & idu_op_bus[0 +: `SYS_OP_BUS_WIDTH];
 
 // 派发到乘除法指令模块执行
 assign      sel_mdv = idu_mdv_instr;
-assign      mdv_op_bus = {`MDV_OP_BUS_WIDTH{sel_mdv}} & idu_op_bus[0 +: `MDV_OP_BUS_WIDTH];
+assign      op_bus_mdv = {`MDV_OP_BUS_WIDTH{sel_mdv}} & idu_op_bus[0 +: `MDV_OP_BUS_WIDTH];
 
 
 endmodule	

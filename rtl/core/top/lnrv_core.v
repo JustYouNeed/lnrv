@@ -4,7 +4,7 @@ module  lnrv_core
     input[31 : 0]                           reset_vector,
     input[31 : 0]                           reset_mtvec,
 
-    input                                   stop_on_reset,
+    input                                   firmware_loading,
 
     // 中断信号
     input                                   sft_irq,
@@ -63,19 +63,19 @@ module  lnrv_core
     input                                   reset_n
 );
 
-wire                                    cmt_pipe_flush_req;
-wire                                    cmt_pipe_flush_ack_ifu;
-wire                                    cmt_pipe_flush_ack_idu;
-wire[31 : 0]                            cmt_pipe_flush_pc_op1;
-wire[31 : 0]                            cmt_pipe_flush_pc_op2;
+wire                                    pipe_flush_req_cmt;
+wire                                    pipe_flush_ack_cmt_ifu;
+wire                                    pipe_flush_ack_cmt_idu;
+wire[31 : 0]                            pipe_flush_pc_op1_cmt;
+wire[31 : 0]                            pipe_flush_pc_op2_cmt;
 
-wire                                    bpu_pipe_flush_req;
-wire                                    bpu_pipe_flush_ack;
-wire[31 : 0]                            bpu_pipe_flush_pc_op1;
-wire[31 : 0]                            bpu_pipe_flush_pc_op2;
+wire                                    pipe_flush_req_bpu;
+wire                                    pipe_flush_ack_bpu;
+wire[31 : 0]                            pipe_flush_pc_op1_bpu;
+wire[31 : 0]                            pipe_flush_pc_op2_bpu;
 
-wire                                    ifu_pipe_halt_req;
-wire                                    ifu_pipe_halt_ack;
+wire                                    pipe_halt_req_ifu;
+wire                                    pipe_halt_ack_ifu;
 
 wire                                    ifu_vld;
 wire[`CPU_ADDR_WIDTH - 1 : 0]           ifu_pc;
@@ -114,7 +114,7 @@ wire                                    cmt_brch_fence;
 wire                                    cmt_brch_jal;
 wire                                    cmt_brch_jalr;
 wire                                    cmt_brch_bjp;
-wire                                    cmt_csr_idxerr;
+wire                                    cmt_csr_idx_err;
 wire                                    cmt_csr;
 wire                                    cmt_rglr;
 wire                                    cmt_ifu_excp_buserr;
@@ -181,7 +181,7 @@ wire                                    mie_meie;
 wire                                    mstatus_mie;
 
 
-assign      cmt_pipe_flush_ack = cmt_pipe_flush_ack_ifu & cmt_pipe_flush_ack_idu;
+assign      pipe_flush_ack_cmt = pipe_flush_ack_cmt_ifu & pipe_flush_ack_cmt_idu;
 assign      pipe_halt_ack = pipe_halt_ack_ifu & pipe_halt_ack_idu;
 
 // 取指模块
@@ -192,19 +192,19 @@ lnrv_ifu u_lnrv_ifu
 
     .ifu_active                 ( ifu_active                ),
 
-    .stop_on_reset              ( stop_on_reset             ),
+    .firmware_loading           ( firmware_loading          ),
 
     .reset_vector               ( reset_vector              ),
 
-    .cmt_pipe_flush_req         ( cmt_pipe_flush_req        ),
-    .cmt_pipe_flush_ack         ( cmt_pipe_flush_ack_ifu    ),
-    .cmt_pipe_flush_pc_op1      ( cmt_pipe_flush_pc_op1     ),
-    .cmt_pipe_flush_pc_op2      ( cmt_pipe_flush_pc_op2     ),
+    .pipe_flush_req_cmt         ( pipe_flush_req_cmt        ),
+    .pipe_flush_ack_cmt         ( pipe_flush_ack_cmt_ifu    ),
+    .pipe_flush_pc_op1_cmt      ( pipe_flush_pc_op1_cmt     ),
+    .pipe_flush_pc_op2_cmt      ( pipe_flush_pc_op2_cmt     ),
 
-    .bpu_pipe_flush_req         ( bpu_pipe_flush_req        ),
-    .bpu_pipe_flush_ack         ( bpu_pipe_flush_ack        ),
-    .bpu_pipe_flush_pc_op1      ( bpu_pipe_flush_pc_op1     ),
-    .bpu_pipe_flush_pc_op2      ( bpu_pipe_flush_pc_op2     ),
+    .pipe_flush_req_bpu         ( pipe_flush_req_bpu        ),
+    .pipe_flush_ack_bpu         ( pipe_flush_ack_bpu        ),
+    .pipe_flush_pc_op1_bpu      ( pipe_flush_pc_op1_bpu     ),
+    .pipe_flush_pc_op2_bpu      ( pipe_flush_pc_op2_bpu     ),
 
     .pipe_halt_req              ( pipe_halt_req             ),
     .pipe_halt_ack              ( pipe_halt_ack_ifu         ),
@@ -244,13 +244,13 @@ lnrv_idu u_lnrv_idu
     .ifu_excp_misalgn           ( ifu_excp_misalgn          ),
     .ifu_excp_buserr            ( ifu_excp_buserr           ),
 
-    .cmt_pipe_flush_req         ( cmt_pipe_flush_req        ),
-    .cmt_pipe_flush_ack         ( cmt_pipe_flush_ack_idu    ),
+    .pipe_flush_req_cmt         ( pipe_flush_req_cmt        ),
+    .pipe_flush_ack_cmt         ( pipe_flush_ack_cmt_idu    ),
 
-    .bpu_pipe_flush_req         ( bpu_pipe_flush_req        ),
-    .bpu_pipe_flush_ack         ( bpu_pipe_flush_ack        ),
-    .bpu_pipe_flush_pc_op1      ( bpu_pipe_flush_pc_op1     ),
-    .bpu_pipe_flush_pc_op2      ( bpu_pipe_flush_pc_op2     ),
+    .pipe_flush_req_bpu         ( pipe_flush_req_bpu        ),
+    .pipe_flush_ack_bpu         ( pipe_flush_ack_bpu        ),
+    .pipe_flush_pc_op1_bpu      ( pipe_flush_pc_op1_bpu     ),
+    .pipe_flush_pc_op2_bpu      ( pipe_flush_pc_op2_bpu     ),
 
     .d_mode                     ( d_mode                    ),
 
@@ -317,7 +317,7 @@ lnrv_exu u_lnrv_exu
     .cmt_ifu_excp_buserr        ( cmt_ifu_excp_buserr       ),
     .cmt_ifu_excp_misalgn       ( cmt_ifu_excp_misalgn      ),
 
-    .cmt_csr_idxerr             ( cmt_csr_idxerr            ),
+    .cmt_csr_idx_err            ( cmt_csr_idx_err           ),
     .cmt_csr                    ( cmt_csr                   ),
 
     .cmt_rglr                   ( cmt_rglr                  ),
@@ -382,7 +382,7 @@ lnrv_cmt u_lnrv_cmt
     .cmt_brch_bjp               ( cmt_brch_bjp              ),
     .cmt_rglr                   ( cmt_rglr                  ),
     .cmt_csr                    ( cmt_csr                   ),
-    .cmt_csr_idxerr             ( cmt_csr_idxerr            ),
+    .cmt_csr_idx_err            ( cmt_csr_idx_err           ),
     .cmt_sys_ebreak             ( cmt_sys_ebreak            ),
     .cmt_sys_ecall              ( cmt_sys_ecall             ),
     .cmt_sys_wfi                ( cmt_sys_wfi               ),
@@ -440,10 +440,10 @@ lnrv_cmt u_lnrv_cmt
     .dcause_wen                 ( dcause_wen                ),
     .dcause_wdata               ( dcause_wdata              ),
 
-    .pipe_flush_req             ( cmt_pipe_flush_req        ),
-    .pipe_flush_ack             ( cmt_pipe_flush_ack        ),
-    .pipe_flush_pc_op1          ( cmt_pipe_flush_pc_op1     ),
-    .pipe_flush_pc_op2          ( cmt_pipe_flush_pc_op2     ),
+    .pipe_flush_req             ( pipe_flush_req_cmt        ),
+    .pipe_flush_ack             ( pipe_flush_ack_cmt        ),
+    .pipe_flush_pc_op1          ( pipe_flush_pc_op1_cmt     ),
+    .pipe_flush_pc_op2          ( pipe_flush_pc_op2_cmt     ),
 
     .pipe_halt_req              ( pipe_halt_req             ),
     .pipe_halt_ack              ( pipe_halt_ack             ),

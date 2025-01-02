@@ -55,7 +55,7 @@ module  lnrv_exu#
     output                                  cmt_brch_jal,
     output                                  cmt_brch_jalr,
     output                                  cmt_brch_bjp,
-    output                                  cmt_csr_idxerr,
+    output                                  cmt_csr_idx_err,
     input                                   cmt_csr,
     output                                  cmt_rglr,
     output                                  cmt_ifu_excp_buserr,
@@ -90,94 +90,94 @@ module  lnrv_exu#
 wire                                sel_rglr;
 wire                                rglr_op_vld;
 wire                                rglr_op_rdy;
-wire[`RGLR_OP_BUS_WIDTH - 1 : 0]    rglr_op_bus;
-wire                                rglr_cmt_vld;
-wire                                rglr_cmt_rdy;
-wire                                rglr_gpr_wen;
-wire[31 : 0]                        rglr_gpr_wdata;
-wire                                rglr2alu_op_vld;
-wire                                rglr2alu_op_rdy;
-wire[`ALU_OP_BUS_WIDTH - 1 : 0]     rglr2alu_op_bus;
-wire[32 : 0]                        rglr2alu_in1;
-wire[32 : 0]                        rglr2alu_in2;
+wire[`RGLR_OP_BUS_WIDTH - 1 : 0]    op_bus_rglr;
+wire                                cmt_vld_rglr;
+wire                                cmt_rdy_rglr;
+wire                                gpr_wen_rglr;
+wire[31 : 0]                        gpr_wdata_rglr;
+wire                                alu_op_vld_rglr;
+wire                                alu_op_rdy_rglr;
+wire[`ALU_OP_BUS_WIDTH - 1 : 0]     alu_op_bus_rglr;
+wire[32 : 0]                        alu_in1_rglr;
+wire[32 : 0]                        alu_in2_rglr;
 
 wire                                sel_lsu;
-wire                                lsu_op_vld;
-wire                                lsu_op_rdy;
-wire[`LSU_OP_BUS_WIDTH - 1 : 0]     lsu_op_bus;
-wire                                lsu_cmt_vld;
-wire                                lsu_cmt_rdy;
-wire                                lsu_cmt_ld;
-wire                                lsu_cmt_st;
-wire                                lsu_cmt_excp_buserr;
-wire                                lsu_cmt_excp_misalg;
-wire[31 : 0]                        lsu_cmt_addr;
-wire                                lsu_gpr_wen;
-wire[31 : 0]                        lsu_gpr_wdata;
-wire                                lsu2alu_op_vld;
-wire                                lsu2alu_op_rdy;
-wire[`ALU_OP_BUS_WIDTH - 1 : 0]     lsu2alu_op_bus;
-wire[32 : 0]                        lsu2alu_in1;
-wire[32 : 0]                        lsu2alu_in2;
+wire                                op_vld_lsu;
+wire                                op_rdy_lsu;
+wire[`LSU_OP_BUS_WIDTH - 1 : 0]     op_bus_lsu;
+wire                                cmt_vld_lsu;
+wire                                cmt_rdy_lsu;
+wire                                cmt_lsu_ld;
+wire                                cmt_lsu_st;
+wire                                cmt_lsu_excp_buserr;
+wire                                cmt_lsu_excp_misalg;
+wire[31 : 0]                        cmt_lsu_addr;
+wire                                gpr_wen_lsu;
+wire[31 : 0]                        gpr_wdata_lsu;
+wire                                alu_op_vld_lsu;
+wire                                alu_op_rdy_lsu;
+wire[`ALU_OP_BUS_WIDTH - 1 : 0]     alu_op_bus_lsu;
+wire[32 : 0]                        alu_in1_lsu;
+wire[32 : 0]                        alu_in2_lsu;
 
 wire                                sel_brch;
 wire                                brch_op_vld;
 wire                                brch_op_rdy;
-wire[`BRCH_OP_BUS_WIDTH - 1 : 0]    brch_op_bus;
-wire                                brch_cmt_vld;
-wire                                brch_cmt_rdy;
-wire                                brch_cmt_bjp;
-wire                                brch_cmt_dret;
-wire                                brch_cmt_fence;
-wire                                brch_cmt_jal;
-wire                                brch_cmt_jalr;
-wire                                brch_cmt_mret;
-wire                                brch_gpr_wen;
-wire[31 : 0]                        brch_gpr_wdata;
-wire                                brch2alu_op_vld;
-wire                                brch2alu_op_rdy;
-wire[`ALU_OP_BUS_WIDTH - 1 : 0]     brch2alu_op_bus;
-wire[32 : 0]                        brch2alu_in1;
-wire[32 : 0]                        brch2alu_in2;
+wire[`BRCH_OP_BUS_WIDTH - 1 : 0]    op_bus_brch;
+wire                                cmt_vld_brch;
+wire                                cmt_rdy_brch;
+wire                                cmt_brch_bjp;
+wire                                cmt_brch_dret;
+wire                                cmt_brch_fence;
+wire                                cmt_brch_jal;
+wire                                cmt_brch_jalr;
+wire                                cmt_brch_mret;
+wire                                gpr_wen_brch;
+wire[31 : 0]                        gpr_wdata_brch;
+wire                                alu_op_vld_brch;
+wire                                alu_op_rdy_brch;
+wire[`ALU_OP_BUS_WIDTH - 1 : 0]     alu_op_bus_brch;
+wire[32 : 0]                        alu_in1_brch;
+wire[32 : 0]                        alu_in2_brch;
 
 wire                                sel_sys;
-wire                                sys_op_vld;
-wire                                sys_op_rdy;
-wire[`SYS_OP_BUS_WIDTH - 1 : 0]     sys_op_bus;
-wire                                sys_cmt_vld;
-wire                                sys_cmt_rdy;
-wire                                sys_cmt_ebreak;
-wire                                sys_cmt_ecall;
-wire                                sys_cmt_wfi;
+wire                                op_vld_sys;
+wire                                op_rdy_sys;
+wire[`SYS_OP_BUS_WIDTH - 1 : 0]     op_bus_sys;
+wire                                cmt_vld_sys;
+wire                                cmt_rdy_sys;
+wire                                cmt_sys_ebreak;
+wire                                cmt_sys_ecall;
+wire                                cmt_sys_wfi;
 
 wire                                sel_csr;
 wire                                csr_op_vld;
 wire                                csr_op_rdy;
-wire[`CSR_OP_BUS_WIDTH - 1 : 0]     csr_op_bus;
-wire                                csr_cmt_vld;
-wire                                csr_cmt_rdy;
-wire                                csr_cmt_idx_err;
-wire                                csr_gpr_wen;
-wire[31 : 0]                        csr_gpr_wdata;
-wire                                csr2alu_op_vld;
-wire                                csr2alu_op_rdy;
-wire[`ALU_OP_BUS_WIDTH - 1 : 0]     csr2alu_op_bus;
-wire[32 : 0]                        csr2alu_in1;
-wire[32 : 0]                        csr2alu_in2;
+wire[`CSR_OP_BUS_WIDTH - 1 : 0]     op_bus_csr;
+wire                                cmt_vld_csr;
+wire                                cmt_rdy_csr;
+wire                                cmt_csr_idx_err;
+wire                                gpr_wen_csr;
+wire[31 : 0]                        gpr_wdata_csr;
+wire                                alu_op_vld_csr;
+wire                                alu_op_rdy_csr;
+wire[`ALU_OP_BUS_WIDTH - 1 : 0]     alu_op_bus_csr;
+wire[32 : 0]                        alu_in1_csr;
+wire[32 : 0]                        alu_in2_csr;
 
 wire                                sel_mdv;
 wire                                mdv_op_vld;
 wire                                mdv_op_rdy;
-wire[`MDV_OP_BUS_WIDTH - 1 : 0]     mdv_op_bus;
-wire                                mdv_cmt_vld;
-wire                                mdv_cmt_rdy;
-wire                                mdv_gpr_wen;
-wire[31 : 0]                        mdv_gpr_wdata;
-wire                                mdv2alu_op_vld;
-wire                                mdv2alu_op_rdy;
-wire[`ALU_OP_BUS_WIDTH - 1 : 0]     mdv2alu_op_bus;
-wire[32 : 0]                        mdv2alu_in1;
-wire[32 : 0]                        mdv2alu_in2;
+wire[`MDV_OP_BUS_WIDTH - 1 : 0]     op_bus_mdv;
+wire                                cmt_vld_mdv;
+wire                                cmt_rdy_mdv;
+wire                                gpr_wen_mdv;
+wire[31 : 0]                        gpr_wdata_mdv;
+wire                                alu_op_vld_mdv;
+wire                                alu_op_rdy_mdv;
+wire[`ALU_OP_BUS_WIDTH - 1 : 0]     alu_op_bus_mdv;
+wire[32 : 0]                        alu_in1_mdv;
+wire[32 : 0]                        alu_in2_mdv;
 
 wire[34 : 0]                        alu_res;
 
@@ -191,56 +191,56 @@ lnrv_exu_disp u_lnrv_exu_disp
     .idu_excp_misalgn           ( idu_excp_misalgn          ),
 
     .sel_rglr                   ( sel_rglr                  ),
-    .rglr_op_bus                ( rglr_op_bus               ),
+    .op_bus_rglr                ( op_bus_rglr               ),
 
     .sel_lsu                    ( sel_lsu                   ),
-    .lsu_op_bus                 ( lsu_op_bus                ),
+    .op_bus_lsu                 ( op_bus_lsu                ),
 
     .sel_brch                   ( sel_brch                  ),
-    .brch_op_bus                ( brch_op_bus               ),
+    .op_bus_brch                ( op_bus_brch               ),
 
     .sel_csr                    ( sel_csr                   ),
-    .csr_op_bus                 ( csr_op_bus                ),
+    .op_bus_csr                 ( op_bus_csr                ),
 
     .sel_sys                    ( sel_sys                   ),
-    .sys_op_bus                 ( sys_op_bus                ),
+    .op_bus_sys                 ( op_bus_sys                ),
 
     .sel_mdv                    ( sel_mdv                   ),
-    .mdv_op_bus                 ( mdv_op_bus                )
+    .op_bus_mdv                 ( op_bus_mdv                )
 );
 
-assign      rglr_op_vld = sel_rglr & idu_vld;
-assign      csr_op_vld = sel_csr & idu_vld;
-assign      sys_op_vld = sel_sys & idu_vld;
-assign      mdv_op_vld = sel_mdv & idu_vld;
-assign      brch_op_vld = sel_brch & idu_vld;
-assign      lsu_op_vld = sel_lsu & idu_vld;
-assign      mdv_op_vld = sel_mdv & idu_vld;
+assign      rglr_op_vld         = sel_rglr & idu_vld;
+assign      csr_op_vld          = sel_csr & idu_vld;
+assign      op_vld_sys          = sel_sys & idu_vld;
+assign      mdv_op_vld          = sel_mdv & idu_vld;
+assign      brch_op_vld         = sel_brch & idu_vld;
+assign      op_vld_lsu          = sel_lsu & idu_vld;
+assign      mdv_op_vld          = sel_mdv & idu_vld;
 
 // 常规指令执行模块
 lnrv_exu_rglr u_lnrv_exu_rglr
 (
     .op_vld                     ( rglr_op_vld               ),
     .op_rdy                     ( rglr_op_rdy               ),
-    .op_bus                     ( rglr_op_bus               ),
+    .op_bus                     ( op_bus_rglr               ),
 
     .rs1_rdata                  ( rs1_rdata                 ),
     .rs2_rdata                  ( rs2_rdata                 ),
     .imm                        ( idu_imm                   ),
     .pc                         ( idu_pc                    ),
 
-    .alu_op_vld                 ( rglr2alu_op_vld           ),
-    .alu_op_rdy                 ( rglr2alu_op_rdy           ),
-    .alu_op_bus                 ( rglr2alu_op_bus           ),
-    .alu_in1                    ( rglr2alu_in1              ),
-    .alu_in2                    ( rglr2alu_in2              ),
+    .alu_op_vld                 ( alu_op_vld_rglr           ),
+    .alu_op_rdy                 ( alu_op_rdy_rglr           ),
+    .alu_op_bus                 ( alu_op_bus_rglr           ),
+    .alu_in1                    ( alu_in1_rglr              ),
+    .alu_in2                    ( alu_in2_rglr              ),
     .alu_res                    ( alu_res                   ),
 
-    .cmt_vld                    ( rglr_cmt_vld              ),
-    .cmt_rdy                    ( rglr_cmt_rdy              ),
+    .cmt_vld                    ( cmt_vld_rglr              ),
+    .cmt_rdy                    ( cmt_rdy_rglr              ),
 
-    .gpr_wen                    ( rglr_gpr_wen              ),
-    .gpr_wdata                  ( rglr_gpr_wdata            )
+    .gpr_wen                    ( gpr_wen_rglr              ),
+    .gpr_wdata                  ( gpr_wdata_rglr            )
 );
 
 // csr指令处理模块 
@@ -248,7 +248,7 @@ lnrv_exu_csr u_lnrv_exu_csr
 (
     .op_vld                     ( csr_op_vld                ),
     .op_rdy                     ( csr_op_rdy                ),
-    .op_bus                     ( csr_op_bus                ),
+    .op_bus                     ( op_bus_csr                ),
 
     .imm                        ( idu_imm                   ),
 
@@ -256,19 +256,19 @@ lnrv_exu_csr u_lnrv_exu_csr
     .csr_rdata                  ( csr_rdata                 ),
     .rs1_rdata                  ( rs1_rdata                 ),
 
-    .alu_op_vld                 ( csr2alu_op_vld            ),
-    .alu_op_rdy                 ( csr2alu_op_rdy            ),
-    .alu_op_bus                 ( csr2alu_op_bus            ),
-    .alu_in1                    ( csr2alu_in1               ),
-    .alu_in2                    ( csr2alu_in2               ),
+    .alu_op_vld                 ( alu_op_vld_csr            ),
+    .alu_op_rdy                 ( alu_op_rdy_csr            ),
+    .alu_op_bus                 ( alu_op_bus_csr            ),
+    .alu_in1                    ( alu_in1_csr               ),
+    .alu_in2                    ( alu_in2_csr               ),
     .alu_res                    ( alu_res                   ),
 
-    .cmt_vld                    ( csr_cmt_vld               ),
-    .cmt_rdy                    ( csr_cmt_rdy               ),
-    .cmt_idx_err                ( csr_cmt_idx_err           ),
+    .cmt_vld                    ( cmt_vld_csr               ),
+    .cmt_rdy                    ( cmt_rdy_csr               ),
+    .cmt_idx_err                ( cmt_csr_idx_err           ),
 
-    .gpr_wen                    ( csr_gpr_wen               ),
-    .gpr_wdata                  ( csr_gpr_wdata             ),
+    .gpr_wen                    ( gpr_wen_csr               ),
+    .gpr_wdata                  ( gpr_wdata_csr             ),
 
     .csr_wbck_vld               ( csr_wbck_vld              ),
     .csr_wbck_rdy               ( csr_wbck_rdy              ),
@@ -280,7 +280,7 @@ lnrv_exu_brch u_lnrv_exu_brch
 (
     .op_vld                     ( brch_op_vld               ),
     .op_rdy                     ( brch_op_rdy               ),
-    .op_bus                     ( brch_op_bus               ),
+    .op_bus                     ( op_bus_brch               ),
     
     .rs1_rdata                  ( rs1_rdata                 ),
     .rs2_rdata                  ( rs2_rdata                 ),
@@ -288,24 +288,25 @@ lnrv_exu_brch u_lnrv_exu_brch
     .imm                        ( idu_imm                   ),
     .rv32_ir                    ( idu_rv32                  ),
     
-    .alu_op_vld                 ( brch2alu_op_vld           ),
-    .alu_op_rdy                 ( brch2alu_op_rdy           ),
-    .alu_op_bus                 ( brch2alu_op_bus           ),
-    .alu_in1                    ( brch2alu_in1              ),
-    .alu_in2                    ( brch2alu_in2              ),
+    .alu_op_vld                 ( alu_op_vld_brch           ),
+    .alu_op_rdy                 ( alu_op_rdy_brch           ),
+    .alu_op_bus                 ( alu_op_bus_brch           ),
+    .alu_in1                    ( alu_in1_brch              ),
+    .alu_in2                    ( alu_in2_brch              ),
     .alu_res                    ( alu_res                   ),
 
-    .cmt_vld                    ( brch_cmt_vld              ),
-    .cmt_rdy                    ( brch_cmt_rdy              ),
-    .cmt_dret                   ( brch_cmt_dret             ),
-    .cmt_mret                   ( brch_cmt_mret             ),
-    .cmt_fence                  ( brch_cmt_fence            ),
-    .cmt_bjp                    ( brch_cmt_bjp              ),
-    .cmt_jalr                   ( brch_cmt_jalr             ),
-    .cmt_jal                    ( brch_cmt_jal              ),
+    .cmt_vld                    ( cmt_vld_brch              ),
+    .cmt_rdy                    ( cmt_rdy_brch              ),
 
-    .gpr_wen                    ( brch_gpr_wen              ),
-    .gpr_wdata                  ( brch_gpr_wdata            )
+    .cmt_dret                   ( cmt_brch_dret             ),
+    .cmt_mret                   ( cmt_brch_mret             ),
+    .cmt_fence                  ( cmt_brch_fence            ),
+    .cmt_bjp                    ( cmt_brch_bjp              ),
+    .cmt_jalr                   ( cmt_brch_jalr             ),
+    .cmt_jal                    ( cmt_brch_jal              ),
+
+    .gpr_wen                    ( gpr_wen_brch              ),
+    .gpr_wdata                  ( gpr_wdata_brch            )
 );
 
 
@@ -314,23 +315,23 @@ lnrv_exu_mdv u_lnrv_exu_mdv
 (
     .op_vld                     ( mdv_op_vld                ),
     .op_rdy                     ( mdv_op_rdy                ),
-    .op_bus                     ( mdv_op_bus                ),
+    .op_bus                     ( op_bus_mdv                ),
 
     .rs1_rdata                  ( rs1_rdata                 ),
     .rs2_rdata                  ( rs2_rdata                 ),
 
-    .gpr_wen                    ( mdv_gpr_wen               ),
-    .gpr_wdata                  ( mdv_gpr_wdata             ),
+    .gpr_wen                    ( gpr_wen_mdv               ),
+    .gpr_wdata                  ( gpr_wdata_mdv             ),
 
-    .alu_op_vld                 ( mdv2alu_op_vld            ),
-    .alu_op_rdy                 ( mdv2alu_op_rdy            ),
-    .alu_op_bus                 ( mdv2alu_op_bus            ),
-    .alu_in1                    ( mdv2alu_in1               ),
-    .alu_in2                    ( mdv2alu_in2               ),
+    .alu_op_vld                 ( alu_op_vld_mdv            ),
+    .alu_op_rdy                 ( alu_op_rdy_mdv            ),
+    .alu_op_bus                 ( alu_op_bus_mdv            ),
+    .alu_in1                    ( alu_in1_mdv               ),
+    .alu_in2                    ( alu_in2_mdv               ),
     .alu_res                    ( alu_res                   ),
 
-    .cmt_vld                    ( mdv_cmt_vld               ),
-    .cmt_rdy                    ( mdv_cmt_rdy               ),
+    .cmt_vld                    ( cmt_vld_mdv               ),
+    .cmt_rdy                    ( cmt_rdy_mdv               ),
 
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   )
@@ -339,44 +340,44 @@ lnrv_exu_mdv u_lnrv_exu_mdv
 // 系统相关指令处理模块 
 lnrv_exu_sys u_lnrv_exu_sys
 (
-    .op_vld                     ( sys_op_vld                ),
-    .op_rdy                     ( sys_op_rdy                ),
-    .op_bus                     ( sys_op_bus                ),
+    .op_vld                     ( op_vld_sys                ),
+    .op_rdy                     ( op_rdy_sys                ),
+    .op_bus                     ( op_bus_sys                ),
 
-    .cmt_vld                    ( sys_cmt_vld               ),
-    .cmt_rdy                    ( sys_cmt_rdy               ),
-    .cmt_ebreak                 ( sys_cmt_ebreak            ),
-    .cmt_ecall                  ( sys_cmt_ecall             ),
-    .cmt_wfi                    ( sys_cmt_wfi               )
+    .cmt_vld                    ( cmt_vld_sys               ),
+    .cmt_rdy                    ( cmt_rdy_sys               ),
+    .cmt_ebreak                 ( cmt_sys_ebreak            ),
+    .cmt_ecall                  ( cmt_sys_ecall             ),
+    .cmt_wfi                    ( cmt_sys_wfi               )
 );
 
 // 访存指令执行模块
 lnrv_exu_lsu u_lnrv_exu_lsu
 (
-    .op_vld                     ( lsu_op_vld                ),
-    .op_rdy                     ( lsu_op_rdy                ),
-    .op_bus                     ( lsu_op_bus                ),
+    .op_vld                     ( op_vld_lsu                ),
+    .op_rdy                     ( op_rdy_lsu                ),
+    .op_bus                     ( op_bus_lsu                ),
 
     .rs1_rdata                  ( rs1_rdata                 ),
     .rs2_rdata                  ( rs2_rdata                 ),
     .imm                        ( idu_imm                   ),
 
-    .cmt_vld                    ( lsu_cmt_vld               ),
-    .cmt_rdy                    ( lsu_cmt_rdy               ),
-    .cmt_ld                     ( lsu_cmt_ld                ),
-    .cmt_st                     ( lsu_cmt_st                ),
-    .cmt_excp_misalgn           ( lsu_cmt_excp_misalgn      ),
-    .cmt_excp_buserr            ( lsu_cmt_excp_buserr       ),
-    .cmt_addr                   ( lsu_cmt_addr              ),
+    .cmt_vld                    ( cmt_vld_lsu               ),
+    .cmt_rdy                    ( cmt_rdy_lsu               ),
+    .cmt_ld                     ( cmt_lsu_ld                ),
+    .cmt_st                     ( cmt_lsu_st                ),
+    .cmt_excp_misalgn           ( cmt_lsu_excp_misalgn      ),
+    .cmt_excp_buserr            ( cmt_lsu_excp_buserr       ),
+    .cmt_addr                   ( cmt_lsu_addr              ),
 
-    .gpr_wen                    ( lsu_gpr_wen               ),
-    .gpr_wdata                  ( lsu_gpr_wdata             ),
+    .gpr_wen                    ( gpr_wen_lsu               ),
+    .gpr_wdata                  ( gpr_wdata_lsu             ),
 
-    .alu_op_vld                 ( lsu2alu_op_vld            ),
-    .alu_op_rdy                 ( lsu2alu_op_rdy            ),
-    .alu_op_bus                 ( lsu2alu_op_bus            ),
-    .alu_in1                    ( lsu2alu_in1               ),
-    .alu_in2                    ( lsu2alu_in2               ),
+    .alu_op_vld                 ( alu_op_vld_lsu            ),
+    .alu_op_rdy                 ( alu_op_rdy_lsu            ),
+    .alu_op_bus                 ( alu_op_bus_lsu            ),
+    .alu_in1                    ( alu_in1_lsu               ),
+    .alu_in2                    ( alu_in2_lsu               ),
     .alu_res                    ( alu_res                   ),
 
     .lsu_cmd_vld                ( lsu_cmd_vld               ),
@@ -398,35 +399,35 @@ lnrv_exu_lsu u_lnrv_exu_lsu
 // 运算单元
 lnrv_exu_alu u_lnrv_exu_alu
 (
-    .rglr2alu_op_vld            ( rglr2alu_op_vld           ),
-    .rglr2alu_op_rdy            ( rglr2alu_op_rdy           ),
-    .rglr2alu_op_bus            ( rglr2alu_op_bus           ),
-    .rglr2alu_in1               ( rglr2alu_in1              ),
-    .rglr2alu_in2               ( rglr2alu_in2              ),
+    .alu_op_vld_rglr            ( alu_op_vld_rglr           ),
+    .alu_op_rdy_rglr            ( alu_op_rdy_rglr           ),
+    .alu_op_bus_rglr            ( alu_op_bus_rglr           ),
+    .alu_in1_rglr               ( alu_in1_rglr              ),
+    .alu_in2_rglr               ( alu_in2_rglr              ),
 
-    .brch2alu_op_vld            ( brch2alu_op_vld           ),
-    .brch2alu_op_rdy            ( brch2alu_op_rdy           ),
-    .brch2alu_op_bus            ( brch2alu_op_bus           ),
-    .brch2alu_in1               ( brch2alu_in1              ),
-    .brch2alu_in2               ( brch2alu_in2              ),
+    .alu_op_vld_brch            ( alu_op_vld_brch           ),
+    .alu_op_rdy_brch            ( alu_op_rdy_brch           ),
+    .alu_op_bus_brch            ( alu_op_bus_brch           ),
+    .alu_in1_brch               ( alu_in1_brch              ),
+    .alu_in2_brch               ( alu_in2_brch              ),
 
-    .csr2alu_op_vld             ( csr2alu_op_vld            ),
-    .csr2alu_op_rdy             ( csr2alu_op_rdy            ),
-    .csr2alu_op_bus             ( csr2alu_op_bus            ),
-    .csr2alu_in1                ( csr2alu_in1               ),
-    .csr2alu_in2                ( csr2alu_in2               ),
+    .alu_op_vld_csr             ( alu_op_vld_csr            ),
+    .alu_op_rdy_csr             ( alu_op_rdy_csr            ),
+    .alu_op_bus_csr             ( alu_op_bus_csr            ),
+    .alu_in1_csr                ( alu_in1_csr               ),
+    .alu_in2_csr                ( alu_in2_csr               ),
 
-    .lsu2alu_op_vld             ( lsu2alu_op_vld            ),
-    .lsu2alu_op_rdy             ( lsu2alu_op_rdy            ),
-    .lsu2alu_op_bus             ( lsu2alu_op_bus            ),
-    .lsu2alu_in1                ( lsu2alu_in1               ),
-    .lsu2alu_in2                ( lsu2alu_in2               ),
+    .alu_op_vld_lsu             ( alu_op_vld_lsu            ),
+    .alu_op_rdy_lsu             ( alu_op_rdy_lsu            ),
+    .alu_op_bus_lsu             ( alu_op_bus_lsu            ),
+    .alu_in1_lsu                ( alu_in1_lsu               ),
+    .alu_in2_lsu                ( alu_in2_lsu               ),
 
-    .mdv2alu_op_vld             ( mdv2alu_op_vld            ),
-    .mdv2alu_op_rdy             ( mdv2alu_op_rdy            ),
-    .mdv2alu_op_bus             ( mdv2alu_op_bus            ),
-    .mdv2alu_in1                ( mdv2alu_in1               ),
-    .mdv2alu_in2                ( mdv2alu_in2               ),
+    .alu_op_vld_mdv             ( alu_op_vld_mdv            ),
+    .alu_op_rdy_mdv             ( alu_op_rdy_mdv            ),
+    .alu_op_bus_mdv             ( alu_op_bus_mdv            ),
+    .alu_in1_mdv                ( alu_in1_mdv               ),
+    .alu_in2_mdv                ( alu_in2_mdv               ),
 
     .alu_res                    ( alu_res                   )
 );
@@ -434,62 +435,43 @@ lnrv_exu_alu u_lnrv_exu_alu
 // 指令交付成功，且需要写回寄存器
 assign      gpr_wbck_vld =  cmt_vld & cmt_rdy & 
                             (
-                                (sel_rglr & rglr_gpr_wen) | 
-                                (sel_csr & csr_gpr_wen) | 
-                                (sel_brch & brch_gpr_wen) | 
-                                (sel_lsu & lsu_gpr_wen) | 
-                                (sel_mdv & mdv_gpr_wen) | 
+                                (sel_rglr   & gpr_wen_rglr) | 
+                                (sel_csr    & gpr_wen_csr) | 
+                                (sel_brch   & gpr_wen_brch) | 
+                                (sel_lsu    & gpr_wen_lsu) | 
+                                (sel_mdv    & gpr_wen_mdv) | 
                                 1'b0
                             );
 
 assign      gpr_wbck_idx = idu_rd;
-assign      gpr_wbck_wdata =    ({32{sel_rglr}} & rglr_gpr_wdata) | 
-                                ({32{sel_csr}} & csr_gpr_wdata) | 
-                                ({32{sel_brch}} & brch_gpr_wdata) | 
-                                ({32{sel_mdv}} & mdv_gpr_wdata) |
-                                ({32{sel_lsu}} & lsu_gpr_wdata);
+assign      gpr_wbck_wdata =    ({32{sel_rglr}} & gpr_wdata_rglr) | 
+                                ({32{sel_csr}}  & gpr_wdata_csr) | 
+                                ({32{sel_brch}} & gpr_wdata_brch) | 
+                                ({32{sel_mdv}}  & gpr_wdata_mdv) |
+                                ({32{sel_lsu}}  & gpr_wdata_lsu);
 
 // 交付接口
-assign      cmt_vld =   sel_lsu ? lsu_cmt_vld : 
-                        sel_rglr ? rglr_cmt_vld : 
-                        sel_brch ? brch_cmt_vld : 
-                        sel_sys ? sys_cmt_vld : 
-                        sel_csr ? csr_cmt_vld : 
-                        sel_mdv ? mdv_cmt_vld :
+assign      cmt_vld =   sel_lsu ? cmt_vld_lsu : 
+                        sel_rglr ? cmt_vld_rglr : 
+                        sel_brch ? cmt_vld_brch : 
+                        sel_sys ? cmt_vld_sys : 
+                        sel_csr ? cmt_vld_csr : 
+                        sel_mdv ? cmt_vld_mdv :
                         idu_vld;
 
-assign      cmt_csr = sel_csr;
-assign      cmt_csr_idxerr = csr_cmt_idx_err;
-
-assign      cmt_rglr = sel_rglr;
-
-assign      cmt_brch_bjp = brch_cmt_bjp;
-assign      cmt_brch_dret = brch_cmt_dret;
-assign      cmt_brch_mret = brch_cmt_mret;
-assign      cmt_brch_fence = brch_cmt_fence;
-assign      cmt_brch_jal = brch_cmt_jal;
-assign      cmt_brch_jalr = brch_cmt_jalr;
-
-assign      cmt_lsu_ld = lsu_cmt_ld;
-assign      cmt_lsu_st = lsu_cmt_st;
-assign      cmt_lsu_addr = lsu_cmt_addr;
-assign      cmt_lsu_excp_buserr = lsu_cmt_excp_buserr;
-assign      cmt_lsu_excp_misalgn = lsu_cmt_excp_misalgn;
-
-assign      cmt_sys_ecall = sys_cmt_ecall;
-assign      cmt_sys_ebreak = sys_cmt_ebreak;
-assign      cmt_sys_wfi = sys_cmt_wfi;
+assign      cmt_csr     = sel_csr;
+assign      cmt_rglr    = sel_rglr;
 
 assign      cmt_ifu_excp_buserr = idu_excp_buserr;
 assign      cmt_ifu_excp_misalgn = idu_excp_misalgn;
 assign      cmt_idu_excp_ilglir = idu_excp_ilglir;
 
-assign      rglr_cmt_rdy = sel_rglr & cmt_rdy;
-assign      csr_cmt_rdy = sel_csr & cmt_rdy;
-assign      sys_cmt_rdy = sel_sys & cmt_rdy;
-assign      lsu_cmt_rdy = sel_lsu & cmt_rdy;
-assign      brch_cmt_rdy = sel_brch & cmt_rdy;
-assign      mdv_cmt_rdy = sel_mdv & cmt_rdy;
+assign      cmt_rdy_rglr    = sel_rglr & cmt_rdy;
+assign      cmt_rdy_csr     = sel_csr & cmt_rdy;
+assign      cmt_rdy_sys     = sel_sys & cmt_rdy;
+assign      cmt_rdy_lsu     = sel_lsu & cmt_rdy;
+assign      cmt_rdy_brch    = sel_brch & cmt_rdy;
+assign      cmt_rdy_mdv     = sel_mdv & cmt_rdy;
 
 assign      idu_rdy = cmt_rdy;
 

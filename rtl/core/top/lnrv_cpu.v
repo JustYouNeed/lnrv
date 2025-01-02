@@ -11,7 +11,7 @@ module  lnrv_cpu#
     input[31 : 0]                           reset_vector,
     input[31 : 0]                           reset_mtvec,
 
-    input                                   stop_on_reset,
+    input                                   firmware_loading,
 
     input                                   sft_irq,
     input                                   tmr_irq,
@@ -225,7 +225,7 @@ lnrv_core u_lnrv_core
 (           
     .reset_vector           ( reset_vector              ),
     .reset_mtvec            ( reset_mtvec               ),
-    .stop_on_reset          ( stop_on_reset             ),
+    .firmware_loading          ( firmware_loading             ),
 
     .sft_irq                ( sft_irq                   ),
     .ext_irq                ( ext_irq                   ),

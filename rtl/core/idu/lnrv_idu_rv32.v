@@ -164,21 +164,21 @@ wire                                rd_is_31;
 
 wire[11 : 0]                        csr;
 
-wire                                csr_op_bus_sel;
+wire                                op_bus_csr_sel;
 wire                                amo_op_bus_sel;
 wire                                fpu_op_bus_sel;
-wire                                brch_op_bus_sel;
-wire                                lsu_op_bus_sel;
-wire                                mdv_op_bus_sel;
-wire                                sys_op_bus_sel;
-wire                                rglr_op_bus_sel;
+wire                                op_bus_brch_sel;
+wire                                op_bus_lsu_sel;
+wire                                op_bus_mdv_sel;
+wire                                op_bus_sys_sel;
+wire                                op_bus_rglr_sel;
 
-wire[`RGLR_OP_BUS_WIDTH - 1 : 0]    rglr_op_bus;
-wire[`BRCH_OP_BUS_WIDTH - 1 : 0]    brch_op_bus;
-wire[`SYS_OP_BUS_WIDTH - 1 : 0]     sys_op_bus;
-wire[`LSU_OP_BUS_WIDTH - 1 : 0]     lsu_op_bus;
-wire[`CSR_OP_BUS_WIDTH - 1 : 0]     csr_op_bus;
-wire[`MDV_OP_BUS_WIDTH - 1 : 0]     mdv_op_bus;
+wire[`RGLR_OP_BUS_WIDTH - 1 : 0]    op_bus_rglr;
+wire[`BRCH_OP_BUS_WIDTH - 1 : 0]    op_bus_brch;
+wire[`SYS_OP_BUS_WIDTH - 1 : 0]     op_bus_sys;
+wire[`LSU_OP_BUS_WIDTH - 1 : 0]     op_bus_lsu;
+wire[`CSR_OP_BUS_WIDTH - 1 : 0]     op_bus_csr;
+wire[`MDV_OP_BUS_WIDTH - 1 : 0]     op_bus_mdv;
 wire[`DEC_OP_BUS_WIDTH : 0]         dec_op_bus_mux;
 
 wire                                instr_one_of_rv32m;
@@ -1011,75 +1011,75 @@ assign      instr_remu = instr_one_of_rv32m & funct3_is_111;
 // ===========================================================================
 //                                      常规运算指令
 // ===========================================================================
-assign      rglr_op_bus[`RGLR_ADD_LOC]      = instr_add | instr_addi;
-assign      rglr_op_bus[`RGLR_SUB_LOC]      = instr_sub;
-assign      rglr_op_bus[`RGLR_AND_LOC]      = instr_and | instr_andi;
-assign      rglr_op_bus[`RGLR_OR_LOC]       = instr_or | instr_ori;
-assign      rglr_op_bus[`RGLR_XOR_LOC]      = instr_xor | instr_xori;
-assign      rglr_op_bus[`RGLR_SLL_LOC]      = instr_sll | instr_slli;
-assign      rglr_op_bus[`RGLR_SLT_LOC]      = instr_slt | instr_slti;
-assign      rglr_op_bus[`RGLR_SRA_LOC]      = instr_sra | instr_srai;
-assign      rglr_op_bus[`RGLR_SRL_LOC]      = instr_srl | instr_srli;
-assign      rglr_op_bus[`RGLR_AUIPC_LOC]    = instr_auipc;
-assign      rglr_op_bus[`RGLR_LUI_LOC]      = instr_lui;
-assign      rglr_op_bus[`RGLR_SLTU_LOC]     = instr_sltu | instr_sltiu;
-assign      rglr_op_bus[`RGLR_OP1_IS_PC]    = instr_auipc;
-assign      rglr_op_bus[`RGLR_OP2_IS_IMM]   = instr_i_type | instr_u_type;
+assign      op_bus_rglr[`RGLR_ADD_LOC]      = instr_add | instr_addi;
+assign      op_bus_rglr[`RGLR_SUB_LOC]      = instr_sub;
+assign      op_bus_rglr[`RGLR_AND_LOC]      = instr_and | instr_andi;
+assign      op_bus_rglr[`RGLR_OR_LOC]       = instr_or | instr_ori;
+assign      op_bus_rglr[`RGLR_XOR_LOC]      = instr_xor | instr_xori;
+assign      op_bus_rglr[`RGLR_SLL_LOC]      = instr_sll | instr_slli;
+assign      op_bus_rglr[`RGLR_SLT_LOC]      = instr_slt | instr_slti;
+assign      op_bus_rglr[`RGLR_SRA_LOC]      = instr_sra | instr_srai;
+assign      op_bus_rglr[`RGLR_SRL_LOC]      = instr_srl | instr_srli;
+assign      op_bus_rglr[`RGLR_AUIPC_LOC]    = instr_auipc;
+assign      op_bus_rglr[`RGLR_LUI_LOC]      = instr_lui;
+assign      op_bus_rglr[`RGLR_SLTU_LOC]     = instr_sltu | instr_sltiu;
+assign      op_bus_rglr[`RGLR_OP1_IS_PC]    = instr_auipc;
+assign      op_bus_rglr[`RGLR_OP2_IS_IMM]   = instr_i_type | instr_u_type;
 
 // ===========================================================================
 //                                      访存指令
 // ===========================================================================
-assign      lsu_op_bus[`LSU_LOAD_LOC]   = instr_lb | instr_lh | instr_lw | instr_lbu | instr_lhu;
-assign      lsu_op_bus[`LSU_STORE_LOC]  = instr_sb | instr_sh | instr_sw;
-assign      lsu_op_bus[`LSU_SIZE_LOC]   =   (instr_lb | instr_lbu | instr_sb) ?  2'd0 : 
+assign      op_bus_lsu[`LSU_LOAD_LOC]   = instr_lb | instr_lh | instr_lw | instr_lbu | instr_lhu;
+assign      op_bus_lsu[`LSU_STORE_LOC]  = instr_sb | instr_sh | instr_sw;
+assign      op_bus_lsu[`LSU_SIZE_LOC]   =   (instr_lb | instr_lbu | instr_sb) ?  2'd0 : 
                                             (instr_lh | instr_lhu | instr_sh) ? 2'd1 : 
                                             2'd2;
 //  lbu指令和lhu指令需要无符号扩展，我们这里只判断funct3，不判断opcode，因为如果不是访存指令，
 //  我们这里拉高也没有问题，最终也不会选择lus_op_bus作为译码结果
-assign      lsu_op_bus[`LSU_UEXT_LOC]   = funct3_is_100 | funct3_is_101;
+assign      op_bus_lsu[`LSU_UEXT_LOC]   = funct3_is_100 | funct3_is_101;
 
 // ===========================================================================
 //                                      分支指令
 // ===========================================================================
-assign      brch_op_bus[`BRCH_BEQ_LOC]      = instr_beq;
-assign      brch_op_bus[`BRCH_BGE_LOC]      = instr_bge;
-assign      brch_op_bus[`BRCH_BGEU_LOC]     = instr_bgeu;
-assign      brch_op_bus[`BRCH_BLT_LOC]      = instr_blt;
-assign      brch_op_bus[`BRCH_BLTU_LOC]     = instr_bltu;
-assign      brch_op_bus[`BRCH_BNE_LOC]      = instr_bne;
-assign      brch_op_bus[`BRCH_JAL_LOC]      = instr_jal;
-assign      brch_op_bus[`BRCH_JALR_LOC]     = instr_jalr;
-assign      brch_op_bus[`BRCH_MRET_LOC]     = instr_mret;
-assign      brch_op_bus[`BRCH_DRET_LOC]     = instr_dret;
-assign      brch_op_bus[`BRCH_FENCE_LOC]    = instr_fence | instr_fencei;
-assign      brch_op_bus[`BRCH_OP1_IS_PC]    = instr_jal | instr_jalr;
-assign      brch_op_bus[`BRCH_OP2_IS_IMM]   = instr_jal | instr_jalr;
+assign      op_bus_brch[`BRCH_BEQ_LOC]      = instr_beq;
+assign      op_bus_brch[`BRCH_BGE_LOC]      = instr_bge;
+assign      op_bus_brch[`BRCH_BGEU_LOC]     = instr_bgeu;
+assign      op_bus_brch[`BRCH_BLT_LOC]      = instr_blt;
+assign      op_bus_brch[`BRCH_BLTU_LOC]     = instr_bltu;
+assign      op_bus_brch[`BRCH_BNE_LOC]      = instr_bne;
+assign      op_bus_brch[`BRCH_JAL_LOC]      = instr_jal;
+assign      op_bus_brch[`BRCH_JALR_LOC]     = instr_jalr;
+assign      op_bus_brch[`BRCH_MRET_LOC]     = instr_mret;
+assign      op_bus_brch[`BRCH_DRET_LOC]     = instr_dret;
+assign      op_bus_brch[`BRCH_FENCE_LOC]    = instr_fence | instr_fencei;
+assign      op_bus_brch[`BRCH_OP1_IS_PC]    = instr_jal | instr_jalr;
+assign      op_bus_brch[`BRCH_OP2_IS_IMM]   = instr_jal | instr_jalr;
 
 // ===========================================================================
 //                                      CSR指令
 // ===========================================================================
-assign      csr_op_bus[`CSR_CSRRC_LOC]      = instr_csrrc | instr_csrrci;
-assign      csr_op_bus[`CSR_CSRRS_LOC]      = instr_csrrs | instr_csrrsi;
-assign      csr_op_bus[`CSR_CSRRW_LOC]      = instr_csrrw | instr_csrrwi;
-assign      csr_op_bus[`CSR_OP1_IS_ZERO]    = rs1_is_0;
-assign      csr_op_bus[`CSR_OP2_IS_IMM]     = instr_csrrci | instr_csrrsi | instr_csrrwi;
+assign      op_bus_csr[`CSR_CSRRC_LOC]      = instr_csrrc | instr_csrrci;
+assign      op_bus_csr[`CSR_CSRRS_LOC]      = instr_csrrs | instr_csrrsi;
+assign      op_bus_csr[`CSR_CSRRW_LOC]      = instr_csrrw | instr_csrrwi;
+assign      op_bus_csr[`CSR_OP1_IS_ZERO]    = rs1_is_0;
+assign      op_bus_csr[`CSR_OP2_IS_IMM]     = instr_csrrci | instr_csrrsi | instr_csrrwi;
 
 // ===========================================================================
 //                                      系统相关指令
 // ===========================================================================
-assign      sys_op_bus[`SYS_WFI_LOC]        = instr_wfi;
-assign      sys_op_bus[`SYS_EBREAK_LOC]     = instr_ebreak;
-assign      sys_op_bus[`SYS_ECALL_LOC]      = instr_ecall;
+assign      op_bus_sys[`SYS_WFI_LOC]        = instr_wfi;
+assign      op_bus_sys[`SYS_EBREAK_LOC]     = instr_ebreak;
+assign      op_bus_sys[`SYS_ECALL_LOC]      = instr_ecall;
 
 // ===========================================================================
 //                                      整数乘除指令
 // ===========================================================================
-assign      mdv_op_bus[`MDV_DIV_LOC]            = instr_div | instr_divu;
-assign      mdv_op_bus[`MDV_MUL_LOC]            = instr_mul | instr_mulh | instr_mulhsu | instr_mulhu;
-assign      mdv_op_bus[`MDV_REM_LOC]            = instr_rem | instr_remu;
-assign      mdv_op_bus[`MDV_OP1_UNSIGNED_LOC]   = instr_divu | instr_mulhu | instr_remu;
-assign      mdv_op_bus[`MDV_OP2_UNSIGNED_LOC]   = instr_divu | instr_mulhsu | instr_mulhu | instr_remu;
-assign      mdv_op_bus[`MDV_RES_HIGH_LOC]       = instr_mulh | instr_mulhsu | instr_mulhu;
+assign      op_bus_mdv[`MDV_DIV_LOC]            = instr_div | instr_divu;
+assign      op_bus_mdv[`MDV_MUL_LOC]            = instr_mul | instr_mulh | instr_mulhsu | instr_mulhu;
+assign      op_bus_mdv[`MDV_REM_LOC]            = instr_rem | instr_remu;
+assign      op_bus_mdv[`MDV_OP1_UNSIGNED_LOC]   = instr_divu | instr_mulhu | instr_remu;
+assign      op_bus_mdv[`MDV_OP2_UNSIGNED_LOC]   = instr_divu | instr_mulhsu | instr_mulhu | instr_remu;
+assign      op_bus_mdv[`MDV_RES_HIGH_LOC]       = instr_mulh | instr_mulhsu | instr_mulhu;
 
 // ===========================================================================
 //                                      原子指令
@@ -1093,44 +1093,44 @@ assign      mdv_op_bus[`MDV_RES_HIGH_LOC]       = instr_mulh | instr_mulhsu | in
 // 选出一个译码信息, 由于OP_BUS_WIDTH使用的是各个OP_BUS_WIDTH中最大的那个, 如果直接使用OP_BUS_WIDTH - RGLR_OP_BUS_WIDTH, 
 // 有可能出现{0{1'b0}}的情况, 为了避免这个情况发生, 我们将op_bus_mux的位宽定义为OP_BUS_WIDTH+1, 这样可以保证相减后至少为1,
 // 只需要在输出的时候忽略最高位即可.
-assign      rglr_op_bus_sel =   opcode_is_0010011 | 
+assign      op_bus_rglr_sel =   opcode_is_0010011 | 
                                 (opcode_is_0110011 & (~funct7_is_0000001)) |     //opcode == 0110011 且 funct7 == 0000001时, 为乘除法指令
                                 instr_lui | 
                                 instr_auipc;
 
-assign      lsu_op_bus_sel = instr_one_of_load | instr_one_of_store;
+assign      op_bus_lsu_sel = instr_one_of_load | instr_one_of_store;
 
-assign      brch_op_bus_sel =   opcode_is_1100011 | 
+assign      op_bus_brch_sel =   opcode_is_1100011 | 
                                 instr_jal |
                                 instr_jalr | 
                                 instr_mret | 
                                 instr_fencei | instr_fence |
                                 instr_dret_legl;
 
-assign      csr_op_bus_sel = opcode_is_1110011 & (~funct3_is_000);
+assign      op_bus_csr_sel = opcode_is_1110011 & (~funct3_is_000);
 
-assign      sys_op_bus_sel = instr_wfi | instr_ebreak | instr_ecall;
+assign      op_bus_sys_sel = instr_wfi | instr_ebreak | instr_ecall;
 
-assign      mdv_op_bus_sel = instr_one_of_rv32m;
+assign      op_bus_mdv_sel = instr_one_of_rv32m;
 
 assign      amo_op_bus_sel = 1'b0;
 
 assign      fpu_op_bus_sel = 1'b0;
 
-assign      dec_op_bus_mux =    ({(`DEC_OP_BUS_WIDTH + 1){rglr_op_bus_sel}} & {{(`DEC_OP_BUS_WIDTH + 1 - `RGLR_OP_BUS_WIDTH){1'b0}},    rglr_op_bus}) | 
-                                ({(`DEC_OP_BUS_WIDTH + 1){brch_op_bus_sel}} & {{(`DEC_OP_BUS_WIDTH + 1 - `BRCH_OP_BUS_WIDTH){1'b0}},    brch_op_bus}) | 
-                                ({(`DEC_OP_BUS_WIDTH + 1){lsu_op_bus_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `LSU_OP_BUS_WIDTH){1'b0}},     lsu_op_bus}) | 
-                                ({(`DEC_OP_BUS_WIDTH + 1){csr_op_bus_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `CSR_OP_BUS_WIDTH){1'b0}},     csr_op_bus}) | 
-                                ({(`DEC_OP_BUS_WIDTH + 1){sys_op_bus_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `SYS_OP_BUS_WIDTH){1'b0}},     sys_op_bus}) | 
-                                ({(`DEC_OP_BUS_WIDTH + 1){mdv_op_bus_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `MDV_OP_BUS_WIDTH){1'b0}},     mdv_op_bus});
+assign      dec_op_bus_mux =    ({(`DEC_OP_BUS_WIDTH + 1){op_bus_rglr_sel}} & {{(`DEC_OP_BUS_WIDTH + 1 - `RGLR_OP_BUS_WIDTH){1'b0}},    op_bus_rglr}) | 
+                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_brch_sel}} & {{(`DEC_OP_BUS_WIDTH + 1 - `BRCH_OP_BUS_WIDTH){1'b0}},    op_bus_brch}) | 
+                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_lsu_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `LSU_OP_BUS_WIDTH){1'b0}},     op_bus_lsu}) | 
+                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_csr_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `CSR_OP_BUS_WIDTH){1'b0}},     op_bus_csr}) | 
+                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_sys_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `SYS_OP_BUS_WIDTH){1'b0}},     op_bus_sys}) | 
+                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_mdv_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `MDV_OP_BUS_WIDTH){1'b0}},     op_bus_mdv});
 
 assign      dec_op_bus = dec_op_bus_mux[0 +: `DEC_OP_BUS_WIDTH];
-assign      dec_op_type =   rglr_op_bus_sel ? `DEC_RGLR_BUS : 
-                            brch_op_bus_sel ? `DEC_BRCH_BUS : 
-                            lsu_op_bus_sel ? `DEC_LSU_BUS : 
-                            csr_op_bus_sel ? `DEC_CSR_BUS : 
-                            sys_op_bus_sel ? `DEC_SYS_BUS : 
-                            mdv_op_bus_sel ? `DEC_MDV_BUS : 
+assign      dec_op_type =   op_bus_rglr_sel ? `DEC_RGLR_BUS : 
+                            op_bus_brch_sel ? `DEC_BRCH_BUS : 
+                            op_bus_lsu_sel ? `DEC_LSU_BUS : 
+                            op_bus_csr_sel ? `DEC_CSR_BUS : 
+                            op_bus_sys_sel ? `DEC_SYS_BUS : 
+                            op_bus_mdv_sel ? `DEC_MDV_BUS : 
                             `DEC_NONE_BUS;
 
 // 判断非法指令
@@ -1143,13 +1143,13 @@ assign      instr_dret_ilegl = instr_dret & (~d_mode);
 assign      instr_dret_legl = instr_dret & d_mode;
 
 // 已经支持的指令
-assign      support_instr =     rglr_op_bus_sel | 
-                                sys_op_bus_sel | 
-                                brch_op_bus_sel | 
-                                lsu_op_bus_sel | 
-                                mdv_op_bus_sel | 
+assign      support_instr =     op_bus_rglr_sel | 
+                                op_bus_sys_sel | 
+                                op_bus_brch_sel | 
+                                op_bus_lsu_sel | 
+                                op_bus_mdv_sel | 
                                 fpu_op_bus_sel | 
-                                csr_op_bus_sel |
+                                op_bus_csr_sel |
                                 amo_op_bus_sel | 
                                 1'b0;
 assign      unsupport_instr = ~support_instr;

@@ -14,14 +14,14 @@ module lnrv_idu
     input                               ifu_excp_buserr,
 
     // 交付模块的流水线冲刷请求
-    input                               cmt_pipe_flush_req,
-    output                              cmt_pipe_flush_ack,
+    input                               pipe_flush_req_cmt,
+    output                              pipe_flush_ack_cmt,
 
     // 分支预测模块的流水线冲刷请求输出
-    output                              bpu_pipe_flush_req,
-    input                               bpu_pipe_flush_ack,
-    output[31 : 0]                      bpu_pipe_flush_pc_op1,
-    output[31 : 0]                      bpu_pipe_flush_pc_op2,
+    output                              pipe_flush_req_bpu,
+    input                               pipe_flush_ack_bpu,
+    output[31 : 0]                      pipe_flush_pc_op1_bpu,
+    output[31 : 0]                      pipe_flush_pc_op2_bpu,
 
     input                               d_mode,
 
@@ -176,8 +176,8 @@ u_idu_pipe_stage
     .clk                ( clk                       ),
     .reset_n            ( reset_n                   ),
 
-    .flush_req          ( cmt_pipe_flush_req        ),
-    .flush_ack          ( cmt_pipe_flush_ack        ),
+    .flush_req          ( pipe_flush_req_cmt        ),
+    .flush_ack          ( pipe_flush_ack_cmt        ),
 
     .push_vld           ( idu_buf_push_vld          ),
     .push_rdy           ( idu_buf_push_rdy          ),
@@ -210,9 +210,9 @@ assign      {
 
 assign      idu_active = 1'b1;
 
-assign      bpu_pipe_flush_req = 1'b0;
-assign      bpu_pipe_flush_pc_op1 = 32'd0;
-assign      bpu_pipe_flush_pc_op2 = 32'd0;
+assign      pipe_flush_req_bpu = 1'b0;
+assign      pipe_flush_pc_op1_bpu = 32'd0;
+assign      pipe_flush_pc_op2_bpu = 32'd0;
 
 assign      pipe_halt_ack = idu_buf_push_rdy;
 
