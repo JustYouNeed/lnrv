@@ -56,7 +56,7 @@ module  lnrv_exu#
     output                                  cmt_brch_jalr,
     output                                  cmt_brch_bjp,
     output                                  cmt_csr_idx_err,
-    input                                   cmt_csr,
+    output                                  cmt_csr,
     output                                  cmt_rglr,
     output                                  cmt_ifu_excp_buserr,
     output                                  cmt_ifu_excp_misalgn,
@@ -88,8 +88,8 @@ module  lnrv_exu#
 );
 
 wire                                sel_rglr;
-wire                                rglr_op_vld;
-wire                                rglr_op_rdy;
+wire                                op_vld_rglr;
+wire                                op_rdy_rglr;
 wire[`RGLR_OP_BUS_WIDTH - 1 : 0]    op_bus_rglr;
 wire                                cmt_vld_rglr;
 wire                                cmt_rdy_rglr;
@@ -107,11 +107,6 @@ wire                                op_rdy_lsu;
 wire[`LSU_OP_BUS_WIDTH - 1 : 0]     op_bus_lsu;
 wire                                cmt_vld_lsu;
 wire                                cmt_rdy_lsu;
-wire                                cmt_lsu_ld;
-wire                                cmt_lsu_st;
-wire                                cmt_lsu_excp_buserr;
-wire                                cmt_lsu_excp_misalg;
-wire[31 : 0]                        cmt_lsu_addr;
 wire                                gpr_wen_lsu;
 wire[31 : 0]                        gpr_wdata_lsu;
 wire                                alu_op_vld_lsu;
@@ -121,17 +116,11 @@ wire[32 : 0]                        alu_in1_lsu;
 wire[32 : 0]                        alu_in2_lsu;
 
 wire                                sel_brch;
-wire                                brch_op_vld;
-wire                                brch_op_rdy;
+wire                                op_vld_brch;
+wire                                op_rdy_brch;
 wire[`BRCH_OP_BUS_WIDTH - 1 : 0]    op_bus_brch;
 wire                                cmt_vld_brch;
 wire                                cmt_rdy_brch;
-wire                                cmt_brch_bjp;
-wire                                cmt_brch_dret;
-wire                                cmt_brch_fence;
-wire                                cmt_brch_jal;
-wire                                cmt_brch_jalr;
-wire                                cmt_brch_mret;
 wire                                gpr_wen_brch;
 wire[31 : 0]                        gpr_wdata_brch;
 wire                                alu_op_vld_brch;
@@ -146,17 +135,13 @@ wire                                op_rdy_sys;
 wire[`SYS_OP_BUS_WIDTH - 1 : 0]     op_bus_sys;
 wire                                cmt_vld_sys;
 wire                                cmt_rdy_sys;
-wire                                cmt_sys_ebreak;
-wire                                cmt_sys_ecall;
-wire                                cmt_sys_wfi;
 
 wire                                sel_csr;
-wire                                csr_op_vld;
-wire                                csr_op_rdy;
+wire                                op_vld_csr;
+wire                                op_rdy_csr;
 wire[`CSR_OP_BUS_WIDTH - 1 : 0]     op_bus_csr;
 wire                                cmt_vld_csr;
 wire                                cmt_rdy_csr;
-wire                                cmt_csr_idx_err;
 wire                                gpr_wen_csr;
 wire[31 : 0]                        gpr_wdata_csr;
 wire                                alu_op_vld_csr;
@@ -166,8 +151,8 @@ wire[32 : 0]                        alu_in1_csr;
 wire[32 : 0]                        alu_in2_csr;
 
 wire                                sel_mdv;
-wire                                mdv_op_vld;
-wire                                mdv_op_rdy;
+wire                                op_vld_mdv;
+wire                                op_rdy_mdv;
 wire[`MDV_OP_BUS_WIDTH - 1 : 0]     op_bus_mdv;
 wire                                cmt_vld_mdv;
 wire                                cmt_rdy_mdv;
@@ -209,19 +194,19 @@ lnrv_exu_disp u_lnrv_exu_disp
     .op_bus_mdv                 ( op_bus_mdv                )
 );
 
-assign      rglr_op_vld         = sel_rglr & idu_vld;
-assign      csr_op_vld          = sel_csr & idu_vld;
+assign      op_vld_rglr         = sel_rglr & idu_vld;
+assign      op_vld_csr          = sel_csr & idu_vld;
 assign      op_vld_sys          = sel_sys & idu_vld;
-assign      mdv_op_vld          = sel_mdv & idu_vld;
-assign      brch_op_vld         = sel_brch & idu_vld;
+assign      op_vld_mdv          = sel_mdv & idu_vld;
+assign      op_vld_brch         = sel_brch & idu_vld;
 assign      op_vld_lsu          = sel_lsu & idu_vld;
-assign      mdv_op_vld          = sel_mdv & idu_vld;
+assign      op_vld_mdv          = sel_mdv & idu_vld;
 
 // 常规指令执行模块
 lnrv_exu_rglr u_lnrv_exu_rglr
 (
-    .op_vld                     ( rglr_op_vld               ),
-    .op_rdy                     ( rglr_op_rdy               ),
+    .op_vld                     ( op_vld_rglr               ),
+    .op_rdy                     ( op_rdy_rglr               ),
     .op_bus                     ( op_bus_rglr               ),
 
     .rs1_rdata                  ( rs1_rdata                 ),
@@ -243,11 +228,11 @@ lnrv_exu_rglr u_lnrv_exu_rglr
     .gpr_wdata                  ( gpr_wdata_rglr            )
 );
 
-// csr指令处理模块 
+// csr指令处理模块
 lnrv_exu_csr u_lnrv_exu_csr
 (
-    .op_vld                     ( csr_op_vld                ),
-    .op_rdy                     ( csr_op_rdy                ),
+    .op_vld                     ( op_vld_csr                ),
+    .op_rdy                     ( op_rdy_csr                ),
     .op_bus                     ( op_bus_csr                ),
 
     .imm                        ( idu_imm                   ),
@@ -278,16 +263,16 @@ lnrv_exu_csr u_lnrv_exu_csr
 // 分支相关指令执行模块
 lnrv_exu_brch u_lnrv_exu_brch
 (
-    .op_vld                     ( brch_op_vld               ),
-    .op_rdy                     ( brch_op_rdy               ),
+    .op_vld                     ( op_vld_brch               ),
+    .op_rdy                     ( op_rdy_brch               ),
     .op_bus                     ( op_bus_brch               ),
-    
+
     .rs1_rdata                  ( rs1_rdata                 ),
     .rs2_rdata                  ( rs2_rdata                 ),
     .pc                         ( idu_pc                    ),
     .imm                        ( idu_imm                   ),
     .rv32_ir                    ( idu_rv32                  ),
-    
+
     .alu_op_vld                 ( alu_op_vld_brch           ),
     .alu_op_rdy                 ( alu_op_rdy_brch           ),
     .alu_op_bus                 ( alu_op_bus_brch           ),
@@ -313,8 +298,8 @@ lnrv_exu_brch u_lnrv_exu_brch
 // 乘除法指令执行模块
 lnrv_exu_mdv u_lnrv_exu_mdv
 (
-    .op_vld                     ( mdv_op_vld                ),
-    .op_rdy                     ( mdv_op_rdy                ),
+    .op_vld                     ( op_vld_mdv                ),
+    .op_rdy                     ( op_rdy_mdv                ),
     .op_bus                     ( op_bus_mdv                ),
 
     .rs1_rdata                  ( rs1_rdata                 ),
@@ -337,7 +322,7 @@ lnrv_exu_mdv u_lnrv_exu_mdv
     .reset_n                    ( reset_n                   )
 );
 
-// 系统相关指令处理模块 
+// 系统相关指令处理模块
 lnrv_exu_sys u_lnrv_exu_sys
 (
     .op_vld                     ( op_vld_sys                ),
@@ -433,29 +418,29 @@ lnrv_exu_alu u_lnrv_exu_alu
 );
 
 // 指令交付成功，且需要写回寄存器
-assign      gpr_wbck_vld =  cmt_vld & cmt_rdy & 
+assign      gpr_wbck_vld =  cmt_vld & cmt_rdy &
                             (
-                                (sel_rglr   & gpr_wen_rglr) | 
-                                (sel_csr    & gpr_wen_csr) | 
-                                (sel_brch   & gpr_wen_brch) | 
-                                (sel_lsu    & gpr_wen_lsu) | 
-                                (sel_mdv    & gpr_wen_mdv) | 
+                                (sel_rglr   & gpr_wen_rglr) |
+                                (sel_csr    & gpr_wen_csr) |
+                                (sel_brch   & gpr_wen_brch) |
+                                (sel_lsu    & gpr_wen_lsu) |
+                                (sel_mdv    & gpr_wen_mdv) |
                                 1'b0
                             );
 
 assign      gpr_wbck_idx = idu_rd;
-assign      gpr_wbck_wdata =    ({32{sel_rglr}} & gpr_wdata_rglr) | 
-                                ({32{sel_csr}}  & gpr_wdata_csr) | 
-                                ({32{sel_brch}} & gpr_wdata_brch) | 
+assign      gpr_wbck_wdata =    ({32{sel_rglr}} & gpr_wdata_rglr) |
+                                ({32{sel_csr}}  & gpr_wdata_csr) |
+                                ({32{sel_brch}} & gpr_wdata_brch) |
                                 ({32{sel_mdv}}  & gpr_wdata_mdv) |
                                 ({32{sel_lsu}}  & gpr_wdata_lsu);
 
 // 交付接口
-assign      cmt_vld =   sel_lsu ? cmt_vld_lsu : 
-                        sel_rglr ? cmt_vld_rglr : 
-                        sel_brch ? cmt_vld_brch : 
-                        sel_sys ? cmt_vld_sys : 
-                        sel_csr ? cmt_vld_csr : 
+assign      cmt_vld =   sel_lsu ? cmt_vld_lsu :
+                        sel_rglr ? cmt_vld_rglr :
+                        sel_brch ? cmt_vld_brch :
+                        sel_sys ? cmt_vld_sys :
+                        sel_csr ? cmt_vld_csr :
                         sel_mdv ? cmt_vld_mdv :
                         idu_vld;
 

@@ -1,5 +1,5 @@
 `include "lnrv_def.v"
-module lnrv_idu 
+module lnrv_idu
 (
     output                              idu_active,
 
@@ -170,9 +170,9 @@ lnrv_gnrl_buffer#
     .P_DEEPTH           ( 1                         ),
     .P_CUT_READY        ( "false"                   ),
     .P_BYPASS           ( "false"                   )
-)   
-u_idu_pipe_stage  
-(   
+)
+u_idu_pipe_stage
+(
     .clk                ( clk                       ),
     .reset_n            ( reset_n                   ),
 

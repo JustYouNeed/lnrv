@@ -128,8 +128,8 @@ assign      addr_algn_half = ~lsu2alu_add_res[0];
 assign      addr_algn_word = ~(|lsu2alu_add_res[1 : 0]);
 
 // 判断访问地址是否对齐
-assign      addr_algn = (byte_access & addr_algn_byte) | 
-                        (half_access & addr_algn_half) | 
+assign      addr_algn = (byte_access & addr_algn_byte) |
+                        (half_access & addr_algn_half) |
                         (word_access & addr_algn_word);
 
 assign      addr_misalgn = ~addr_algn;
@@ -153,8 +153,8 @@ end
 
 
 // assign      cmd_wdata_rld = cmd_vld_set;
-// assign      cmd_wdata_d =   byte_access ? store_byte : 
-//                             half_access ? store_half : 
+// assign      cmd_wdata_d =   byte_access ? store_byte :
+//                             half_access ? store_half :
 //                             store_word;
 // always@(posedge clk or negedge reset_n) begin
 //     if(reset_n == 1'b0) begin
@@ -168,7 +168,7 @@ end
 assign      cmd_ots_set = lsu_cmd_hsked;
 assign      cmd_ots_clr = lsu_rsp_hsked;
 assign      cmd_ots_rld = cmd_ots_set | cmd_ots_clr;
-assign      cmd_ots_d = (cmd_ots_set & cmd_ots_q) | 
+assign      cmd_ots_d = (cmd_ots_set & cmd_ots_q) |
                         (~(cmd_ots_clr | cmd_ots_q));
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
@@ -195,9 +195,9 @@ assign      half_access_wstrb = 4'b0011 << {alu_res[1], 1'b0};
 assign      word_access_wstrb = 4'b1111;
 
 assign      cmd_wstrb_rld = cmd_vld_set;
-assign      cmd_wstrb_d =   byte_access ? byte_access_wstrb : 
-                            half_access ? half_access_wstrb : 
-                            word_access ? word_access_wstrb : 
+assign      cmd_wstrb_d =   byte_access ? byte_access_wstrb :
+                            half_access ? half_access_wstrb :
+                            word_access ? word_access_wstrb :
                             4'b0000;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
@@ -216,9 +216,9 @@ end
 // assign      lsu_bad_addr = alu_res;
 
 // 根据当前地址以及访问模式决定输出数据
-assign      store_byte =    (lsu_cmd_addr[1 : 0] == 2'b00) ? {24'd0, rs2_rdata[7 : 0]} : 
-                            (lsu_cmd_addr[1 : 0] == 2'b01) ? {16'd0, rs2_rdata[7 : 0], 8'd0}: 
-                            (lsu_cmd_addr[1 : 0] == 2'b10) ? {8'd0, rs2_rdata[7 : 0], 16'd0} : 
+assign      store_byte =    (lsu_cmd_addr[1 : 0] == 2'b00) ? {24'd0, rs2_rdata[7 : 0]} :
+                            (lsu_cmd_addr[1 : 0] == 2'b01) ? {16'd0, rs2_rdata[7 : 0], 8'd0}:
+                            (lsu_cmd_addr[1 : 0] == 2'b10) ? {8'd0, rs2_rdata[7 : 0], 16'd0} :
                             {rs2_rdata[7 : 0], 24'd0};
 assign      store_half = lsu_cmd_addr[1] ? {rs2_rdata[15 : 0], 16'd0} : {16'd0, rs2_rdata[15 : 0]};
 assign      store_word = rs2_rdata;
@@ -229,21 +229,21 @@ assign      lsu_cmd_addr    = alu_res;
 assign      lsu_cmd_write   = instr_is_store;
 assign      lsu_cmd_size    = ls_size;
 assign      lsu_cmd_wstrb   = cmd_wstrb_q;
-assign      lsu_cmd_wdata   =   byte_access ? store_byte : 
-                                half_access ? store_half : 
+assign      lsu_cmd_wdata   =   byte_access ? store_byte :
+                                half_access ? store_half :
                                 store_word;
 
 // 如果有异常发生，则需要请求处理异常，否则直接写回即可
-assign      lsu_rsp_rdy =   lsu_excp_vld ? lsu_excp_rdy: 
+assign      lsu_rsp_rdy =   lsu_excp_vld ? lsu_excp_rdy:
                             gpr_wbck_rdy;
 
-assign      load_byte = (lsu_cmd_addr[1 : 0] == 2'b00) ? lsu_rsp_rdata[7 : 0] : 
-                        (lsu_cmd_addr[1 : 0] == 2'b01) ? lsu_rsp_rdata[15 : 8] : 
-                        (lsu_cmd_addr[1 : 0] == 2'b10) ? lsu_rsp_rdata[23 : 16] : 
+assign      load_byte = (lsu_cmd_addr[1 : 0] == 2'b00) ? lsu_rsp_rdata[7 : 0] :
+                        (lsu_cmd_addr[1 : 0] == 2'b01) ? lsu_rsp_rdata[15 : 8] :
+                        (lsu_cmd_addr[1 : 0] == 2'b10) ? lsu_rsp_rdata[23 : 16] :
                         lsu_rsp_rdata[31 : 24];
-                        // (lsu_cmd_addr[1 : 0] == 2'b00) ? lsu_rsp_rdata[7 : 0] : 
+                        // (lsu_cmd_addr[1 : 0] == 2'b00) ? lsu_rsp_rdata[7 : 0] :
 
-assign      load_half = lsu_cmd_addr[1] ? lsu_rsp_rdata[31 : 16] : 
+assign      load_half = lsu_cmd_addr[1] ? lsu_rsp_rdata[31 : 16] :
                         lsu_rsp_rdata[15 : 0];
 
 assign      sext_byte = {{24{load_byte[7]}}, load_byte};
@@ -278,12 +278,12 @@ assign      lsu_op_rdy = cmt_lsu_rdy;
 
 // // 在没有发生异常的情况下才可以写回
 // assign      gpr_wbck_vld    = lsu_rsp_vld & (~lsu_excp_vld) & instr_is_load;
-// assign      gpr_wbck_wdata  =   byte_access ? ext_byte : 
-//                                 half_access ? ext_half : 
+// assign      gpr_wbck_wdata  =   byte_access ? ext_byte :
+//                                 half_access ? ext_half :
 //                                 lsu_rsp_rdata;
 
-// assign      op_rdy =    lsu_excp_vld ? lsu_excp_rdy : 
-//                         instr_is_load ? gpr_wbck_rdy & gpr_wbck_vld : 
+// assign      op_rdy =    lsu_excp_vld ? lsu_excp_rdy :
+//                         instr_is_load ? gpr_wbck_rdy & gpr_wbck_vld :
 //                         lsu_rsp_hsked;
 
 // 我们直接将lsu的resp接到异常处理模块
@@ -297,8 +297,8 @@ assign      cmt_lsu_buserr = lsu_rsp_err;
 assign      cmt_lsu_ld = instr_is_load;
 assign      cmt_lsu_st = instr_is_store;
 assign      cmt_lsu_addr = lsu_cmd_addr;
-assign      gpr_wdata_lsu_cmt = byte_access ? ext_byte : 
-                                half_access ? ext_half : 
+assign      gpr_wdata_lsu_cmt = byte_access ? ext_byte :
+                                half_access ? ext_half :
                                 lsu_rsp_rdata;
 
 endmodule

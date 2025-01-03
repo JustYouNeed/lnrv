@@ -95,7 +95,7 @@ generate
         assign      s_icb_cmd_wdata = m_icb_cmd_wdata;
         assign      s_icb_cmd_wstrb = m_icb_cmd_wstrb;
         assign      s_icb_cmd_size  = m_icb_cmd_size;
-        
+
         assign      m_icb_cmd_rdy   = s_icb_cmd_rdy;
     end
 endgenerate

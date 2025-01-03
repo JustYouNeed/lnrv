@@ -208,14 +208,12 @@
 `define     ALU_SRL_LOC                         8 +: 1
 `define     ALU_SRA_LOC                         9 +: 1
 `define     ALU_EQ_LOC                          10 +: 1
-`define     ALU_GTEU_LOC                        11 +: 1
-`define     ALU_GTE_LOC                         12 +: 1
-`define     ALU_LT_LOC                          13 +: 1
-`define     ALU_LTU_LOC                         14 +: 1
-`define     ALU_NEQ_LOC                         15 +: 1
-`define     ALU_OP_BUS_WIDTH                    16
+`define     ALU_GTE_LOC                         11 +: 1
+`define     ALU_LT_LOC                          12 +: 1
+`define     ALU_NEQ_LOC                         13 +: 1
+`define     ALU_OP_BUS_WIDTH                    14
 
-// 
+//
 `define     DEC_OP_TYPE_WIDTH                   3
 `define     DEC_OP_TYPE_LSB                     0
 `define     DEC_OP_TYPE_LOC                     `DEC_BUS_TYPE_LSB +: `DEC_BUS_TYPE_WIDTH

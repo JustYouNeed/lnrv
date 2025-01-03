@@ -2,7 +2,7 @@ module lnrv_cmt_wfi(
     input                   clk,
     input                   reset_n,
 
-    input                   exu_idle, 
+    input                   exu_idle,
 
     input                   cmt_vld,
     input                   cmt_sys_wfi,
@@ -47,8 +47,8 @@ assign      wfi_irq_mask = d_mode | dcsr_step;
 // 执行到wfi指令时，我们会拉高pipe_halt_req信号，请求暂停流水线
 assign      pipe_halt_req_set = cmt_vld & cmt_sys_wfi & (~d_mode);
 // 如果期间有中断/异常/调试请求发生，我们立即拉低pipe_halt_req信号，退出wfi模式
-assign      pipe_halt_req_clr = excp_req_raw | 
-                                (irq_req_raw & (~wfi_irq_mask)) | 
+assign      pipe_halt_req_clr = excp_req_raw |
+                                (irq_req_raw & (~wfi_irq_mask)) |
                                 dbg_req_raw;
 assign      pipe_halt_req_rld = pipe_halt_req_set | pipe_halt_req_clr;
 assign      pipe_halt_req_d = pipe_halt_req_set & (~pipe_halt_req_clr);

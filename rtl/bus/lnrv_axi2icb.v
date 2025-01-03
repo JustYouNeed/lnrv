@@ -148,7 +148,9 @@ wire                                    axi_b_hsked;
 wire                                    axi_ar_hsked;
 wire                                    axi_r_hsked;
 
-
+wire                                    axi_xfr_buf_push_hsked;
+wire                                    axi_xfr_buf_pop_hsked;
+wire                                    axi_xfr_last;
 
 assign      arbt_request = {2{axi_xfr_buf_push_rdy}} & {axi_awvalid, axi_arvalid};
 
@@ -157,9 +159,9 @@ lnrv_gnrl_arbiter#
 (
     .P_ARBT_NUM         ( 2                         ),
     .P_ARBT_TYPE        ( "round-robin"             )
-)       
-u_lnrv_gnrl_arbiter     
-(       
+)
+u_lnrv_gnrl_arbiter
+(
     .request            ( arbt_request              ),
     .grant              ( arbt_grant                ),
 
@@ -194,7 +196,7 @@ assign      axi_ar_info =   {
 
 
 assign      axi_xfr_buf_push_vld = axi_awvalid | axi_arvalid;
-assign      axi_xfr_buf_push_data = ({LP_AXI_XFR_BUF_WIDTH{arbt_grant[0]}} & axi_ar_info) | 
+assign      axi_xfr_buf_push_data = ({LP_AXI_XFR_BUF_WIDTH{arbt_grant[0]}} & axi_ar_info) |
                                     ({LP_AXI_XFR_BUF_WIDTH{arbt_grant[1]}} & axi_aw_info);
 
 // 处理完一个axi读或者写传输后，从buf从弹出信息
@@ -222,9 +224,9 @@ lnrv_gnrl_buffer#
     .P_DEEPTH               ( 1                         ),
     .P_CUT_READY            ( "true"                    ),
     .P_BYPASS               ( "false"                   )
-)           
-u_axi_xfr_buf           
-(           
+)
+u_axi_xfr_buf
+(
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   ),
 
@@ -261,7 +263,7 @@ assign      no_ots_cmd = (~icb_cmd_ots_q) | icb_cmd_ots_clr;
 
 // 由于ICB总线只有一个command通道，读写通道共用，因此如果是AXI写操作，则需要等W通道的数据有效，才可以发送command
 // 如果是读操作，则可以直接发送command
-assign      icb_cmd_allow =    (axi_write_xfr_vld & axi_wvalid) | 
+assign      icb_cmd_allow =    (axi_write_xfr_vld & axi_wvalid) |
                                 axi_read_xfr_vld;
 
 // 对于ICB总线，每个传输都会有一个地址信息，如果AXI传输信息有效，同时ots队列没有满，则可以继续发送指令
@@ -274,7 +276,7 @@ assign      m_icb_cmd_addr  = axi_addr_bufed + ({8'd0, axi_xfr_cnt_q} << axi_siz
 
 
 // 如果是写操作，则总是可以接收response，读则需要检查axi通道
-assign      m_icb_rsp_rdy = axi_write_xfr_vld ? 1'b1 : 
+assign      m_icb_rsp_rdy = axi_write_xfr_vld ? 1'b1 :
                             axi_rready;
 
 // 在icb上插入一个buf
@@ -397,7 +399,7 @@ assign      axi_bresp[0]    = axi_bresp_q;
 //
 assign      axi_arready = axi_xfr_buf_push_rdy & arbt_grant[0];
 
-// 
+//
 assign      axi_rdata       = {P_DATA_WIDTH{axi_read_xfr_vld}} & icb_rsp_rdata;
 assign      axi_rvalid      = axi_read_xfr_vld & icb_rsp_vld;
 assign      axi_rlast       = axi_read_xfr_vld & axi_xfr_last;

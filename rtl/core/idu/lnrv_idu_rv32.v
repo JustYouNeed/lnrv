@@ -209,6 +209,7 @@ assign      opcode_is_0001111   = (opcode == 7'b0001111);
 assign      opcode_is_1110011   = (opcode == 7'b1110011);
 assign      opcode_is_0101111   = (opcode == 7'b0101111);
 assign      opcode_is_0000000   = (opcode == 7'b0000000);
+assign      opcode_is_1111111   = (opcode == 7'b1111111);
 
 assign      funct3              = `GET_INSTR_FUNCT3(ir);
 assign      funct3_is_000       = (funct3 == 3'b000);
@@ -229,15 +230,15 @@ assign      funct7_is_1111111   = (funct7 == 7'b1111111);
 
 
 // 判断指令类型
-assign      instr_u_type =  opcode_is_0110111 | 
+assign      instr_u_type =  opcode_is_0110111 |
                             opcode_is_0010111;
 
 assign      instr_j_type =  opcode_is_1101111;
 
-assign      instr_i_type =  opcode_is_1100111 | 
-                            opcode_is_0000011 | 
-                            opcode_is_0010011 | 
-                            opcode_is_0001111 | 
+assign      instr_i_type =  opcode_is_1100111 |
+                            opcode_is_0000011 |
+                            opcode_is_0010011 |
+                            opcode_is_0001111 |
                             opcode_is_1110011;
 
 assign      instr_b_type =   opcode_is_1100011;
@@ -284,15 +285,15 @@ assign      imm_s_type          = `GET_S_TYPE_IMM(ir);
 assign      imm_u_type          = `GET_U_TYPE_IMM(ir);
 
 
-assign      imm_i_type_sel =    opcode_is_0010011  | 
-                                instr_jalr | 
+assign      imm_i_type_sel =    opcode_is_0010011  |
+                                instr_jalr |
                                 opcode_is_0000011;
 
 // csrrci csrrsi csrrwi需要使用zimm
-assign      imm_i_type_csr_sel = opcode_is_1110011 & 
+assign      imm_i_type_csr_sel = opcode_is_1110011 &
                                 (
-                                    funct3_is_101 | 
-                                    funct3_is_110 | 
+                                    funct3_is_101 |
+                                    funct3_is_110 |
                                     funct3_is_111
                                 );
 
@@ -304,11 +305,11 @@ assign      imm_u_type_sel = instr_lui | instr_auipc;
 
 
 // 选择立即数输出
-assign      dec_imm =   ({32{imm_i_type_sel     }} & imm_i_type         ) | 
-                        ({32{imm_i_type_csr_sel }} & imm_i_type_csr     ) | 
-                        ({32{imm_b_type_bxx_sel }} & imm_b_type_bxx     ) | 
-                        ({32{imm_b_type_jal_sel }} & imm_b_type_jal     ) | 
-                        ({32{imm_s_type_sel     }} & imm_s_type         ) | 
+assign      dec_imm =   ({32{imm_i_type_sel     }} & imm_i_type         ) |
+                        ({32{imm_i_type_csr_sel }} & imm_i_type_csr     ) |
+                        ({32{imm_b_type_bxx_sel }} & imm_b_type_bxx     ) |
+                        ({32{imm_b_type_jal_sel }} & imm_b_type_jal     ) |
+                        ({32{imm_s_type_sel     }} & imm_s_type         ) |
                         ({32{imm_u_type_sel     }} & imm_u_type         );
 
 
@@ -355,7 +356,7 @@ assign      instr_and = opcode_is_0110011 & funct3_is_111 & funct7_is_0000000;
 */
 assign      instr_andi = opcode_is_0010011 & funct3_is_111;
 
-/* 
+/*
     auipc PC加立即数, U-Type, x[rd] = PC + sext(imm[31 : 12] << 12);
     把符号位扩展的20位(左移12位)立即数加到PC上, 并将结果写入x[rd].
     +--------------------------------------------------------------------------------------------------+
@@ -366,9 +367,9 @@ assign      instr_andi = opcode_is_0010011 & funct3_is_111;
 */
 assign      instr_auipc = opcode_is_0010111;
 
-/* 
+/*
     lui 高位立即数加载, U Type, RV32I and RV64I, x[rd] = sext(imm[31 : 12] << 12);
-    将符号位扩展的20位立即数imm左移12位, 并将低12位置0, 写入x[rd]中. 
+    将符号位扩展的20位立即数imm左移12位, 并将低12位置0, 写入x[rd]中.
     +--------------------------------------------------------------------------------------------------+
     |31                                                         12|11         7|6                     0|
     +-------------------------------------------------------------+------------+-----------------------+
@@ -401,7 +402,7 @@ assign      instr_ori = opcode_is_0010011 & funct3_is_110;
 
 /*
     sll    rd, rs1, rs2                                                 x[rd] = x[rs1] << x[rs2]
-    逻辑左移 R-Type RV32I and RV64I            
+    逻辑左移 R-Type RV32I and RV64I
     把寄存器x[rs1]左移x[rs2]位, 空出的位置补0, 结果写入x[rd]. x[rs2]的低5位代表移动位数, 高位忽略
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -413,7 +414,7 @@ assign      instr_sll = opcode_is_0110011 & funct3_is_001 & funct7_is_0000000;
 
 /*
     slli    rd, rs1, shamt                                              x[rd] = x[rs1] << shamt
-    立即数逻辑左移 R-Type RV32I and RV64I           
+    立即数逻辑左移 R-Type RV32I and RV64I
     把寄存器x[rs1]左移shamt位, 空出的位置补0, 结果写入x[rd]. 对于RV32I, 仅当shamt[5]=0时, 指令才有效
     +--------------------------------------------------------------------------------------------------+
     |31                   26|25         20|19         15|14     12|11         7|6                     0|
@@ -425,7 +426,7 @@ assign      instr_slli = opcode_is_0010011 & funct3_is_001 & funct7_is_0000000;
 
 /*
     slt    rd, rs1, rs2                                                 x[rd] = x[rs1] < x[rs2]
-    小于则置位    R-Type    RV32I and RV64I            
+    小于则置位    R-Type    RV32I and RV64I
     比较x[rs1]和x[rs2]中的数, 如果x[rs1]更小, 向x[rd]写入1, 否则写入0
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -437,7 +438,7 @@ assign      instr_slt = opcode_is_0110011 & funct3_is_010 & funct7_is_0000000;
 
 /*
     slti    rd, rs1, imm                                                x[rd] = x[rs1] < sext(imm)
-    小于立即数则置位    I-Type RV32I and RV64I    
+    小于立即数则置位    I-Type RV32I and RV64I
     比较x[rs1]和有符号扩展的立即数, 如果x[rs1]更小, 向x[rd]写入1, 否则写入0
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -449,7 +450,7 @@ assign      instr_slti = opcode_is_0010011 & funct3_is_010;
 
 /*
     sltiu   rd, rs1, imm                                                x[rd] = x[rs1] < uext(imm)
-    无符号小于立即数则置位    I-Type RV32I and RV64I    
+    无符号小于立即数则置位    I-Type RV32I and RV64I
     比较x[rs1]和零扩展的立即数, 比较时视为无符号数, 如果x[rs1]更小, 向x[rd]写入1, 否则写入0
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -461,7 +462,7 @@ assign      instr_sltiu = opcode_is_0010011 & funct3_is_011;
 
 /*
     sltu    rd, rs1, rs2                                                x[rd] = x[rs1] < x[rs2]
-    无符号小于则置位    R-Type    RV32I and RV64I            
+    无符号小于则置位    R-Type    RV32I and RV64I
     比较x[rs1]和x[rs2]中的数, 比较时视为无符号数, 如果x[rs1]更小, 向x[rd]写入1, 否则写入0
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -473,7 +474,7 @@ assign      instr_sltu = opcode_is_0110011 & funct3_is_011 & funct7_is_0000000;
 
 /*
     sra    rd, rs1, rs2                                                 x[rd] = x[rs1] >> x[rs2]
-    算术右移 R-Type RV32I and RV64I            
+    算术右移 R-Type RV32I and RV64I
     把寄存器x[rs1]右移x[rs2]位, 空位用x[rs1]的最高位填充, 结果写入x[rd]. x[rs2]的低5位代表移动位数, 高位忽略
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -485,7 +486,7 @@ assign      instr_sra = opcode_is_0110011 & funct3_is_101 & funct7_is_0100000;
 
 /*
     srai    rd, rs1, shamt                                              x[rd] = x[rs1] >> shamt
-    立即数算术右移 R-Type RV32I and RV64I            
+    立即数算术右移 R-Type RV32I and RV64I
     把寄存器x[rs1]右移shamt位, 空位用x[rs1]的最高位填充, 结果写入x[rd]. 仅当shamt[5]=0时有效
     +--------------------------------------------------------------------------------------------------+
     |31                   26|25         20|19         15|14     12|11         7|6                     0|
@@ -497,7 +498,7 @@ assign      instr_srai = opcode_is_0010011 & funct3_is_101 & funct7_is_0100000;
 
 /*
     srl     rd, rs1, rs2                                                x[rd] = x[rs1] >> x[rs2]
-    逻辑右移 R-Type RV32I and RV64I            
+    逻辑右移 R-Type RV32I and RV64I
     把寄存器x[rs1]右移x[rs2]位, 空位用0填充, 结果写入x[rd]. x[rs2]的低5位代表移动位数, 高位忽略
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -509,7 +510,7 @@ assign      instr_srl = opcode_is_0110011 & funct3_is_101 & funct7_is_0000000;
 
 /*
     srai    rd, rs1, shamt                                              x[rd] = x[rs1] >> shamt
-    立即数逻辑右移 R-Type RV32I and RV64I            
+    立即数逻辑右移 R-Type RV32I and RV64I
     把寄存器x[rs1]右移imm位, 空位用0填充, 结果写入x[rd]. 仅当imm[5]=0时有效
     +--------------------------------------------------------------------------------------------------+
     |31                   26|25         20|19         15|14     12|11         7|6                     0|
@@ -520,7 +521,7 @@ assign      instr_srl = opcode_is_0110011 & funct3_is_101 & funct7_is_0000000;
 assign      instr_srli = opcode_is_0010011 & funct3_is_101 & funct7_is_0000000;
 
 /*
-    sub     rd, rs1, rs2                                                x[rd] = x[rs1] - x[rs2], 
+    sub     rd, rs1, rs2                                                x[rd] = x[rs1] - x[rs2],
     减, R-Type, RV32I and RV64I
     x[rs1]减去x[rs2], 结果写入x[rd], 忽略算术溢出
     +--------------------------------------------------------------------------------------------------+
@@ -531,9 +532,9 @@ assign      instr_srli = opcode_is_0010011 & funct3_is_101 & funct7_is_0000000;
 */
 assign      instr_sub = opcode_is_0110011 & funct3_is_000 & funct7_is_0100000;
 
-/* 
+/*
     xor     rd, rs1, rs2                                                x[rd] = x[rs1] ^ x[rs2]
-    异或, R-Type, RV32I and RV64I,                     
+    异或, R-Type, RV32I and RV64I,
     将寄存器x[rs1]和寄存器x[rs2]异或的结果写入x[rd]寄存器.
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -557,7 +558,7 @@ assign      instr_xori = opcode_is_0010011 & funct3_is_100;
 
 /*
     lb      rd, offset(rs1)                                 x[rd] = sext(M[x[rs1] + sext(offset)][7:0])
-    字节加载, I-Type RV32I and RV64I        
+    字节加载, I-Type RV32I and RV64I
     从地址x[rs1] + sext(offset)处读取一个字节, 经符号位扩展后写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -569,7 +570,7 @@ assign      instr_lb = opcode_is_0000011 & funct3_is_000;
 
 /*
     lbu     rd, offset(rs1)                                 x[rd] = M[x[rs1] + sext(offset)][7:0]
-    无符号字节加载, I-Type RV32I and RV64I    
+    无符号字节加载, I-Type RV32I and RV64I
     从地址x[rs1] + sext(offset)处读取一个字节, 经零扩展后写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -581,7 +582,7 @@ assign      instr_lbu = opcode_is_0000011 & funct3_is_100;
 
 /*
     lh      rd, offset(rs1)                                 x[rd] = sext(M[x[rs1] + sext(offset)][15:0])
-    半字加载, I-Type RV32I and RV64I    
+    半字加载, I-Type RV32I and RV64I
     从地址x[rs1] + sext(offset)处读取两个字节, 经符号位扩展后写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -593,7 +594,7 @@ assign      instr_lh = opcode_is_0000011 & funct3_is_001;
 
 /*
     lhu     rd, offset(rs1)                                 x[rd] = M[x[rs1] + sext(offset)][15:0]
-    半字加载, I-Type RV32I and RV64I    
+    半字加载, I-Type RV32I and RV64I
     从地址x[rs1] + sext(offset)处读取两个字节, 经零扩展后写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -605,7 +606,7 @@ assign      instr_lhu = opcode_is_0000011 & funct3_is_101;
 
 /*
     lw      rd, offset(rs1)                 x[rd] = sext(M[x[rs1] + sext(offset[11 : 0])][31 : 0])
-    字加载, I-Type, RV32I and RV64I, 
+    字加载, I-Type, RV32I and RV64I,
     从地址x[rs1] + sext(offset[11 : 0])读取四个字节, 写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -617,7 +618,7 @@ assign      instr_lw = opcode_is_0000011 & funct3_is_010;
 
 /*
     sb      rs2, offset(rs1)                M[x[rs1]+ sext(imm)] = x[rs2][7:0]
-    存字节    S-Type    RV32I and RV64I            
+    存字节    S-Type    RV32I and RV64I
     将x[rs2]的低字节存入内存地址x[rs1] + sext(imm)
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -629,7 +630,7 @@ assign      instr_sb = opcode_is_0100011 & funct3_is_000;
 
 /*
     sh    rs2, offset(rs1)                  M[x[rs1]+ sext(imm)] = x[rs2][15:0]
-    存半字    S-Type    RV32I and RV64I            
+    存半字    S-Type    RV32I and RV64I
     将x[rs2]的低半字存入内存地址x[rs1] + sext(imm)
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -641,7 +642,7 @@ assign      instr_sh = opcode_is_0100011 & funct3_is_001;
 
 /*
     sh    rs2, offset(rs1)                  M[x[rs1]+ sext(imm)] = x[rs2]
-    存字    S-Type    RV32I and RV64I            
+    存字    S-Type    RV32I and RV64I
     将x[rs2]存入内存地址x[rs1] + sext(imm)
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -653,7 +654,7 @@ assign      instr_sw = opcode_is_0100011 & funct3_is_010;
 
 /*
     beq    rs1, rs2, offset                         if(x[rs1] == x[rs2])    pc += sext(offset)
-    相等时分支, B-Type, RV32I and RV64I, 
+    相等时分支, B-Type, RV32I and RV64I,
     若寄存器x[rs1]和寄存器x[rs2]的值相等, 把pc的值设置为当前值加上符号位扩展的立即数;
     +--------------------------------------------------------------------------------------------------+
     |31                 25|24         20|19         15|14     12|11           7|6                     0|
@@ -665,7 +666,7 @@ assign      instr_beq = opcode_is_1100011 & funct3_is_000;
 
 /*
     bge     rs1, rs2, offset                        if(x[rs1] >= x[rs2])    pc += sext(offset)
-    大于等于时分支, B-Type, RV32I and RV64I, 
+    大于等于时分支, B-Type, RV32I and RV64I,
     若寄存器x[rs1]的值大于等于寄存器x[rs2]的值(均视有有符号数), 把pc的值设置为当前值加上符号位扩展的立即数;
     +--------------------------------------------------------------------------------------------------+
     |31                 25|24         20|19         15|14     12|11           7|6                     0|
@@ -677,7 +678,7 @@ assign      instr_bge = opcode_is_1100011 & funct3_is_101;
 
 /*
     bgeu    rs1, rs2, offset                        if(x[rs1] >= x[rs2])    pc += sext(offset)
-    无符号大于等于时分支, B-Type, RV32I and RV64I, 
+    无符号大于等于时分支, B-Type, RV32I and RV64I,
     若寄存器x[rs1]的值大于等于寄存器x[rs2]的值(均视为无符号数), 把pc的值设置为当前值加上符号位扩展的立即数;
     +--------------------------------------------------------------------------------------------------+
     |31                 25|24         20|19         15|14     12|11           7|6                     0|
@@ -689,7 +690,7 @@ assign      instr_bgeu = opcode_is_1100011 & funct3_is_111;
 
 /*
     blt     rs1, rs2, offset                        if(x[rs1] < x[rs2])  pc += sext(offset)
-    小于时分支, B-Type, RV32I and RV64I, 
+    小于时分支, B-Type, RV32I and RV64I,
     若寄存器x[rs1]的值小于寄存器x[rs2]的值, 有符号数, 则把pc的值设为当前值加上符号位扩展的立即数;
     +--------------------------------------------------------------------------------------------------+
     |31                 25|24         20|19         15|14     12|11           7|6                     0|
@@ -701,7 +702,7 @@ assign      instr_blt = opcode_is_1100011 & funct3_is_100;
 
 /*
     bltu    rs1, rs2, offset                        if(x[rs1] < x[rs2])  pc += sext(offset)
-    小于时分支, B-Type, RV32I and RV64I, 
+    小于时分支, B-Type, RV32I and RV64I,
     若寄存器x[rs1]的值小于寄存器x[rs2]的值, 无符号数, 则把pc的值设为当前值加上符号位扩展的立即数;
     +--------------------------------------------------------------------------------------------------+
     |31                 25|24         20|19         15|14     12|11           7|6                     0|
@@ -713,7 +714,7 @@ assign      instr_bltu = opcode_is_1100011 & funct3_is_110;
 
 /*
     bne rs1, rs2, offset                            if(x[rs1] != x[rs2])  pc += sext(offset)
-    不相等时分支, B-Type, RV32I and RV64I, 
+    不相等时分支, B-Type, RV32I and RV64I,
     若寄存器x[rs1]的值不等于寄存器x[rs2]的值, 则把pc的值设为当前值加上符号位扩展的立即数;
     +--------------------------------------------------------------------------------------------------+
     |31                 25|24         20|19         15|14     12|11           7|6                     0|
@@ -725,7 +726,7 @@ assign      instr_bne = opcode_is_1100011 & funct3_is_001;
 
 /*
     jal     rd, offset                              x[rd] = pc + 4; pc += sext(offset)
-    跳转并链接 J-Type RV32I and RV64I    
+    跳转并链接 J-Type RV32I and RV64I
     把下一条指令的地址(pc+4), 然后把pc设置为当前值加上符号位扩展的imm,rd默认为x1
     +--------------------------------------------------------------------------------------------------+
     |31                                                         12|11         7|6                     0|
@@ -737,7 +738,7 @@ assign      instr_jal = opcode_is_1101111;
 
 /*
     jalr rd, offset(rs1)                            t = pc + 4; pc = (x[rs1] + sext(imm)) & ~1; x[rd] = t
-    跳转并链接寄存器 I-Type    
+    跳转并链接寄存器 I-Type
     把pc设置为x[rs1] + sext(imm), 把计算出来的地址的最低有效位设为0, 并将原pc+4写入x[rd],rd默认为x1
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -748,11 +749,11 @@ assign      instr_jal = opcode_is_1101111;
 assign      instr_jalr = opcode_is_1100111 & funct3_is_000;
 
 /*
-    fence 
+    fence
     同步内存和IO, 在后续指令中的内存和IO访问对外部（例如其他线程）可见之前, 使这条指令
-    之前的内存及IO访问对外部可见, 比特中的第3, 2, 1, 0位分别对应设备输入、设备输出、内存读写. 
-    例如fence r, rw, 将前面读取与后面的读取和写入排序, 使用pred=0010和succ=0011进行编号. 
-    如果省略了参数, 则表示fence iorw, iorw, 即对所有访存请求进行排序. 
+    之前的内存及IO访问对外部可见, 比特中的第3, 2, 1, 0位分别对应设备输入、设备输出、内存读写.
+    例如fence r, rw, 将前面读取与后面的读取和写入排序, 使用pred=0010和succ=0011进行编号.
+    如果省略了参数, 则表示fence iorw, iorw, 即对所有访存请求进行排序.
     +--------------------------------------------------------------------------------------------------+
     |31      28|27      24|23      20|19           15|14     12|11            7|6                     0|
     +----------+----------+----------+---------------+---------+---------------+-----------------------+
@@ -762,7 +763,7 @@ assign      instr_jalr = opcode_is_1100111 & funct3_is_000;
 assign      instr_fence = opcode_is_0001111 & funct3_is_000;
 
 /*
-    fencei 
+    fencei
     同步指令流 使内存指令区域的读写, 对后续指令可见
     +--------------------------------------------------------------------------------------------------+
     |31                            20|19           15|14     12|11            7|6                     0|
@@ -773,10 +774,10 @@ assign      instr_fence = opcode_is_0001111 & funct3_is_000;
 assign      instr_fencei = opcode_is_0001111 & funct3_is_001;
 
 /*
-    mret 
+    mret
     机器模式异常返回    R-Type RV32I and RV64I特权架构
-    从机器模式异常处理程序返回, 将pc设置为CSRs[mepc], 将特权级设置为CSRs[mstatus].MPP, 
-    CSRs[msatus].MIE设置为CSRs[mstatus].MPIE, 并且将CSRs[mstatus].MPIE设置为1；并且, 
+    从机器模式异常处理程序返回, 将pc设置为CSRs[mepc], 将特权级设置为CSRs[mstatus].MPP,
+    CSRs[msatus].MIE设置为CSRs[mstatus].MPIE, 并且将CSRs[mstatus].MPIE设置为1；并且,
     如果支持用户模式, 则将CSRs[mstatus].MPP设置为0
     +--------------------------------------------------------------------------------------------------+
     |31                  25|24           20|19     15|14     12|11            7|6                     0|
@@ -793,7 +794,7 @@ assign      instr_dret = (ir[31 : 20] == 12'b0111_1011_0010) & funct3_is_000 & o
 
 /*
     csrrc                       t = CSRs[csr]; CSRs[csr] = t & (~x[rs1]); x[rd] = t
-    读后清除控制状态寄存器,  
+    读后清除控制状态寄存器,
     记控制状态寄存器csr中的值为t, 把t和寄存器x[rs1]按位与的结果写入csr, 两把t写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -805,7 +806,7 @@ assign      instr_csrrc = opcode_is_1110011 & funct3_is_011;
 
 /*
     csrrci                      t = CSRs[csr]; CSRs[csr] = t & (~zimm); x[rd] = t
-    立即数读后清除控制状态寄存器,  
+    立即数读后清除控制状态寄存器,
     记控制状态寄存器csr中的值为t, 把t和和五位零扩展的立即数zimm拉位与的结果写入csr, 再把t
     写入x[rd](csr寄存器的第五位及更高位不娈)
     +--------------------------------------------------------------------------------------------------+
@@ -818,7 +819,7 @@ assign      instr_csrrci = opcode_is_1110011 & funct3_is_111;
 
 /*
     csrrs                       t = CSRs[csr]; CSRs[csr] = t | x[rs1]; x[rd] = t
-    读后置位控制状态寄存器,  
+    读后置位控制状态寄存器,
     记控制状态寄存器csr中的值为t, 把t和寄存器x[rs1]按位或的结果写入csr, 两把t写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -830,7 +831,7 @@ assign      instr_csrrs = opcode_is_1110011 & funct3_is_010;
 
 /*
     csrrsi                      t = CSRs[csr]; CSRs[csr] = t | zimm; x[rd] = t
-    立即数读设置控制状态寄存器,  
+    立即数读设置控制状态寄存器,
     记控制状态寄存器csr中的值为t, 把t和和五位零扩展的立即数zimm拉位或的结果写入csr, 再把t
     写入x[rd](csr寄存器的第五位及更高位不娈)
     +--------------------------------------------------------------------------------------------------+
@@ -843,7 +844,7 @@ assign      instr_csrrsi = opcode_is_1110011 & funct3_is_110;
 
 /*
     csrrw                       t = CSRs[csr]; CSRs[csr] = x[rs1]; x[rd] = t
-    读后写控制状态寄存器,  
+    读后写控制状态寄存器,
     记控制状态寄存器csr中的值为t, 把寄存器x[rs1]的值写入csr, 再把t写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -855,7 +856,7 @@ assign      instr_csrrw = opcode_is_1110011 & funct3_is_001;
 
 /*
     csrrwi                      x[rd] = CSRs[csr];CSRs[csr] = zimm
-    立即数读后写控制状态寄存器,  
+    立即数读后写控制状态寄存器,
     把控制状态寄存器csr中的值写入x[rd], 再把五位的零扩展的立即数zimm的值写入csr
     +--------------------------------------------------------------------------------------------------+
     |31                                 20|19         15|14     12|11         7|6                     0|
@@ -866,7 +867,7 @@ assign      instr_csrrw = opcode_is_1110011 & funct3_is_001;
 assign      instr_csrrwi = opcode_is_1110011 & funct3_is_101;
 
 /*
-    ebreak 
+    ebreak
     环境断点, 通过抛出断点异常的方式请求调试器
     +--------------------------------------------------------------------------------------------------+
     |31                            20|19           15|14     12|11            7|6                     0|
@@ -877,7 +878,7 @@ assign      instr_csrrwi = opcode_is_1110011 & funct3_is_101;
 assign      instr_ebreak = (ir[31 : 20] == 12'b0000_0000_0001) & funct3_is_000 & opcode_is_1110011;
 
 /*
-    ebreak 
+    ebreak
     环境调用, 通过引发环境异常的方式请求调试器
     +--------------------------------------------------------------------------------------------------+
     |31                            20|19           15|14     12|11            7|6                     0|
@@ -888,7 +889,7 @@ assign      instr_ebreak = (ir[31 : 20] == 12'b0000_0000_0001) & funct3_is_000 &
 assign      instr_ecall = (ir[31 : 20] == 12'b0000_0000_0000) & funct3_is_000 & opcode_is_1110011;
 
 /*
-    wfi 
+    wfi
     特权指令, 等待中断, 如果没有待处理的中断, 则将处理器置为空闲状态
     +--------------------------------------------------------------------------------------------------+
     |31                25|24           20|19       15|14     12|11            7|6                     0|
@@ -900,7 +901,7 @@ assign      instr_wfi = funct7_is_0001000 & funct3_is_000 & opcode_is_1110011;
 
 /*
     div     rd, rs1, rs2                            x[rd] = x[rs1] / x[rs2]
-    除法 R-Type, Rv32M and RV64M, 
+    除法 R-Type, Rv32M and RV64M,
     用寄存器x[rs1]的值除以寄存器x[rs2]的值, 向零舍入, 将这些数视为二进制补码, 把商写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -912,7 +913,7 @@ assign      instr_div = instr_one_of_rv32m & funct3_is_100;
 
 /*
     divu    rd, rs1, rs2                            x[rd] = x[rs1] / x[rs2]
-    无符号除法 R-Type, Rv32M and RV64M, 
+    无符号除法 R-Type, Rv32M and RV64M,
     用寄存器x[rs1]的值除以寄存器x[rs2]的值, 向零舍入, 将这些数视为无符号数, 把商写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -924,7 +925,7 @@ assign      instr_divu = instr_one_of_rv32m & funct3_is_101;
 
 /*
     mul     rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2]
-    乘 R-Type RV32I and RV64I,                         
+    乘 R-Type RV32I and RV64I,
     把寄存器x[rs1]与寄存器x[rs2]的乘积写入x[rd], 忽略算术溢出
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -936,7 +937,7 @@ assign      instr_mul = instr_one_of_rv32m & funct3_is_000;
 
 /*
     mulh    rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2] >> 32
-    高位乘 R-Type RV32I and RV64I,             
+    高位乘 R-Type RV32I and RV64I,
     将寄存器x[rs1]与寄存器x[rs2]相乘, x[rs1]、x[rs2]都视为二进制补码, 将乘积的高位写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -948,7 +949,7 @@ assign      instr_mulh = instr_one_of_rv32m & funct3_is_001;
 
 /*
     mulhsu  rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2] >> XLEN
-    高位乘 R-Type RV32I and RV64I,             
+    高位乘 R-Type RV32I and RV64I,
     将寄存器x[rs1]与寄存器x[rs2]相乘, x[rs1]为二进制补码, x[rs2]为无符号数, 将乘积的高位
     写入x[rd]
     +--------------------------------------------------------------------------------------------------+
@@ -961,7 +962,7 @@ assign      instr_mulhsu = instr_one_of_rv32m & funct3_is_010;
 
 /*
     mulhu   rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2] >> XLEN
-    高位无符号乘 R-Type RV32I and RV64I,             
+    高位无符号乘 R-Type RV32I and RV64I,
     将寄存器x[rs1]与寄存器x[rs2]相乘, x[rs1]、x[rs2]都视为无符号数, 将乘积的高位写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -973,7 +974,7 @@ assign      instr_mulhu = instr_one_of_rv32m & funct3_is_011;
 
 /*
     rem    rd, rs1, rs2                             x[rd] = x[rs1] % x[rs2]
-    求余数 R-Type RV32I and RV64I,                         
+    求余数 R-Type RV32I and RV64I,
     x[rs1]除以x[rs2], 向0舍入, 都视为二进制数, 余数写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -985,7 +986,7 @@ assign      instr_rem = instr_one_of_rv32m & funct3_is_110;
 
 /*
     rem    rd, rs1, rs2                             x[rd] = x[rs1] % x[rs2]
-    求无符号的余数 R-Type RV32I and RV64I,                 
+    求无符号的余数 R-Type RV32I and RV64I,
     x[rs1]除以x[rs2], 向0舍入, 都视为无符号数, 余数写入x[rd]
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
@@ -1031,8 +1032,8 @@ assign      op_bus_rglr[`RGLR_OP2_IS_IMM]   = instr_i_type | instr_u_type;
 // ===========================================================================
 assign      op_bus_lsu[`LSU_LOAD_LOC]   = instr_lb | instr_lh | instr_lw | instr_lbu | instr_lhu;
 assign      op_bus_lsu[`LSU_STORE_LOC]  = instr_sb | instr_sh | instr_sw;
-assign      op_bus_lsu[`LSU_SIZE_LOC]   =   (instr_lb | instr_lbu | instr_sb) ?  2'd0 : 
-                                            (instr_lh | instr_lhu | instr_sh) ? 2'd1 : 
+assign      op_bus_lsu[`LSU_SIZE_LOC]   =   (instr_lb | instr_lbu | instr_sb) ?  2'd0 :
+                                            (instr_lh | instr_lhu | instr_sh) ? 2'd1 :
                                             2'd2;
 //  lbu指令和lhu指令需要无符号扩展，我们这里只判断funct3，不判断opcode，因为如果不是访存指令，
 //  我们这里拉高也没有问题，最终也不会选择lus_op_bus作为译码结果
@@ -1090,20 +1091,20 @@ assign      op_bus_mdv[`MDV_RES_HIGH_LOC]       = instr_mulh | instr_mulhsu | in
 // ===========================================================================
 
 
-// 选出一个译码信息, 由于OP_BUS_WIDTH使用的是各个OP_BUS_WIDTH中最大的那个, 如果直接使用OP_BUS_WIDTH - RGLR_OP_BUS_WIDTH, 
+// 选出一个译码信息, 由于OP_BUS_WIDTH使用的是各个OP_BUS_WIDTH中最大的那个, 如果直接使用OP_BUS_WIDTH - RGLR_OP_BUS_WIDTH,
 // 有可能出现{0{1'b0}}的情况, 为了避免这个情况发生, 我们将op_bus_mux的位宽定义为OP_BUS_WIDTH+1, 这样可以保证相减后至少为1,
 // 只需要在输出的时候忽略最高位即可.
-assign      op_bus_rglr_sel =   opcode_is_0010011 | 
+assign      op_bus_rglr_sel =   opcode_is_0010011 |
                                 (opcode_is_0110011 & (~funct7_is_0000001)) |     //opcode == 0110011 且 funct7 == 0000001时, 为乘除法指令
-                                instr_lui | 
+                                instr_lui |
                                 instr_auipc;
 
 assign      op_bus_lsu_sel = instr_one_of_load | instr_one_of_store;
 
-assign      op_bus_brch_sel =   opcode_is_1100011 | 
+assign      op_bus_brch_sel =   opcode_is_1100011 |
                                 instr_jal |
-                                instr_jalr | 
-                                instr_mret | 
+                                instr_jalr |
+                                instr_mret |
                                 instr_fencei | instr_fence |
                                 instr_dret_legl;
 
@@ -1117,20 +1118,20 @@ assign      amo_op_bus_sel = 1'b0;
 
 assign      fpu_op_bus_sel = 1'b0;
 
-assign      dec_op_bus_mux =    ({(`DEC_OP_BUS_WIDTH + 1){op_bus_rglr_sel}} & {{(`DEC_OP_BUS_WIDTH + 1 - `RGLR_OP_BUS_WIDTH){1'b0}},    op_bus_rglr}) | 
-                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_brch_sel}} & {{(`DEC_OP_BUS_WIDTH + 1 - `BRCH_OP_BUS_WIDTH){1'b0}},    op_bus_brch}) | 
-                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_lsu_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `LSU_OP_BUS_WIDTH){1'b0}},     op_bus_lsu}) | 
-                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_csr_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `CSR_OP_BUS_WIDTH){1'b0}},     op_bus_csr}) | 
-                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_sys_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `SYS_OP_BUS_WIDTH){1'b0}},     op_bus_sys}) | 
+assign      dec_op_bus_mux =    ({(`DEC_OP_BUS_WIDTH + 1){op_bus_rglr_sel}} & {{(`DEC_OP_BUS_WIDTH + 1 - `RGLR_OP_BUS_WIDTH){1'b0}},    op_bus_rglr}) |
+                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_brch_sel}} & {{(`DEC_OP_BUS_WIDTH + 1 - `BRCH_OP_BUS_WIDTH){1'b0}},    op_bus_brch}) |
+                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_lsu_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `LSU_OP_BUS_WIDTH){1'b0}},     op_bus_lsu}) |
+                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_csr_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `CSR_OP_BUS_WIDTH){1'b0}},     op_bus_csr}) |
+                                ({(`DEC_OP_BUS_WIDTH + 1){op_bus_sys_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `SYS_OP_BUS_WIDTH){1'b0}},     op_bus_sys}) |
                                 ({(`DEC_OP_BUS_WIDTH + 1){op_bus_mdv_sel}}  & {{(`DEC_OP_BUS_WIDTH + 1 - `MDV_OP_BUS_WIDTH){1'b0}},     op_bus_mdv});
 
 assign      dec_op_bus = dec_op_bus_mux[0 +: `DEC_OP_BUS_WIDTH];
-assign      dec_op_type =   op_bus_rglr_sel ? `DEC_RGLR_BUS : 
-                            op_bus_brch_sel ? `DEC_BRCH_BUS : 
-                            op_bus_lsu_sel ? `DEC_LSU_BUS : 
-                            op_bus_csr_sel ? `DEC_CSR_BUS : 
-                            op_bus_sys_sel ? `DEC_SYS_BUS : 
-                            op_bus_mdv_sel ? `DEC_MDV_BUS : 
+assign      dec_op_type =   op_bus_rglr_sel ? `DEC_RGLR_BUS :
+                            op_bus_brch_sel ? `DEC_BRCH_BUS :
+                            op_bus_lsu_sel ? `DEC_LSU_BUS :
+                            op_bus_csr_sel ? `DEC_CSR_BUS :
+                            op_bus_sys_sel ? `DEC_SYS_BUS :
+                            op_bus_mdv_sel ? `DEC_MDV_BUS :
                             `DEC_NONE_BUS;
 
 // 判断非法指令
@@ -1143,14 +1144,14 @@ assign      instr_dret_ilegl = instr_dret & (~d_mode);
 assign      instr_dret_legl = instr_dret & d_mode;
 
 // 已经支持的指令
-assign      support_instr =     op_bus_rglr_sel | 
-                                op_bus_sys_sel | 
-                                op_bus_brch_sel | 
-                                op_bus_lsu_sel | 
-                                op_bus_mdv_sel | 
-                                fpu_op_bus_sel | 
+assign      support_instr =     op_bus_rglr_sel |
+                                op_bus_sys_sel |
+                                op_bus_brch_sel |
+                                op_bus_lsu_sel |
+                                op_bus_mdv_sel |
+                                fpu_op_bus_sel |
                                 op_bus_csr_sel |
-                                amo_op_bus_sel | 
+                                amo_op_bus_sel |
                                 1'b0;
 assign      unsupport_instr = ~support_instr;
 
@@ -1159,9 +1160,9 @@ assign      ir_all_1_ilegl = opcode_is_1111111 & rd_is_31 & funct3_is_111 & rs1_
 
 // 非法指令
 assign      dec_ilegl_ir =  unsupport_instr |
-                            instr_sxxi_ilegl | 
-                            instr_dret_ilegl | 
-                            ir_all_0_ilegl | 
+                            instr_sxxi_ilegl |
+                            instr_dret_ilegl |
+                            ir_all_0_ilegl |
                             ir_all_1_ilegl;
 
 // 寄存器索引

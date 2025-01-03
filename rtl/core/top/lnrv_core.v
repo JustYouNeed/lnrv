@@ -49,7 +49,7 @@ module  lnrv_core
     input[31 : 0]                           lsu_rsp_rdata,
     input                                   lsu_rsp_err,
 
-    // 
+    //
     input                                   ifu_clk,
     output                                  ifu_active,
 
@@ -64,6 +64,7 @@ module  lnrv_core
 );
 
 wire                                    pipe_flush_req_cmt;
+wire                                    pipe_flush_ack_cmt;
 wire                                    pipe_flush_ack_cmt_ifu;
 wire                                    pipe_flush_ack_cmt_idu;
 wire[31 : 0]                            pipe_flush_pc_op1_cmt;
@@ -74,15 +75,12 @@ wire                                    pipe_flush_ack_bpu;
 wire[31 : 0]                            pipe_flush_pc_op1_bpu;
 wire[31 : 0]                            pipe_flush_pc_op2_bpu;
 
-wire                                    pipe_halt_req_ifu;
-wire                                    pipe_halt_ack_ifu;
-
 wire                                    ifu_vld;
+wire                                    ifu_rdy;
 wire[`CPU_ADDR_WIDTH - 1 : 0]           ifu_pc;
 wire[`CPU_DATA_WIDTH - 1 : 0]           ifu_ir;
 wire                                    ifu_excp_misalgn;
 wire                                    ifu_excp_buserr;
-
 
 wire                                    idu_vld;
 wire                                    idu_rdy;
@@ -152,6 +150,7 @@ wire[2 : 0]                             dcause_wdata;
 
 wire                                    csr_idx_err;
 
+wire                                    m_mode;
 
 wire[31 : 0]                            rs1_rdata;
 wire[31 : 0]                            rs2_rdata;
@@ -270,7 +269,7 @@ lnrv_idu u_lnrv_idu
     .idu_op_bus                 ( idu_op_bus                ),
     .idu_op_type                ( idu_op_type               ),
     .idu_rv32                   ( idu_rv32                  ),
-    
+
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   )
 );
@@ -482,7 +481,7 @@ u_lnrv_gpr
 lnrv_csr u_lnrv_csr
 (
     .reset_mtvec                ( reset_mtvec               ),
-    
+
     .mepc                       ( mepc                      ),
     .mtvec                      ( mtvec                     ),
 

@@ -7,7 +7,7 @@ module	lnrv_exu_disp
     input                               idu_excp_ilglir,
     input                               idu_excp_misalgn,
 
-    // 常规指令 
+    // 常规指令
     output                              sel_rglr,
     output[`RGLR_OP_BUS_WIDTH - 1 : 0]  op_bus_rglr,
 
@@ -19,7 +19,7 @@ module	lnrv_exu_disp
     output                              sel_brch,
     output[`BRCH_OP_BUS_WIDTH - 1 : 0]  op_bus_brch,
 
-    // csr相关指令 
+    // csr相关指令
     output                              sel_csr,
     output[`CSR_OP_BUS_WIDTH - 1 : 0]   op_bus_csr,
 
@@ -42,8 +42,8 @@ wire                                    idu_mdv_instr;
 wire                                    disp_abort;
 wire                                    disp_enable;
 
-assign      disp_abort = idu_excp_buserr | 
-                         idu_excp_ilglir | 
+assign      disp_abort = idu_excp_buserr |
+                         idu_excp_ilglir |
                          idu_excp_misalgn;
 
 assign      disp_enable = ~disp_abort;
@@ -61,7 +61,7 @@ assign      sel_rglr = idu_rglr_instr;
 assign      op_bus_rglr = {`RGLR_OP_BUS_WIDTH{sel_rglr}} & idu_op_bus[0 +: `RGLR_OP_BUS_WIDTH];
 
 // 派发到访存模块执行
-assign      sel_lsu = idu_lsu_instr; 
+assign      sel_lsu = idu_lsu_instr;
 assign      op_bus_lsu = {`LSU_OP_BUS_WIDTH{sel_lsu}} & idu_op_bus[0 +: `LSU_OP_BUS_WIDTH];
 
 // 派发到分支模块执行
@@ -81,4 +81,4 @@ assign      sel_mdv = idu_mdv_instr;
 assign      op_bus_mdv = {`MDV_OP_BUS_WIDTH{sel_mdv}} & idu_op_bus[0 +: `MDV_OP_BUS_WIDTH];
 
 
-endmodule	
+endmodule

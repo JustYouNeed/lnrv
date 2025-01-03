@@ -46,7 +46,7 @@ module lnrv_biu#
     output[P_DATA_WIDTH - 1 : 0]            slv_rsp_rdata,
     output                                  slv_rsp_err,
 
-    
+
     output                                  ilm_cmd_vld,
     input                                   ilm_cmd_rdy,
     output                                  ilm_cmd_write,
@@ -764,9 +764,9 @@ lnrv_icb_mux#
     .P_RSP_BUFF_ENABLE      ( "false"                   ),
     .P_RSP_BUFF_CUT_READY   ( "false"                   ),
     .P_RSP_BUFF_BYPASS      ( "true"                    )
-)   
-u_ilm_bus_mux  
-(   
+)
+u_ilm_bus_mux
+(
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   ),
 
@@ -876,9 +876,9 @@ lnrv_icb_mux#
     .P_RSP_BUFF_ENABLE      ( "false"                   ),
     .P_RSP_BUFF_CUT_READY   ( "false"                   ),
     .P_RSP_BUFF_BYPASS      ( "true"                    )
-)   
-u_dlm_bus_mux  
-(   
+)
+u_dlm_bus_mux
+(
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   ),
     .mn_icb_cmd_vld         ( dlm_mn_icb_cmd_vld        ),
@@ -976,9 +976,9 @@ lnrv_icb_mux#
     .P_RSP_BUFF_ENABLE      ( "false"                   ),
     .P_RSP_BUFF_CUT_READY   ( "false"                   ),
     .P_RSP_BUFF_BYPASS      ( "true"                    )
-)   
-u_sys_bus_mux  
-(   
+)
+u_sys_bus_mux
+(
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   ),
 

@@ -48,63 +48,64 @@ module  lnrv_icb_mux#
     input[P_DATA_WIDTH - 1 : 0]                     s_icb_rsp_rdata,
     input                                           s_icb_rsp_err
 );
-localparam                                  LP_DISP_BUF_DATA_WIDTH = P_ICB_COUNT;
+localparam                                          LP_DISP_BUF_DATA_WIDTH = P_ICB_COUNT;
 
 // 分发信息fifo
-wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]        disp_buf_push_data;
-wire                                        disp_buf_push_vld;
-wire                                        disp_buf_push_rdy;
+wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]                disp_buf_push_data;
+wire                                                disp_buf_push_vld;
+wire                                                disp_buf_push_rdy;
 
-wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]        disp_buf_pop_data;
-wire                                        disp_buf_pop_vld;
-wire                                        disp_buf_pop_rdy;
+wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]                disp_buf_pop_data;
+wire                                                disp_buf_pop_vld;
+wire                                                disp_buf_pop_rdy;
 
-wire[P_ICB_COUNT - 1 : 0]       mst_icb_request;
-wire[P_ICB_COUNT - 1 : 0]       mst_icb_grant;
-wire[P_ICB_COUNT - 1 : 0]       mst_icb_grant_bufed;
+wire[P_ICB_COUNT - 1 : 0]                           mst_icb_request;
+wire[P_ICB_COUNT - 1 : 0]                           mst_icb_grant;
+wire[P_ICB_COUNT - 1 : 0]                           mst_icb_grant_bufed;
 
 // 各个master的信息
-wire[P_ICB_COUNT - 1 : 0]       mst_icb_cmd_vld;
-wire[P_ICB_COUNT - 1 : 0]       mst_icb_cmd_rdy;
-wire[P_ICB_COUNT - 1 : 0]       mst_icb_cmd_write;
-wire[P_ADDR_WIDTH - 1 : 0]      mst_icb_cmd_addr[P_ICB_COUNT - 1 : 0];
-wire[P_DATA_WIDTH - 1 : 0]      mst_icb_cmd_wdata[P_ICB_COUNT - 1 : 0];
-wire[(P_DATA_WIDTH/8) - 1 : 0]  mst_icb_cmd_wstrb[P_ICB_COUNT - 1 : 0];
-wire[2 : 0]                     mst_icb_cmd_size[P_ICB_COUNT - 1 : 0];
+wire[P_ICB_COUNT - 1 : 0]                           mst_icb_cmd_vld;
+wire[P_ICB_COUNT - 1 : 0]                           mst_icb_cmd_rdy;
+wire[P_ICB_COUNT - 1 : 0]                           mst_icb_cmd_write;
+wire[P_ADDR_WIDTH - 1 : 0]                          mst_icb_cmd_addr[P_ICB_COUNT - 1 : 0];
+wire[P_DATA_WIDTH - 1 : 0]                          mst_icb_cmd_wdata[P_ICB_COUNT - 1 : 0];
+wire[(P_DATA_WIDTH/8) - 1 : 0]                      mst_icb_cmd_wstrb[P_ICB_COUNT - 1 : 0];
+wire[2 : 0]                                         mst_icb_cmd_size[P_ICB_COUNT - 1 : 0];
 
-wire[P_ICB_COUNT - 1 : 0]       mst_icb_rsp_vld;
-wire[P_ICB_COUNT - 1 : 0]       mst_icb_rsp_rdy;
-wire[P_ICB_COUNT - 1 : 0]       mst_icb_rsp_err;
-wire[P_DATA_WIDTH - 1 : 0]      mst_icb_rsp_rdata[P_ICB_COUNT - 1 : 0];
-
-
-reg                             mst_icb_cmd_vld_mux;
-reg                             mst_icb_cmd_write_mux;
-reg[P_ADDR_WIDTH - 1 : 0]       mst_icb_cmd_addr_mux;
-reg[P_DATA_WIDTH - 1 : 0]       mst_icb_cmd_wdata_mux;
-reg[(P_DATA_WIDTH/8) - 1 : 0]   mst_icb_cmd_wstrb_mux;
-reg[2 : 0]                      mst_icb_cmd_size_mux;
-
-reg                             mst_icb_rsp_rdy_mux;
-
-wire                            m_icb_cmd_vld;
-wire                            m_icb_cmd_rdy;
-wire                            m_icb_cmd_write;
-wire[P_ADDR_WIDTH - 1 : 0]      m_icb_cmd_addr;
-wire[P_DATA_WIDTH - 1 : 0]      m_icb_cmd_wdata;
-wire[(P_DATA_WIDTH/8) - 1 : 0]  m_icb_cmd_wstrb;
-wire[2 : 0]                     m_icb_cmd_size;
-
-wire                            m_icb_rsp_vld;
-wire                            m_icb_rsp_rdy;
-wire[P_DATA_WIDTH - 1 : 0]      m_icb_rsp_rdata;
-wire                            m_icb_rsp_err;
+wire[P_ICB_COUNT - 1 : 0]                           mst_icb_rsp_vld;
+wire[P_ICB_COUNT - 1 : 0]                           mst_icb_rsp_rdy;
+wire[P_ICB_COUNT - 1 : 0]                           mst_icb_rsp_err;
+wire[P_DATA_WIDTH - 1 : 0]                          mst_icb_rsp_rdata[P_ICB_COUNT - 1 : 0];
 
 
-wire                            m_icb_rsp_vld_real;
+reg                                                 mst_icb_cmd_vld_mux;
+reg                                                 mst_icb_cmd_write_mux;
+reg[P_ADDR_WIDTH - 1 : 0]                           mst_icb_cmd_addr_mux;
+reg[P_DATA_WIDTH - 1 : 0]                           mst_icb_cmd_wdata_mux;
+reg[(P_DATA_WIDTH/8) - 1 : 0]                       mst_icb_cmd_wstrb_mux;
+reg[2 : 0]                                          mst_icb_cmd_size_mux;
 
-genvar                          i;
-integer                         j;
+reg                                                 mst_icb_rsp_rdy_mux;
+
+wire                                                m_icb_cmd_vld;
+wire                                                m_icb_cmd_rdy;
+wire                                                m_icb_cmd_hsked;
+wire                                                m_icb_cmd_write;
+wire[P_ADDR_WIDTH - 1 : 0]                          m_icb_cmd_addr;
+wire[P_DATA_WIDTH - 1 : 0]                          m_icb_cmd_wdata;
+wire[(P_DATA_WIDTH/8) - 1 : 0]                      m_icb_cmd_wstrb;
+wire[2 : 0]                                         m_icb_cmd_size;
+
+wire                                                m_icb_rsp_vld;
+wire                                                m_icb_rsp_rdy;
+wire                                                m_icb_rsp_hsked;
+wire[P_DATA_WIDTH - 1 : 0]                          m_icb_rsp_rdata;
+wire                                                m_icb_rsp_err;
+
+wire                                                m_icb_rsp_vld_real;
+
+genvar                                              i;
+integer                                             j;
 
 
 // 只要command通道有效，就需要请求总线使用权限
@@ -115,7 +116,7 @@ lnrv_gnrl_arbiter#
 (
     .P_ARBT_NUM         ( P_ICB_COUNT       ),
     .P_ARBT_TYPE        ( "round-robin"     )
-) 
+)
 u_lnrv_gnrl_arbiter
 (
     .clk                ( clk               ),
@@ -202,7 +203,7 @@ lnrv_gnrl_buffer#
     .P_DEEPTH           ( P_OTS_COUNT               ),
     .P_CUT_READY        ( "false"                   ),
     .P_BYPASS           ( "true"                    )
-) 
+)
 u_icb_disp_buf
 (
     .clk                ( clk                       ),

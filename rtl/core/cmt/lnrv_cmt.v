@@ -103,6 +103,7 @@ module lnrv_cmt
 );
 
 wire                            exu_idle;
+wire                            brch_taken;
 
 wire                            pipe_flush_req_irq;
 wire                            pipe_flush_ack_irq;
@@ -181,7 +182,7 @@ lnrv_cmt_excp u_lnrv_cmt_excp
 (
     .idu_pc                 ( idu_pc                        ),
     .idu_ir                 ( idu_ir                        ),
-    
+
     .excp_taken             ( excp_taken                    ),
 
     .cmt_vld                ( cmt_vld                       ),
@@ -219,7 +220,7 @@ lnrv_cmt_excp u_lnrv_cmt_excp
 // 调试相关请求处理模块
 lnrv_cmt_dbg u_lnrv_cmt_dbg
 (
-    .idu_pc                 ( idu_pc                        ),    
+    .idu_pc                 ( idu_pc                        ),
 
     .ifu_vld                ( ifu_vld                       ),
     .ifu_pc                 ( ifu_pc                        ),
@@ -262,7 +263,7 @@ lnrv_cmt_brch u_lnrv_cmt_brch
     .cmt_brch_mret          ( cmt_brch_mret                 ),
     .cmt_brch_dret          ( cmt_brch_dret                 ),
     .cmt_brch_fence         ( cmt_brch_fence                ),
-    
+
     .bpu_prdt_res           ( bpu_prdt_res                  ),
 
     .brch_taken             ( brch_taken                    ),
@@ -272,7 +273,7 @@ lnrv_cmt_brch u_lnrv_cmt_brch
     .rs1_rdata              ( rs1_rdata                     ),
     .idu_pc                 ( idu_pc                        ),
     .imm                    ( idu_imm                       ),
-    
+
     .pipe_flush_req         ( pipe_flush_req_brch           ),
     .pipe_flush_ack         ( pipe_flush_ack_brch           ),
     .pipe_flush_pc_op1      ( pipe_flush_pc_op1_brch        ),
@@ -308,46 +309,46 @@ lnrv_cmt_wfi u_lnrv_cmt_wfi
 
 // 流水线冲刷请求优先级如下：
 // 1、debug请求
-// 2、分支指令 
-// 3、中断 
+// 2、分支指令
+// 3、中断
 // 4、异常
-assign      pipe_flush_req  =   pipe_flush_req_dbg | 
-                                pipe_flush_req_excp | 
-                                pipe_flush_req_irq | 
+assign      pipe_flush_req  =   pipe_flush_req_dbg |
+                                pipe_flush_req_excp |
+                                pipe_flush_req_irq |
                                 pipe_flush_req_brch;
 
-assign      pipe_flush_pc_op1 = pipe_flush_req_dbg ? pipe_flush_pc_op1_dbg : 
-                                pipe_flush_req_brch ? pipe_flush_pc_op1_brch : 
-                                pipe_flush_req_irq ? pipe_flush_pc_op1_irq : 
-                                pipe_flush_req_excp ? pipe_flush_pc_op1_excp : 
+assign      pipe_flush_pc_op1 = pipe_flush_req_dbg ? pipe_flush_pc_op1_dbg :
+                                pipe_flush_req_brch ? pipe_flush_pc_op1_brch :
+                                pipe_flush_req_irq ? pipe_flush_pc_op1_irq :
+                                pipe_flush_req_excp ? pipe_flush_pc_op1_excp :
                                 32'd0;
 
-assign      pipe_flush_pc_op2 = pipe_flush_req_dbg ? pipe_flush_pc_op2_dbg : 
-                                pipe_flush_req_brch ? pipe_flush_pc_op2_brch : 
-                                pipe_flush_req_irq ? pipe_flush_pc_op2_irq : 
-                                pipe_flush_req_excp ? pipe_flush_pc_op2_excp : 
+assign      pipe_flush_pc_op2 = pipe_flush_req_dbg ? pipe_flush_pc_op2_dbg :
+                                pipe_flush_req_brch ? pipe_flush_pc_op2_brch :
+                                pipe_flush_req_irq ? pipe_flush_pc_op2_irq :
+                                pipe_flush_req_excp ? pipe_flush_pc_op2_excp :
                                 32'd0;
 
 assign      pipe_flush_ack_dbg = pipe_flush_ack;
 
-assign      pipe_flush_ack_brch =   pipe_flush_ack & 
+assign      pipe_flush_ack_brch =   pipe_flush_ack &
                                     (
                                         ~pipe_flush_req_dbg
                                     );
 
-assign      pipe_flush_ack_irq =    pipe_flush_ack & 
+assign      pipe_flush_ack_irq =    pipe_flush_ack &
                                     (
                                         ~(
-                                            pipe_flush_req_dbg | 
+                                            pipe_flush_req_dbg |
                                             pipe_flush_req_brch
                                         )
                                     );
 
-assign      pipe_flush_ack_excp =  pipe_flush_ack & 
+assign      pipe_flush_ack_excp =  pipe_flush_ack &
                                     (
                                         ~(
-                                            pipe_flush_req_dbg | 
-                                            pipe_flush_req_brch | 
+                                            pipe_flush_req_dbg |
+                                            pipe_flush_req_brch |
                                             pipe_flush_req_irq
                                         )
                                     );

@@ -166,10 +166,10 @@ assign      axi_b_hsked = axi_bvalid & axi_bready;
 assign      axi_r_hsked = axi_rvalid & axi_rready;
 
 // 保存aw通道的握手信息
-assign      aw_hsekd_set = axi_aw_hsked;
+assign      aw_hsked_set = axi_aw_hsked;
 assign      aw_hsked_clr = axi_b_hsked;
-assign      aw_hsked_rld = aw_hsekd_set | aw_hsked_clr;
-assign      aw_hsked_d = aw_hsekd_set;
+assign      aw_hsked_rld = aw_hsked_set | aw_hsked_clr;
+assign      aw_hsked_d = aw_hsked_set;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         aw_hsked_q <= 1'b0;
@@ -178,10 +178,10 @@ always@(posedge clk or negedge reset_n) begin
     end
 end
 
-assign      w_hsekd_set = axi_w_hsked;
+assign      w_hsked_set = axi_w_hsked;
 assign      w_hsked_clr = axi_b_hsked;
-assign      w_hsked_rld = w_hsekd_set | w_hsked_clr;
-assign      w_hsked_d = w_hsekd_set;
+assign      w_hsked_rld = w_hsked_set | w_hsked_clr;
+assign      w_hsked_d = w_hsked_set;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         w_hsked_q <= 1'b0;
@@ -190,10 +190,10 @@ always@(posedge clk or negedge reset_n) begin
     end
 end
 
-assign      ar_hsekd_set = axi_ar_hsked;
+assign      ar_hsked_set = axi_ar_hsked;
 assign      ar_hsked_clr = axi_r_hsked;
-assign      ar_hsked_rld = ar_hsekd_set | ar_hsked_clr;
-assign      ar_hsked_d = ar_hsekd_set;
+assign      ar_hsked_rld = ar_hsked_set | ar_hsked_clr;
+assign      ar_hsked_d = ar_hsked_set;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         ar_hsked_q <= 1'b0;
@@ -241,11 +241,11 @@ assign      axi_arid        = 4'd0;
 assign      axi_rready = axi_read_ots & s_icb_rsp_rdy;
 
 // icb总线的response通道，如果是写操作，则需要等bvalid
-assign      s_icb_rsp_vld = (axi_write_ots & axi_bvalid) | 
+assign      s_icb_rsp_vld = (axi_write_ots & axi_bvalid) |
                             (axi_read_ots & axi_rvalid);
 
 assign      s_icb_rsp_rdata = axi_rdata;
-assign      s_icb_rsp_err = (axi_write_ots & axi_bresp[0]) | 
+assign      s_icb_rsp_err = (axi_write_ots & axi_bresp[0]) |
                             (axi_read_ots & axi_rresp[0]);
 
 endmodule

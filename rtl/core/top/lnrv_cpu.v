@@ -20,7 +20,7 @@ module  lnrv_cpu#
     input                                   dbg_halt,
     input                                   dbg_irq,
 
-    // 
+    //
     output                                  wfi_mode,
     output                                  d_mode,
 
@@ -71,7 +71,7 @@ module  lnrv_cpu#
     input                                   sys_rlast,
     input[3 : 0]                            sys_rid,
 
-    // Slave Port 
+    // Slave Port
     input                                   slv_awvalid,
     output                                  slv_awready,
     input                                   slv_awlock,
@@ -220,9 +220,9 @@ wire                            sys_rsp_err;
 
 
 
-// 
+//
 lnrv_core u_lnrv_core
-(           
+(
     .reset_vector           ( reset_vector              ),
     .reset_mtvec            ( reset_mtvec               ),
     .firmware_loading          ( firmware_loading             ),
@@ -268,7 +268,7 @@ lnrv_core u_lnrv_core
 
     .ifu_clk                ( clk                       ),
     .ifu_active             ( ifu_active                ),
-    
+
     .idu_clk                ( clk                       ),
     .idu_active             ( idu_active                ),
 
@@ -375,9 +375,9 @@ lnrv_icb2sram#
     .P_ICB_ADDR_WIDTH       ( 32                        ),
     .P_RAM_ADDR_WIDTH       ( P_ILM_ADDR_WIDTH          ),
     .P_DATA_WIDTH           ( 32                        )
-)               
-u_ilm_ctrl              
-(               
+)
+u_ilm_ctrl
+(
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   ),
 
@@ -392,7 +392,7 @@ u_ilm_ctrl
     .icb_rsp_vld            ( ilm_rsp_vld               ),
     .icb_rsp_rdata          ( ilm_rsp_rdata             ),
     .icb_rsp_err            ( ilm_rsp_err               ),
-        
+
     .ram_cs                 ( ilm_cs                    ),
     .ram_we                 ( ilm_we                    ),
     .ram_addr               ( ilm_addr                  ),
@@ -424,7 +424,7 @@ u_dlm_ctrl
     .icb_rsp_vld            ( dlm_rsp_vld               ),
     .icb_rsp_rdata          ( dlm_rsp_rdata             ),
     .icb_rsp_err            ( dlm_rsp_err               ),
-        
+
     .ram_cs                 ( dlm_cs                    ),
     .ram_we                 ( dlm_we                    ),
     .ram_addr               ( dlm_addr                  ),

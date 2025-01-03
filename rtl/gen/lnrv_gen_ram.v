@@ -32,7 +32,7 @@ generate
     // byte mask
     for(i = 0; i < (P_DATA_WIDTH/8); i = i + 1) begin
         assign      mem_d[i * 8 +: 8] = ram_wem[i] ? ram_wdata[i * 8 +: 8] : mem_q[ram_addr][i * 8 +: 8];
-    end        
+    end
 endgenerate
 
 assign      mem_wen = ram_cs & ram_we;

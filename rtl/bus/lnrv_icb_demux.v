@@ -14,8 +14,8 @@ module lnrv_icb_demux#
     parameter                                           P_RSP_BUFF_BYPASS = "false",
 
     parameter                                           P_OTS_COUNT = 1
-)   
-(   
+)
+(
     input                                               clk,
     input                                               reset_n,
 
@@ -178,7 +178,7 @@ lnrv_gnrl_buffer#
     .P_DEEPTH           ( P_OTS_COUNT               ),
     .P_CUT_READY        ( "false"                   ),
     .P_BYPASS           ( "true"                    )
-) 
+)
 u_icb_disp_buf
 (
     .clk                ( clk                       ),
@@ -207,14 +207,14 @@ generate
         assign      end_addr_is_zero[i] = ~(|slv_region_end_addr[i]);
     end
 
-    
+
     for(i = 0; i < P_ICB_COUNT - 1; i = i + 1) begin
         assign      slv_region_match[i] = addr_gte_start_addr[i] & addr_ls_end_addr[i];
     end
 
     // 最后一个通道的匹配规则不一样，如果结束地址为0，则不需要进行匹配，没有选中其他通道时，默认选中最后一个通道
     // 如果最后一个通道的结束地址不为0，则正常进行匹配
-    assign      slv_region_match[P_ICB_COUNT - 1] = end_addr_is_zero[P_ICB_COUNT - 1] ? (~|(slv_region_match[P_ICB_COUNT - 2 : 0])) : 
+    assign      slv_region_match[P_ICB_COUNT - 1] = end_addr_is_zero[P_ICB_COUNT - 1] ? (~|(slv_region_match[P_ICB_COUNT - 2 : 0])) :
                                                     (addr_gte_start_addr[P_ICB_COUNT - 1] & addr_ls_end_addr[P_ICB_COUNT - 1]);
 endgenerate
 
@@ -274,5 +274,5 @@ assign      m_icb_rsp_vld_bufed = no_region_match_bufed ? disp_buf_pop_vld : m_i
 assign      m_icb_rsp_err_bufed = m_icb_rsp_err_mux | no_region_match_bufed;
 assign      m_icb_rsp_rdata_bufed = m_icb_rsp_rdata_mux;
 
-    
+
 endmodule //lnrv_icb_demux

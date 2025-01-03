@@ -46,7 +46,7 @@ generate
 
         assign      pop_data = fifo_pop_data;
         assign      pop_vld = fifo_pop_vld;
-    end 
+    end
 endgenerate
 
 // 如果fifo已经被bypass，就不需要往里面写数据了
@@ -62,7 +62,7 @@ lnrv_gnrl_fifo#
     .P_DATA_WIDTH       ( P_DATA_WIDTH      ),
     .P_DEEPTH           ( P_DEEPTH          ),
     .P_CUT_READY        ( P_CUT_READY       )
-) 
+)
 u_lnrv_gnrl_fifo
 (
     .clk                ( clk               ),

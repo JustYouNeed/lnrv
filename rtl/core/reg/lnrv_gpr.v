@@ -69,7 +69,7 @@ assign      rs2_raw         = 1'b0;//wr_vld & rs2_wr_idx_eq;
 
 
 
-assign	rs1_rdata =     rs1_raw ? wr_data : 
+assign	rs1_rdata =     rs1_raw ? wr_data :
 						gpr[rs1_idx];
 
 assign	rs2_rdata =     rs2_raw ? wr_data : 	/* 读取正在写的寄存器，则直接将写入的数据输出 */

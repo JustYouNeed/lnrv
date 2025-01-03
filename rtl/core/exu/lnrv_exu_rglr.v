@@ -90,17 +90,15 @@ assign      alu_op_bus[`ALU_XOR_LOC]            = instr_is_xor;
 assign      alu_op_bus[`ALU_SLL_LOC]            = instr_is_sll;
 assign      alu_op_bus[`ALU_SRL_LOC]            = instr_is_srl;
 assign      alu_op_bus[`ALU_SRA_LOC]            = instr_is_sra;
-assign      alu_op_bus[`ALU_LT_LOC]             = instr_is_slt;
-assign      alu_op_bus[`ALU_LTU_LOC]            = instr_is_sltu;
-assign      alu_op_bus[`ALU_GTEU_LOC]           = 1'b0;
+assign      alu_op_bus[`ALU_LT_LOC]             = instr_is_slt | instr_is_sltu;
 assign      alu_op_bus[`ALU_GTE_LOC]            = 1'b0;
 assign      alu_op_bus[`ALU_NEQ_LOC]            = 1'b0;
 assign      alu_op_bus[`ALU_EQ_LOC]             = 1'b0;
 assign      alu_op_bus[`ALU_IN1_IS_UNSIGED]     = instr_is_sltu;
 assign      alu_op_bus[`ALU_IN2_IS_UNSIGED]     = instr_is_sltu;
 
-assign      alu_in1[0 +: 32]                    =   op1_is_pc ? pc : 
-                                                    instr_is_lui ? 32'd0 : 
+assign      alu_in1[0 +: 32]                    =   op1_is_pc ? pc :
+                                                    instr_is_lui ? 32'd0 :
                                                     rs1_rdata;
 assign      alu_in1[32 +: 1]                    = alu_in1[31];
 assign      alu_in2[0 +: 32]                    = op2_is_imm ? imm : rs2_rdata;

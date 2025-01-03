@@ -2,10 +2,10 @@ module lnrv_cmt_irq
 (
     // 指令执行模块空闲，没有正在执行的指令，或者当前指令已经执行完成
     input                       exu_idle,
-    
+
     input                       ifu_vld,
     input[31 : 0]               ifu_pc,
-    
+
     input                       sft_irq,            // 软件中断
     input                       ext_irq,            // 外部中断
     input                       tmr_irq,            // 定时器中断
@@ -14,7 +14,7 @@ module lnrv_cmt_irq
     input                       mie_mtie,
     input                       mie_msie,
     input                       mstatus_mie,
-    
+
     input                       d_mode,
 
     // 有中断发生
@@ -59,14 +59,14 @@ assign      sft_irq_vld = sft_irq & mie_msie;
 assign      ext_irq_vld = ext_irq & mie_meie;
 assign      tmr_irq_vld = tmr_irq & mie_mtie;
 
-assign      irq_req_raw =   sft_irq_vld | 
-                            ext_irq_vld | 
+assign      irq_req_raw =   sft_irq_vld |
+                            ext_irq_vld |
                             tmr_irq_vld;
 
 assign      any_irq_vld =   mstatus_mie & irq_req_raw;
 
 // 如果当前处于debug mode，或者单步调试模式且没有使能单步调试中断，则不会响应任何中断请求
-assign      dbg_msk_irq =   d_mode | 
+assign      dbg_msk_irq =   d_mode |
                             (dcsr_step & (~dcsr_stepie));
 
 // 生成流水线冲刷请求，前提条件如下:
@@ -88,12 +88,12 @@ assign      mepc_wdata = ifu_pc;
 
 assign      mcause_wdata[31]        = 1'b1;
 assign      mcause_wdata[30 : 4]    = 27'd0;
-assign      mcause_wdata[3 : 0]     = sft_irq_vld ? 4'd3 : 
-                                      tmr_irq_vld ? 4'd7 : 
-                                      ext_irq_vld ? 4'd11 : 
+assign      mcause_wdata[3 : 0]     = sft_irq_vld ? 4'd3 :
+                                      tmr_irq_vld ? 4'd7 :
+                                      ext_irq_vld ? 4'd11 :
                                       4'd0;
 
-// 
+//
 assign      irq_taken = pipe_flush_hsked;
 
 endmodule

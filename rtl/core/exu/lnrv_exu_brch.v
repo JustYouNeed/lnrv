@@ -73,11 +73,11 @@ assign      instr_is_dret   = op_bus[`BRCH_DRET_LOC];
 // assign      instr_is_fencei = op_bus[`BRCH_FENCEI_LOC];
 assign      instr_is_fence  = op_bus[`BRCH_FENCE_LOC];
 
-assign      instr_is_bxx    =   instr_is_beq | 
-                                instr_is_bge | 
-                                instr_is_bgeu | 
-                                instr_is_blt | 
-                                instr_is_bltu | 
+assign      instr_is_bxx    =   instr_is_beq |
+                                instr_is_bge |
+                                instr_is_bgeu |
+                                instr_is_blt |
+                                instr_is_bltu |
                                 instr_is_bne;
 
 assign      op1_is_pc       = op_bus[`BRCH_OP1_IS_PC];
@@ -85,8 +85,8 @@ assign      op2_is_imm      = op_bus[`BRCH_OP2_IS_IMM];
 
 // 除了下列指令，都需要使用alu
 assign      need_alu = ~(
-                            instr_is_mret | 
-                            instr_is_dret | 
+                            instr_is_mret |
+                            instr_is_dret |
                             instr_is_fence
                         );
 
@@ -99,12 +99,10 @@ assign      alu_op_bus[`ALU_SRA_LOC]            = 1'b0;
 assign      alu_op_bus[`ALU_XOR_LOC]            = 1'b0;
 assign      alu_op_bus[`ALU_OR_LOC]             = 1'b0;
 assign      alu_op_bus[`ALU_AND_LOC]            = 1'b0;
-assign      alu_op_bus[`ALU_LT_LOC]             = instr_is_blt;
-assign      alu_op_bus[`ALU_LTU_LOC]            = instr_is_bltu;
+assign      alu_op_bus[`ALU_LT_LOC]             = instr_is_blt | instr_is_bltu;
 assign      alu_op_bus[`ALU_NEQ_LOC]            = instr_is_bne;
 assign      alu_op_bus[`ALU_EQ_LOC]             = instr_is_beq;
-assign      alu_op_bus[`ALU_GTEU_LOC]           = instr_is_bgeu;
-assign      alu_op_bus[`ALU_GTE_LOC]            = instr_is_bge;
+assign      alu_op_bus[`ALU_GTE_LOC]            = instr_is_bge | instr_is_bgeu;
 assign      alu_op_bus[`ALU_IN1_IS_UNSIGED]     = instr_is_bltu | instr_is_bgeu;
 assign      alu_op_bus[`ALU_IN2_IS_UNSIGED]     = instr_is_bltu | instr_is_bgeu;
 
@@ -129,6 +127,6 @@ assign      op_rdy = cmt_rdy;
 
 // 只有jal和jalr两个指令需要写回
 assign      gpr_wen = instr_is_jal | instr_is_jalr;
-assign      gpr_wdata = alu_res;
+assign      gpr_wdata = alu_res[0 +: 32];
 
 endmodule

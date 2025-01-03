@@ -31,7 +31,7 @@ module lnrv_cmt_excp
     // 1:进入debug mode
     input                       dcsr_ebreakm,
 
-    // 
+    //
     input[31 : 0]               mtvec,
 
     // 请求冲刷流水线
@@ -80,11 +80,11 @@ assign      sys_excp_pending = cmt_sys_ecall | ebreak4excp;
 
 assign      csr_excp_pending = cmt_csr_idx_err;
 
-assign      any_excp_pending =  lsu_excp_pending | 
-                                idu_excp_pending | 
-                                ifu_excp_pending | 
-                                sys_excp_pending | 
-                                csr_excp_pending | 
+assign      any_excp_pending =  lsu_excp_pending |
+                                idu_excp_pending |
+                                ifu_excp_pending |
+                                sys_excp_pending |
+                                csr_excp_pending |
                                 1'b0;
 
 // 只要有异常发生，就请求冲刷流水线，异常只会在指令交付时有效，所以不需要等待exu idle
@@ -106,24 +106,24 @@ assign      mepc_wdata = idu_pc;
 
 assign      mcause_wdata[31] = 1'b0;
 assign      mcause_wdata[30 : 4] = 27'd0;
-assign      mcause_wdata[3 : 0] =   cmt_ifu_excp_misalgn ? 4'd0 : 
-                                    cmt_ifu_excp_buserr ? 4'd1 : 
-                                    (cmt_idu_excp_ilglir | cmt_csr_idx_err) ? 4'd2 : 
-                                    ebreak4excp ? 4'd3 : 
+assign      mcause_wdata[3 : 0] =   cmt_ifu_excp_misalgn ? 4'd0 :
+                                    cmt_ifu_excp_buserr ? 4'd1 :
+                                    (cmt_idu_excp_ilglir | cmt_csr_idx_err) ? 4'd2 :
+                                    ebreak4excp ? 4'd3 :
                                     (cmt_lsu_ld & cmt_lsu_misalgn) ? 4'd4 :
-                                    (cmt_lsu_ld & cmt_lsu_buserr) ? 4'd5 : 
-                                    (cmt_lsu_st & cmt_lsu_misalgn) ? 4'd6 : 
-                                    (cmt_lsu_st & cmt_lsu_buserr) ? 4'd7 : 
-                                    u_mode_ecall ? 4'd8 : 
+                                    (cmt_lsu_ld & cmt_lsu_buserr) ? 4'd5 :
+                                    (cmt_lsu_st & cmt_lsu_misalgn) ? 4'd6 :
+                                    (cmt_lsu_st & cmt_lsu_buserr) ? 4'd7 :
+                                    u_mode_ecall ? 4'd8 :
                                     s_mode_ecall ? 4'd9 :
-                                    m_mode_ecall ? 4'd11 : 
+                                    m_mode_ecall ? 4'd11 :
                                     4'd14;
 // 对于异常，还需要更新mtval寄存器，
 // 如果是取指时发生错误，则将错误更新到mtval寄存器
 // 如果是译码时发现是非法指令，则将指令本身更新到mtval寄存器
-assign      mtval_wdata =   (cmt_ifu_excp_buserr | cmt_ifu_excp_misalgn) ? idu_pc : 
-                            (cmt_idu_excp_ilglir | cmt_csr_idx_err) ? idu_ir : 
-                            lsu_excp_pending ? cmt_lsu_addr : 
+assign      mtval_wdata =   (cmt_ifu_excp_buserr | cmt_ifu_excp_misalgn) ? idu_pc :
+                            (cmt_idu_excp_ilglir | cmt_csr_idx_err) ? idu_ir :
+                            lsu_excp_pending ? cmt_lsu_addr :
                             32'd0;
 
 assign      excp_taken = pipe_flush_hsked;

@@ -66,19 +66,17 @@ wire[32 : 0]                            rs2_signed_x2_ext;
 
 reg[32 : 0]                             part_prdt_hi_q;
 wire                                    part_prdt_hi_init;
-wire                                    part_prdt_hi_srl;
+wire                                    part_prdt_hi_upd;
 wire                                    part_prdt_hi_rld;
 wire[32 : 0]                            part_prdt_hi_d;
 
 reg[32 : 0]                             part_prdt_lo_q;
 wire                                    part_prdt_lo_init;
-wire                                    part_prdt_lo_srl;
+wire                                    part_prdt_lo_upd;
 wire                                    part_prdt_lo_rld;
 wire[32 : 0]                            part_prdt_lo_d;
 
 reg                                     part_prdt_ext_q;
-wire                                    part_prdt_ext_init;
-wire                                    part_prdt_ext_srl;
 wire                                    part_prdt_ext_rld;
 wire                                    part_prdt_ext_d;
 
@@ -115,7 +113,7 @@ end
 always@(*) begin
     nxt_status = S_IDLE;
 
-    case(cur_status) 
+    case(cur_status)
         S_IDLE: begin
             nxt_status = (op_vld & instr_is_mul) ? S_CALC : S_IDLE;
         end
@@ -141,7 +139,7 @@ assign      rs1_sign = (rs1_rdata[31] & ~op1_is_unsigned);
 assign      rs2_signed_ext = {rs2_sign, rs2_rdata};
 assign      rs2_signed_x2_ext = {rs2_rdata, 1'b0};
 
-assign      booth_code =    cur_status_is_IDLE ? {rs1_rdata[1 : 0], 1'b0} : 
+assign      booth_code =    cur_status_is_IDLE ? {rs1_rdata[1 : 0], 1'b0} :
                             cur_status_is_DONE ? {rs1_sign, part_prdt_lo_q[0], part_prdt_ext_q} :
                             {part_prdt_lo_q[1 : 0], part_prdt_ext_q};
 
@@ -153,8 +151,8 @@ assign      booth_sel_2a = (booth_code == 3'b011) | (booth_code == 3'b100);
 // assign      booth_sel_0 = (booth_code == 3'b000) | (booth_code == 3'b111);
 
 assign      adder_rs1 = cur_status_is_IDLE ? 33'd0 : part_prdt_hi_q;
-assign      adder_rs2 = booth_sel_a ? rs2_signed_ext : 
-                        booth_sel_2a ? rs2_signed_x2_ext : 
+assign      adder_rs2 = booth_sel_a ? rs2_signed_ext :
+                        booth_sel_2a ? rs2_signed_x2_ext :
                         33'd0;
 
 // ALU操作总线
@@ -168,10 +166,8 @@ assign      alu_op_bus[`ALU_XOR_LOC]            = 1'b0;
 assign      alu_op_bus[`ALU_OR_LOC]             = 1'b0;
 assign      alu_op_bus[`ALU_AND_LOC]            = 1'b0;
 assign      alu_op_bus[`ALU_LT_LOC]             = 1'b0;
-assign      alu_op_bus[`ALU_LTU_LOC]            = 1'b0;
 assign      alu_op_bus[`ALU_NEQ_LOC]            = 1'b0;
 assign      alu_op_bus[`ALU_EQ_LOC]             = 1'b0;
-assign      alu_op_bus[`ALU_GTEU_LOC]           = 1'b0;
 assign      alu_op_bus[`ALU_GTE_LOC]            = 1'b0;
 assign      alu_op_bus[`ALU_IN1_IS_UNSIGED]     = 1'b0;
 assign      alu_op_bus[`ALU_IN2_IS_UNSIGED]     = op2_is_unsigned;
@@ -195,7 +191,7 @@ end
 // assign      part_prdt_lo_init = cur_status_is_IDLE & op_vld;
 // assign      part_prdt_lo_upd = cur_status_is_CALC;
 assign      part_prdt_lo_rld = part_prdt_hi_rld;
-assign      part_prdt_lo_d = part_prdt_hi_init ? {alu_res[1 : 0], rs1_rdata[31] & (~op1_is_unsigned), rs1_rdata[31 : 2]} : 
+assign      part_prdt_lo_d = part_prdt_hi_init ? {alu_res[1 : 0], rs1_rdata[31] & (~op1_is_unsigned), rs1_rdata[31 : 2]} :
                                 {alu_res[1 : 0], part_prdt_lo_q[32 : 2]};
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
@@ -216,7 +212,7 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 assign      cycle_clr = cur_status_is_DONE;
-assign      cycle_inc = cur_status_is_CALC | 
+assign      cycle_inc = cur_status_is_CALC |
                         (cur_status_is_IDLE & op_vld);
 assign      cycle_rld = cycle_clr | cycle_inc;
 assign      cycle_d = cycle_clr ? 4'd0 : (cycle_q + 1'b1);

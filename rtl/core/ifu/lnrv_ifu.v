@@ -28,7 +28,7 @@ module	lnrv_ifu
     // 流水线暂停请求
     input                               pipe_halt_req,
     output                              pipe_halt_ack,
-        
+
     // 输出至EXU模块
     output                              ifu_vld,
     input                               ifu_rdy,
@@ -216,9 +216,9 @@ assign      fetch_addr_op1 =    pipe_flush_req_bpu ? pipe_flush_pc_op1_bpu :
                                 fetch_addr_q;
 
 assign      fetch_addr_op2 =    pipe_flush_req_bpu ? pipe_flush_pc_op2_bpu :
-                                pipe_flush_req_cmt ? pipe_flush_pc_op2_cmt : 
-                                flush_req_pend_q ? 32'd0 : 
-                                reset_pend_q ? 32'd0 : 
+                                pipe_flush_req_cmt ? pipe_flush_pc_op2_cmt :
+                                flush_req_pend_q ? 32'd0 :
+                                reset_pend_q ? 32'd0 :
                                 32'd4;
 assign      fetch_addr_rld = ifu_cmd_hsked | pipe_flush_hsked;
 assign      fetch_addr_d = fetch_addr_op1 + fetch_addr_op2;
@@ -232,7 +232,7 @@ end
 
 // 该寄存器保存真实执行的pc值
 assign      ifu_pc_rld = pipe_flush_hsked | (reset_pend_q & ifu_cmd_hsked) | ifu_buf_push_hsked;
-assign      ifu_pc_d = (pipe_flush_vld | reset_pend_q) ? fetch_addr_d : 
+assign      ifu_pc_d = (pipe_flush_vld | reset_pend_q) ? fetch_addr_d :
                         ifu_pc_q + (rv32_ir ? 32'd4 : 32'd2);
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
@@ -281,9 +281,9 @@ end
 //      2、当前leftover_buf无效，但是当前pc值没有对齐到4字节，且取回来的指令是32位指令，我们需要
 //          将高16位指令先保存到leftover_buf，或者当前pc值对齐到4字节，但是取回来的指令是16位的，
 //          我们需要将高16位指令保存到leftover_buf
-assign      leftover_buf_vld_set =  ifu_rsp_hsked & 
+assign      leftover_buf_vld_set =  ifu_rsp_hsked &
                                     (
-                                        leftover_buf_vld_q | 
+                                        leftover_buf_vld_q |
                                         (~(ifu_pc_algn_half ^ rv32_ir))
                                     );
 // 当成功往流水线中push了指令，或者流水线有冲刷请求，leftover_buf中的数据就会无效
@@ -318,15 +318,15 @@ assign      fetch_addr_misalgn = 1'b0;
 //      因为如果流水线中有指令在执行，且前一条指令是16位指令，则ifu_rsp_rdata[31:16]一定被保存在leftover_buf，leftover_buf一定是有效的，
 //      或者前一条指令是32位的，且前一条指令的地址本身就是对齐到2字节的，同样的，上一次的ifu_rsp_rdata[31:16]一定被保存了;
 //      或者前一条指令是32位的，且前一条指令的地址是对齐到4字节的，则不会有数据被保存到leftover_buf中，当前指令的地址一定也是对齐到4字节的，直接使用ifu_rsp_rdata即可
-assign      ifu_push_ir =   leftover_buf_vld_q ? {ifu_rsp_rdata[15 : 0], leftover_buf_q} : 
-                            ifu_pc_algn_half ? {16'd0, ifu_rsp_rdata[31 : 16]} : 
+assign      ifu_push_ir =   leftover_buf_vld_q ? {ifu_rsp_rdata[15 : 0], leftover_buf_q} :
+                            ifu_pc_algn_half ? {16'd0, ifu_rsp_rdata[31 : 16]} :
                             ifu_rsp_rdata;
 
 // 只要指令的最低两比特是2'b11，那就是32位指令
 assign      rv32_ir = &ifu_push_ir[1 : 0];
 
 // 我们会在以下情况发生时将指令相关信息push到Buff中
-assign      ifu_buf_push_vld =  (~pipe_flush_vld) & 
+assign      ifu_buf_push_vld =  (~pipe_flush_vld) &
                                 (
                                     // 如果是32位指令，只要不是第一取指，且指令对齐到2字节，就可以push
                                     // 如果不是32位指令，只要leftover_buf非空，或者ifu_rsp_vld就可以push
@@ -348,9 +348,9 @@ lnrv_gnrl_buffer#
     .P_DEEPTH           ( 1                         ),
     .P_CUT_READY        ( "false"                   ),
     .P_BYPASS           ( "false"                   )
-)       
-u_ifu_buffer        
-(       
+)
+u_ifu_buffer
+(
     .clk                ( clk                       ),
     .reset_n            ( reset_n                   ),
 

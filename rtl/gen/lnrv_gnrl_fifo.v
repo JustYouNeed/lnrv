@@ -62,7 +62,7 @@ generate
         assign      fifo_full_clr = pop_hsked;
         assign      fifo_full_rld = fifo_full_set | fifo_full_clr;
         // 读写可能同时发生，此时buffer中的数据仍有效
-        assign      fifo_full_d = fifo_full_set;  
+        assign      fifo_full_d = fifo_full_set;
         always@(posedge clk or negedge reset_n) begin
             if(reset_n == 1'b0) begin
                 fifo_full_q <= 1'b0;
@@ -97,18 +97,18 @@ generate
         wire                            fifo_ren;
         wire                            fifo_wr_full;
         wire                            fifo_rd_empty;
-        
+
         reg[LP_PTR_WIDTH : 0]           wr_ptr_q;
         wire                            wr_ptr_inc;
         wire                            wr_ptr_rld;
         wire[LP_PTR_WIDTH : 0]          wr_ptr_d;
-        
+
 
         reg[LP_PTR_WIDTH : 0]           rd_ptr_q;
         wire                            rd_ptr_inc;
         wire                            rd_ptr_rld;
         wire[LP_PTR_WIDTH : 0]          rd_ptr_d;
-        
+
 
         wire                            wr_cycle;
         wire                            rd_cycle;
@@ -138,7 +138,7 @@ generate
             //     for(i = 0; i < P_DEEPTH; i = i + 1) begin
             //         fifo_mem[i] <= {P_DATA_WIDTH{1'b0}};
             //     end
-            // end else 
+            // end else
             if(fifo_wen) begin
                 fifo_mem[wr_addr] <= push_data;
             end

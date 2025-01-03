@@ -12,10 +12,10 @@ module lnrv_csr
     output                          dcsr_stepie,
     output                          dcsr_ebreakm,
     output                          dcsr_stoptime,
-    output                          dcsr_stopcount,   
+    output                          dcsr_stopcount,
     output[31 : 0]                  dpc,
     output                          d_mode,
-    
+
     // 中断输入
     input                           sft_irq,
     input                           tmr_irq,
@@ -391,15 +391,15 @@ assign      excp_irq_taken = excp_taken | irq_taken;
 // 1、发生中断或者异常
 // 2、执行mret
 // 3、写回
-assign      mstatus_rld =   excp_irq_taken | 
-                            cmted_mret | 
+assign      mstatus_rld =   excp_irq_taken |
+                            cmted_mret |
                             wbck_MSTATUS;
 
 assign      mstatus_mie_rld = mstatus_rld;
 // 在异常或者中断发生时，全局中断会被关闭
-assign      mstatus_mie_d = excp_irq_taken ? 1'b0 : 
-                            cmted_mret ? mstatus_mpie_q : 
-                            wbck_MSTATUS ? wbck_wdata[3] : 
+assign      mstatus_mie_d = excp_irq_taken ? 1'b0 :
+                            cmted_mret ? mstatus_mpie_q :
+                            wbck_MSTATUS ? wbck_wdata[3] :
                             mstatus_mie_q;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
@@ -410,9 +410,9 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 assign      mstatus_mpie_rld = mstatus_rld;
-assign      mstatus_mpie_d =    excp_irq_taken ? mstatus_mie_q : 
-                                cmted_mret ? 1'b1 : 
-                                wbck_MSTATUS ? wbck_wdata[7] : 
+assign      mstatus_mpie_d =    excp_irq_taken ? mstatus_mie_q :
+                                cmted_mret ? 1'b1 :
+                                wbck_MSTATUS ? wbck_wdata[7] :
                                 mstatus_mpie_q;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
@@ -786,27 +786,27 @@ assign      wbck_rdy = 1'b1;
 assign      csr_idx_err = 1'b0;
 
 // 读接口
-assign      csr_rdata = 
-                        ({32{csr_idx_is_MSTATUS}}   & mstatus_full) | 
-                        ({32{csr_idx_is_MISA}}      & misa_full) | 
-                        ({32{csr_idx_is_MIE}}       & mie_full) | 
-                        ({32{csr_idx_is_MTVEC}}     & mtvec_full) | 
-                        ({32{csr_idx_is_MSCRATCH}}  & mscratch_full) | 
+assign      csr_rdata =
+                        ({32{csr_idx_is_MSTATUS}}   & mstatus_full) |
+                        ({32{csr_idx_is_MISA}}      & misa_full) |
+                        ({32{csr_idx_is_MIE}}       & mie_full) |
+                        ({32{csr_idx_is_MTVEC}}     & mtvec_full) |
+                        ({32{csr_idx_is_MSCRATCH}}  & mscratch_full) |
                         ({32{csr_idx_is_MEPC}}      & mepc_full) |
                         ({32{csr_idx_is_MCAUSE}}    & mcause_full) |
                         ({32{csr_idx_is_MTVAL}}     & mtval_full) |
                         ({32{csr_idx_is_MIP}}       & mip_full) |
-                        ({32{csr_idx_is_MCYCLE}}    & mcycle_full) | 
-                        ({32{csr_idx_is_MCYCLEH}}   & mcycleh_full) | 
-                        ({32{csr_idx_is_MINSTRET}}  & minstret_full) | 
-                        ({32{csr_idx_is_MINSTRETH}} & minstreth_full) | 
-                        ({32{csr_idx_is_MVENDORID}} & mvendorid_full) | 
-                        ({32{csr_idx_is_MARCHID}}   & marchid_full) | 
-                        ({32{csr_idx_is_MIMPID}}    & mimpid_full) | 
-                        ({32{csr_idx_is_MHARTID}}   & mhartid_full) | 
-                        ({32{csr_idx_is_DCSR}}      & dcsr_full) | 
-                        ({32{csr_idx_is_DSCRATCH0}} & dscratch0_full) | 
-                        ({32{csr_idx_is_DSCRATCH1}} & dscratch1_full) | 
+                        ({32{csr_idx_is_MCYCLE}}    & mcycle_full) |
+                        ({32{csr_idx_is_MCYCLEH}}   & mcycleh_full) |
+                        ({32{csr_idx_is_MINSTRET}}  & minstret_full) |
+                        ({32{csr_idx_is_MINSTRETH}} & minstreth_full) |
+                        ({32{csr_idx_is_MVENDORID}} & mvendorid_full) |
+                        ({32{csr_idx_is_MARCHID}}   & marchid_full) |
+                        ({32{csr_idx_is_MIMPID}}    & mimpid_full) |
+                        ({32{csr_idx_is_MHARTID}}   & mhartid_full) |
+                        ({32{csr_idx_is_DCSR}}      & dcsr_full) |
+                        ({32{csr_idx_is_DSCRATCH0}} & dscratch0_full) |
+                        ({32{csr_idx_is_DSCRATCH1}} & dscratch1_full) |
                         32'd0;
 
 endmodule
