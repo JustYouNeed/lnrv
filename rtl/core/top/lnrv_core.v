@@ -327,9 +327,6 @@ lnrv_exu u_lnrv_exu
 (
     .exu_active                 ( exu_active                ),
 
-    // .pipe_halt_req              ( pipe_halt_req             ),
-    // .pipe_halt_ack              ( pipe_halt_ack_exu         ),
-
     // 译码模块输入
     .idu_vld                    ( idu_vld                   ),
     .idu_rdy                    ( idu_rdy                   ),
@@ -390,17 +387,17 @@ lnrv_exu u_lnrv_exu
     .csr_wbck_wdata             ( csr_wbck_wdata            ),
 
     // 访存接口
-    .icb_cmd_vld_lsu                ( icb_cmd_vld_lsu               ),
-    .icb_cmd_rdy_lsu                ( icb_cmd_rdy_lsu               ),
-    .icb_cmd_write_lsu              ( icb_cmd_write_lsu             ),
-    .icb_cmd_addr_lsu               ( icb_cmd_addr_lsu              ),
-    .icb_cmd_wdata_lsu              ( icb_cmd_wdata_lsu             ),
-    .icb_cmd_wstrb_lsu              ( icb_cmd_wstrb_lsu             ),
-    .icb_cmd_size_lsu               ( icb_cmd_size_lsu              ),
-    .icb_rsp_vld_lsu                ( icb_rsp_vld_lsu               ),
-    .icb_rsp_rdy_lsu                ( icb_rsp_rdy_lsu               ),
-    .icb_rsp_rdata_lsu              ( icb_rsp_rdata_lsu             ),
-    .icb_rsp_err_lsu                ( icb_rsp_err_lsu               ),
+    .icb_cmd_vld_lsu            ( icb_cmd_vld_lsu           ),
+    .icb_cmd_rdy_lsu            ( icb_cmd_rdy_lsu           ),
+    .icb_cmd_write_lsu          ( icb_cmd_write_lsu         ),
+    .icb_cmd_addr_lsu           ( icb_cmd_addr_lsu          ),
+    .icb_cmd_wdata_lsu          ( icb_cmd_wdata_lsu         ),
+    .icb_cmd_wstrb_lsu          ( icb_cmd_wstrb_lsu         ),
+    .icb_cmd_size_lsu           ( icb_cmd_size_lsu          ),
+    .icb_rsp_vld_lsu            ( icb_rsp_vld_lsu           ),
+    .icb_rsp_rdy_lsu            ( icb_rsp_rdy_lsu           ),
+    .icb_rsp_rdata_lsu          ( icb_rsp_rdata_lsu         ),
+    .icb_rsp_err_lsu            ( icb_rsp_err_lsu           ),
 
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   )
@@ -570,7 +567,7 @@ lnrv_csr u_lnrv_csr
     .dcause_wdata               ( dcause_wdata              ),
 
     .csr_idx_err                ( csr_idx_err               ),
-    .csr_idx                    ( idu_csr               ),
+    .csr_idx                    ( idu_csr                   ),
     .csr_rdata                  ( csr_rdata                 ),
 
     .wbck_vld                   ( csr_wbck_vld              ),

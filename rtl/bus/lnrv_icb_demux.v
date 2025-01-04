@@ -169,7 +169,7 @@ assign      no_region_match = ~(|slv_region_match);
 // 应答通道握手成功，表示已经完成一次通信，将保存的通道信息弹出
 assign      disp_buf_pop_rdy        = icb_rsp_hsked_m;
 assign      slv_region_match_bufed  = disp_buf_pop_data;
-assign      no_region_match_bufed = ~(|slv_region_match_bufed);
+assign      no_region_match_bufed   = ~(|slv_region_match_bufed);
 
 // 将分发信息保存下来，用于rsp通道
 lnrv_gnrl_buffer#
@@ -208,13 +208,16 @@ generate
     end
 
 
-    for(i = 0; i < P_ICB_COUNT - 1; i = i + 1) begin
-        assign      slv_region_match[i] = addr_gte_start_addr[i] & addr_ls_end_addr[i];
+    for(i = 0; i < P_ICB_COUNT; i = i + 1) begin
+        // 最后一个通道的匹配规则不一样，如果结束地址为0，则不需要进行匹配，没有选中其他通道时，默认选中最后一个通道
+        // 如果最后一个通道的结束地址不为0，则正常进行匹配
+        if(i == P_ICB_COUNT - 1) begin: LAST_REGION
+            assign      slv_region_match[i] =   end_addr_is_zero[i] ? (~|(slv_region_match[P_ICB_COUNT - 2 : 0])) :
+                                                addr_gte_start_addr[i] & addr_ls_end_addr[i];
+        end else begin
+            assign      slv_region_match[i] = addr_gte_start_addr[i] & addr_ls_end_addr[i];
+        end
     end
-
-    // 最后一个通道的匹配规则不一样，如果结束地址为0，则不需要进行匹配，没有选中其他通道时，默认选中最后一个通道
-    // 如果最后一个通道的结束地址不为0，则正常进行匹配
-    assign      slv_region_match[P_ICB_COUNT - 1] = (~|(slv_region_match[P_ICB_COUNT - 2 : 0]));
 endgenerate
 
 // 根据地址匹配，进行分发

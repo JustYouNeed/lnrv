@@ -11,6 +11,8 @@ module lnrv_icb2axi#
     input[P_DATA_WIDTH - 1 : 0]         icb_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]     icb_cmd_wstrb,
     input[2 : 0]                        icb_cmd_size,
+    input[2 : 0]                        icb_cmd_prot,
+    input[3 : 0]                        icb_cmd_cache,
     input                               icb_rsp_rdy,
     output                              icb_rsp_vld,
     output                              icb_rsp_err,
@@ -73,8 +75,8 @@ wire                                icb_rsp_rdy_s;
 wire[P_DATA_WIDTH - 1 : 0]          icb_rsp_rdata_s;
 wire                                icb_rsp_err_s;
 
-wire                                icb_write;
-wire                                icb_read;
+wire                                icb_write_vld;
+wire                                icb_read_vld;
 wire                                icb_byte_access;
 wire                                icb_half_access;
 wire                                icb_word_access;
@@ -203,13 +205,13 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 
-assign      icb_write = icb_cmd_vld_s & icb_cmd_write_s;
-assign      icb_read = icb_cmd_vld_s & (~icb_cmd_write_s);
+assign      icb_write_vld   = icb_cmd_vld_s & icb_cmd_write_s;
+assign      icb_read_vld    = icb_cmd_vld_s & (~icb_cmd_write_s);
 
-assign      axi_read_ots = ar_hsked_q;
-assign      axi_write_ots = aw_hsked_q & w_hsked_q;
+assign      axi_read_ots    = ar_hsked_q;
+assign      axi_write_ots   = aw_hsked_q & w_hsked_q;
 
-assign      axi_awvalid     = icb_write & no_aw_ots;
+assign      axi_awvalid     = icb_write_vld & no_aw_ots;
 assign      axi_awburst     = 2'b01;                    // 固定为INCR传输
 assign      axi_awsize      = icb_cmd_size_s;
 assign      axi_awlen       = 8'd0;                     // 单笔传输
@@ -220,14 +222,14 @@ assign      axi_awprot      = 3'b000;
 assign      axi_awid        = 4'd0;
 
 
-assign      axi_wvalid      = icb_write & no_w_ots;
+assign      axi_wvalid      = icb_write_vld & no_w_ots;
 assign      axi_wdata       = icb_cmd_wdata_s;
 assign      axi_wstrb       = icb_cmd_wstrb_s;
 assign      axi_wlast       = axi_wvalid;
 
 assign      axi_bready      = axi_write_ots & icb_rsp_rdy_s;
 
-assign      axi_arvalid     = icb_read & no_ar_ots;
+assign      axi_arvalid     = icb_read_vld & no_ar_ots;
 assign      axi_arburst     = 2'b01;
 assign      axi_arsize      = icb_cmd_size_s;
 assign      axi_arlen       = 8'd0;
