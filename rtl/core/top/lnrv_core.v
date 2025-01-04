@@ -7,9 +7,9 @@ module  lnrv_core
     input                                   firmware_loading,
 
     // 中断信号
-    input                                   sft_irq,
-    input                                   ext_irq,
-    input                                   tmr_irq,
+    input                                   irq_sft,
+    input                                   irq_ext,
+    input                                   irq_tmr,
 
     input                                   dbg_halt,
     input                                   dbg_irq,
@@ -393,9 +393,9 @@ lnrv_cmt u_lnrv_cmt
 
     .bpu_prdt_res               ( 1'b0                      ),
 
-    .sft_irq                    ( sft_irq                   ),
-    .ext_irq                    ( ext_irq                   ),
-    .tmr_irq                    ( tmr_irq                   ),
+    .irq_sft                    ( irq_sft                   ),
+    .irq_ext                    ( irq_ext                   ),
+    .irq_tmr                    ( irq_tmr                   ),
 
     .mie_meie                   ( mie_meie                  ),
     .mie_mtie                   ( mie_mtie                  ),
@@ -494,9 +494,9 @@ lnrv_csr u_lnrv_csr
     .d_mode                     ( d_mode                    ),
     .m_mode                     ( m_mode                    ),
 
-    .sft_irq                    ( sft_irq                   ),
-    .tmr_irq                    ( tmr_irq                   ),
-    .ext_irq                    ( ext_irq                   ),
+    .irq_sft                    ( irq_sft                   ),
+    .irq_tmr                    ( irq_tmr                   ),
+    .irq_ext                    ( irq_ext                   ),
 
     .mie_msie                   ( mie_msie                  ),
     .mie_mtie                   ( mie_mtie                  ),

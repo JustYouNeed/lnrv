@@ -17,9 +17,9 @@ module lnrv_csr
     output                          d_mode,
 
     // 中断输入
-    input                           sft_irq,
-    input                           tmr_irq,
-    input                           ext_irq,
+    input                           irq_sft,
+    input                           irq_tmr,
+    input                           irq_ext,
 
     // 中断使能
     output                          mie_msie,       // 机器模式软件中断使能
@@ -539,7 +539,7 @@ assign      mie_full[2 : 0]      = 3'd0;
 
 
 // timer interrupt pending
-assign      mtip_d = tmr_irq;
+assign      mtip_d = irq_tmr;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         mtip_q <= 1'b0;
@@ -549,7 +549,7 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 // software interrupt pending
-assign      msip_d = sft_irq;
+assign      msip_d = irq_sft;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         msip_q <= 1'b0;
@@ -559,7 +559,7 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 // external interrupt pending
-assign      meip_d = tmr_irq;
+assign      meip_d = irq_tmr;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         meip_q <= 1'b0;

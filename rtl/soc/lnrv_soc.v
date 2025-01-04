@@ -68,9 +68,9 @@ u_lnrv_cpu
     .reset_vector           ( 32'd0                     ),
     .reset_mtvec            ( 32'h0000_0000             ),
 
-    .sft_irq                ( sft_irq                   ),
-    .tmr_irq                ( tmr_irq                   ),
-    .ext_irq                ( ext_irq                   ),
+    .irq_sft                ( irq_sft                   ),
+    .irq_tmr                ( irq_tmr                   ),
+    .irq_ext                ( irq_ext                   ),
 
     .dbg_halt               ( dbg_halt                  ),
     .dbg_irq                ( dbg_irq                   ),
@@ -180,9 +180,9 @@ lnrv_gen_ram#
 (
     .P_ADDR_WIDTH           ( LP_ILM_ADDR_WIDTH         ),
     .P_DATA_WIDTH           ( 32                        )
-)       
-u_lnrv_ilm      
-(       
+)
+u_lnrv_ilm
+(
     .ram_cs                 ( ilm_cs                    ),
     .ram_we                 ( ilm_we                    ),
     .ram_wem                ( ilm_wem                   ),
@@ -199,16 +199,16 @@ lnrv_gen_ram#
 (
     .P_ADDR_WIDTH           ( LP_DLM_ADDR_WIDTH         ),
     .P_DATA_WIDTH           ( 32                        )
-)   
-u_lnrv_dlm  
-(   
+)
+u_lnrv_dlm
+(
     .ram_cs                 ( dlm_cs                    ),
     .ram_we                 ( dlm_we                    ),
     .ram_wem                ( dlm_wem                   ),
     .ram_addr               ( dlm_addr                  ),
     .ram_wdata              ( dlm_wdata                 ),
     .ram_rdata              ( dlm_rdata                 ),
-    
+
     .clk                    ( clk                       )
 );
 

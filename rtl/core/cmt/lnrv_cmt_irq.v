@@ -6,9 +6,9 @@ module lnrv_cmt_irq
     input                       ifu_vld,
     input[31 : 0]               ifu_pc,
 
-    input                       sft_irq,            // 软件中断
-    input                       ext_irq,            // 外部中断
-    input                       tmr_irq,            // 定时器中断
+    input                       irq_sft,            // 软件中断
+    input                       irq_ext,            // 外部中断
+    input                       irq_tmr,            // 定时器中断
 
     input                       mie_meie,
     input                       mie_mtie,
@@ -44,9 +44,9 @@ module lnrv_cmt_irq
 );
 
 
-wire                            sft_irq_vld;
-wire                            ext_irq_vld;
-wire                            tmr_irq_vld;
+wire                            irq_sft_vld;
+wire                            irq_ext_vld;
+wire                            irq_tmr_vld;
 wire                            any_irq_vld;
 
 wire                            dbg_msk_irq;
@@ -55,13 +55,13 @@ wire                            pipe_flush_hsked;
 
 assign      pipe_flush_hsked = pipe_flush_req & pipe_flush_ack;
 
-assign      sft_irq_vld = sft_irq & mie_msie;
-assign      ext_irq_vld = ext_irq & mie_meie;
-assign      tmr_irq_vld = tmr_irq & mie_mtie;
+assign      irq_sft_vld = irq_sft & mie_msie;
+assign      irq_ext_vld = irq_ext & mie_meie;
+assign      irq_tmr_vld = irq_tmr & mie_mtie;
 
-assign      irq_req_raw =   sft_irq_vld |
-                            ext_irq_vld |
-                            tmr_irq_vld;
+assign      irq_req_raw =   irq_sft_vld |
+                            irq_ext_vld |
+                            irq_tmr_vld;
 
 assign      any_irq_vld =   mstatus_mie & irq_req_raw;
 
@@ -88,9 +88,9 @@ assign      mepc_wdata = ifu_pc;
 
 assign      mcause_wdata[31]        = 1'b1;
 assign      mcause_wdata[30 : 4]    = 27'd0;
-assign      mcause_wdata[3 : 0]     = sft_irq_vld ? 4'd3 :
-                                      tmr_irq_vld ? 4'd7 :
-                                      ext_irq_vld ? 4'd11 :
+assign      mcause_wdata[3 : 0]     = irq_sft_vld ? 4'd3 :
+                                      irq_tmr_vld ? 4'd7 :
+                                      irq_ext_vld ? 4'd11 :
                                       4'd0;
 
 //

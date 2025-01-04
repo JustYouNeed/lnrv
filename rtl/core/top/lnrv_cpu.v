@@ -13,9 +13,9 @@ module  lnrv_cpu#
 
     input                                   firmware_loading,
 
-    input                                   sft_irq,
-    input                                   tmr_irq,
-    input                                   ext_irq,
+    input                                   irq_sft,
+    input                                   irq_tmr,
+    input                                   irq_ext,
 
     input                                   dbg_halt,
     input                                   dbg_irq,
@@ -227,9 +227,9 @@ lnrv_core u_lnrv_core
     .reset_mtvec            ( reset_mtvec               ),
     .firmware_loading          ( firmware_loading             ),
 
-    .sft_irq                ( sft_irq                   ),
-    .ext_irq                ( ext_irq                   ),
-    .tmr_irq                ( tmr_irq                   ),
+    .irq_sft                ( irq_sft                   ),
+    .irq_ext                ( irq_ext                   ),
+    .irq_tmr                ( irq_tmr                   ),
 
     .dbg_halt               ( dbg_halt                  ),
     .dbg_irq                ( dbg_irq                   ),

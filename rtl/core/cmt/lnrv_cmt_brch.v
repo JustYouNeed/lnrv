@@ -9,9 +9,10 @@ module lnrv_cmt_brch
     input                       cmt_brch_dret,
     input                       cmt_brch_fence,
 
-
+    // 分支预测结果
     input                       bpu_prdt_res,
 
+    // 分支成立
     output                      brch_taken,
 
     input[31 : 0]               dpc,
@@ -25,7 +26,6 @@ module lnrv_cmt_brch
     input                       pipe_flush_ack,
     output[31 : 0]              pipe_flush_pc_op1,
     output[31 : 0]              pipe_flush_pc_op2,
-
 
     input                       clk,
     input                       reset_n

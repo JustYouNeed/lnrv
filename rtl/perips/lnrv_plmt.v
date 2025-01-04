@@ -1,10 +1,10 @@
 module lnrv_plmt
 (
     // 定时器中断
-    output                              tmr_irq,
+    output                              irq_tmr,
 
     // 软件中断
-    input                               sft_irq,
+    input                               irq_sft,
 
     input                               stop_timer,
 

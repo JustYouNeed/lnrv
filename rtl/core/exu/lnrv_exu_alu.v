@@ -95,24 +95,24 @@ wire[31 : 0]                            sra_mask;
 
 integer                                 i;
 
-assign      alu_op_bus = {{`ALU_OP_BUS_WIDTH{alu_op_vld_rglr}} & alu_op_bus_rglr} |
-                         {{`ALU_OP_BUS_WIDTH{alu_op_vld_brch}} & alu_op_bus_brch} |
-                         {{`ALU_OP_BUS_WIDTH{alu_op_vld_csr}} & alu_op_bus_csr} |
-                         {{`ALU_OP_BUS_WIDTH{alu_op_vld_mdv}} & alu_op_bus_mdv} |
-                         {{`ALU_OP_BUS_WIDTH{alu_op_vld_lsu}} & alu_op_bus_lsu};
+assign      alu_op_bus  =   {{`ALU_OP_BUS_WIDTH{alu_op_vld_rglr}}   & alu_op_bus_rglr} |
+                            {{`ALU_OP_BUS_WIDTH{alu_op_vld_brch}}   & alu_op_bus_brch} |
+                            {{`ALU_OP_BUS_WIDTH{alu_op_vld_csr}}    & alu_op_bus_csr} |
+                            {{`ALU_OP_BUS_WIDTH{alu_op_vld_mdv}}    & alu_op_bus_mdv} |
+                            {{`ALU_OP_BUS_WIDTH{alu_op_vld_lsu}}    & alu_op_bus_lsu};
 
-assign      alu_in1             =   ({33{alu_op_vld_rglr}} & alu_in1_rglr) |
-                                    ({33{alu_op_vld_brch}} & alu_in1_brch) |
-                                    ({33{alu_op_vld_csr}} & alu_in1_csr) |
-                                    ({33{alu_op_vld_lsu}} & alu_in1_lsu) |
-                                    ({33{alu_op_vld_mdv}} & alu_in1_mdv) |
-                                    33'd0;
-assign      alu_in2             =   ({33{alu_op_vld_rglr}} & alu_in2_rglr) |
-                                    ({33{alu_op_vld_brch}} & alu_in2_brch) |
-                                    ({33{alu_op_vld_csr}} & alu_in2_csr) |
-                                    ({33{alu_op_vld_lsu}} & alu_in2_lsu) |
-                                    ({33{alu_op_vld_mdv}} & alu_in2_mdv) |
-                                    33'd0;
+assign      alu_in1     =   ({33{alu_op_vld_rglr}}  & alu_in1_rglr) |
+                            ({33{alu_op_vld_brch}}  & alu_in1_brch) |
+                            ({33{alu_op_vld_csr}}   & alu_in1_csr) |
+                            ({33{alu_op_vld_lsu}}   & alu_in1_lsu) |
+                            ({33{alu_op_vld_mdv}}   & alu_in1_mdv) |
+                            33'd0;
+assign      alu_in2     =   ({33{alu_op_vld_rglr}}  & alu_in2_rglr) |
+                            ({33{alu_op_vld_brch}}  & alu_in2_brch) |
+                            ({33{alu_op_vld_csr}}   & alu_in2_csr) |
+                            ({33{alu_op_vld_lsu}}   & alu_in2_lsu) |
+                            ({33{alu_op_vld_mdv}}   & alu_in2_mdv) |
+                            33'd0;
 
 
 //从总线中取出各个操作符
@@ -182,58 +182,41 @@ assign      in1_srl_in2 = shift_res;
 // 对于左移操作，还需要对结果进行倒序
 assign      in1_sll_in2 = shift_res_invert;
 
-assign      in1_xor_in2 = alu_in1[0 +: 32] ^ alu_in2[0 +: 32];
-assign      in1_or_in2 = alu_in1[0 +: 32] | alu_in2[0 +: 32];
-assign      in1_and_in2 = alu_in1[0 +: 32] & alu_in2[0 +: 32];
+assign      in1_xor_in2     = alu_in1[0 +: 32] ^ alu_in2[0 +: 32];
+assign      in1_or_in2      = alu_in1[0 +: 32] | alu_in2[0 +: 32];
+assign      in1_and_in2     = alu_in1[0 +: 32] & alu_in2[0 +: 32];
 
 // 算术右移，需要保留符号位
 assign      sra_mask = {`CPU_DATA_WIDTH{1'b1}} >> alu_in2[0 +: `GPR_ADDR_WIDTH];
 assign      in1_sra_in2 =   (in1_srl_in2 & sra_mask) |
                             ({`CPU_DATA_WIDTH{alu_in1[`CPU_DATA_WIDTH - 1]}} & (~sra_mask));
 
-
-assign      in1_neq_in2 = |in1_xor_in2;
-assign      in1_eq_in2 = (~in1_neq_in2);
+assign      in1_neq_in2     = |in1_xor_in2;
+assign      in1_eq_in2      = (~in1_neq_in2);
 
 // 对于比较操作，我们使用了减法完成，因此只需要判断运算结果的最高位即可，为1表示结果
 // 为负，即in1 < in2
-assign      in1_lt_in2 = adder_res[34];
-assign      in1_gte_in2 = (~in1_lt_in2);
+assign      in1_lt_in2      = adder_res[34];
+assign      in1_gte_in2     = (~in1_lt_in2);
 
-assign      alu_res =   ({35{alu_op_add_sub}} & in1_add_in2) |
-                        ({35{alu_op_and}} & {3'd0, in1_and_in2}) |
-                        ({35{alu_op_or}} & {3'd0, in1_or_in2}) |
-                        ({35{alu_op_xor}} & {3'd0, in1_xor_in2}) |
-                        ({35{alu_op_sll}} & {3'd0, in1_sll_in2}) |
-                        ({35{alu_op_srl}} & {3'd0, in1_srl_in2}) |
-                        ({35{alu_op_sra}} & {3'd0, in1_sra_in2}) |
-                        ({35{alu_cmp_gte}} & {34'd0, in1_gte_in2}) |
-                        ({35{alu_cmp_lt}} & {34'd0, in1_lt_in2}) |
-                        ({35{alu_cmp_eq}} & {34'd0, in1_eq_in2}) |
-                        ({35{alu_cmp_neq}} & {34'd0, in1_neq_in2}) |
+assign      alu_res =   ({35{alu_op_add_sub}}   & in1_add_in2) |
+                        ({35{alu_op_and}}       & {3'd0, in1_and_in2}) |
+                        ({35{alu_op_or}}        & {3'd0, in1_or_in2}) |
+                        ({35{alu_op_xor}}       & {3'd0, in1_xor_in2}) |
+                        ({35{alu_op_sll}}       & {3'd0, in1_sll_in2}) |
+                        ({35{alu_op_srl}}       & {3'd0, in1_srl_in2}) |
+                        ({35{alu_op_sra}}       & {3'd0, in1_sra_in2}) |
+                        ({35{alu_cmp_gte}}      & {34'd0, in1_gte_in2}) |
+                        ({35{alu_cmp_lt}}       & {34'd0, in1_lt_in2}) |
+                        ({35{alu_cmp_eq}}       & {34'd0, in1_eq_in2}) |
+                        ({35{alu_cmp_neq}}      & {34'd0, in1_neq_in2}) |
                         35'd0;
-
-
-// (alu_op_add | alu_op_sub) ? in1_add_in2 :
-//                         (alu_op_and) ? {3'd0, in1_and_in2} :
-//                         (alu_op_or) ? {3'd0, in1_or_in2} :
-//                         (alu_op_xor) ? {3'd0, in1_xor_in2} :
-//                         (alu_op_sll) ? {3'd0, in1_sll_in2} :
-//                         (alu_op_srl) ? {3'd0, in1_srl_in2} :
-//                         (alu_op_sra) ? {3'd0, in1_sra_in2} :
-//                         (alu_cmp_lt | alu_cmp_ltu) ? {34'd0, in1_lt_in2} :
-//                         // alu_cmp_ltu ? {31'd0, in1_lte_in2} :
-//                         alu_cmp_eq ? {34'd0, in1_eq_in2} :
-//                         // alu_cmp_gteu ? {31'd0, in1_gt_in2} :
-//                         (alu_cmp_gte | alu_cmp_gteu) ? {34'd0, in1_gte_in2} :
-//                         alu_cmp_neq ? {34'd0, in1_neq_in2} :
-//                         35'd0;
 
 // alu运算模块是纯组合逻辑，只要valid拉高，ready就有效
 assign      alu_op_rdy_rglr = alu_op_vld_rglr;
 assign      alu_op_rdy_brch = alu_op_vld_brch;
-assign      alu_op_rdy_csr = alu_op_vld_csr;
-assign      alu_op_rdy_lsu = alu_op_vld_lsu;
-assign      alu_op_rdy_mdv = alu_op_vld_mdv;
+assign      alu_op_rdy_csr  = alu_op_vld_csr;
+assign      alu_op_rdy_lsu  = alu_op_vld_lsu;
+assign      alu_op_rdy_mdv  = alu_op_vld_mdv;
 
 endmodule

@@ -36,9 +36,9 @@ module lnrv_cmt
     input                       bpu_prdt_res,
 
     // 中断输入
-    input                       sft_irq,            // 软件中断
-    input                       ext_irq,            // 外部中断
-    input                       tmr_irq,            // 定时器中断
+    input                       irq_sft,            // 软件中断
+    input                       irq_ext,            // 外部中断
+    input                       irq_tmr,            // 定时器中断
 
     // 中断使能
     input                       mie_meie,
@@ -146,9 +146,9 @@ lnrv_cmt_irq u_lnrv_cmt_irq
     .ifu_vld                ( ifu_vld                       ),
     .ifu_pc                 ( ifu_pc                        ),
 
-    .sft_irq                ( sft_irq                       ),
-    .ext_irq                ( ext_irq                       ),
-    .tmr_irq                ( tmr_irq                       ),
+    .irq_sft                ( irq_sft                       ),
+    .irq_ext                ( irq_ext                       ),
+    .irq_tmr                ( irq_tmr                       ),
 
     .mie_meie               ( mie_meie                      ),
     .mie_mtie               ( mie_mtie                      ),

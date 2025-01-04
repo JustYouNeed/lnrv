@@ -88,8 +88,7 @@ assign      dbg_step_req = ifu_vld &
 assign      dbg_req_raw = ebreak4debug | dbg_step_req;
 
 //
-assign      pipe_flush_req =    cmt_vld & dbg_req_raw;
-
+assign      pipe_flush_req      = cmt_vld & dbg_req_raw;
 assign      pipe_flush_pc_op1   = 32'h800;
 assign      pipe_flush_pc_op2   = 32'd0;
 
