@@ -209,14 +209,12 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 // 这里将指令地址分为两个操作数相加
-assign      fetch_addr_op1 =    pipe_flush_req_bpu ? pipe_flush_pc_op1_bpu :
-                                pipe_flush_req_cmt ? pipe_flush_pc_op1_cmt :          // 流水线冲刷请求
+assign      fetch_addr_op1 =    pipe_flush_req ? pipe_flush_pc_op1 :
                                 flush_req_pend_q ? fetch_addr_q :     // 流水线冲刷请求并不一定能被立即处理
                                 reset_pend_q ? reset_vector :       // 复位时我们使用复位向量
                                 fetch_addr_q;
 
-assign      fetch_addr_op2 =    pipe_flush_req_bpu ? pipe_flush_pc_op2_bpu :
-                                pipe_flush_req_cmt ? pipe_flush_pc_op2_cmt :
+assign      fetch_addr_op2 =    pipe_flush_req ? pipe_flush_pc_op2 :
                                 flush_req_pend_q ? 32'd0 :
                                 reset_pend_q ? 32'd0 :
                                 32'd4;

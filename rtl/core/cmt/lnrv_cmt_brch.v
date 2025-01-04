@@ -36,18 +36,16 @@ wire                            pipe_flush_req_pre;
 
 assign      pipe_flush_hsked = pipe_flush_req & pipe_flush_ack;
 
-assign      pipe_flush_req_pre =    cmt_vld &
-                                    (
-                                        cmt_brch_bjp |
-                                        cmt_brch_dret |
-                                        cmt_brch_jal |
-                                        cmt_brch_jalr |
-                                        cmt_brch_mret |
-                                        cmt_brch_fence
-                                    );
+assign      pipe_flush_req_pre =    cmt_brch_bjp |
+                                    cmt_brch_dret |
+                                    cmt_brch_jal |
+                                    cmt_brch_jalr |
+                                    cmt_brch_mret |
+                                    cmt_brch_fence |
+                                    1'b0;
 
 // 如果分支预测与实际结果不一致，都需要冲刷流水线
-assign      pipe_flush_req = bpu_prdt_res ^ pipe_flush_req_pre;
+assign      pipe_flush_req = cmt_vld & (bpu_prdt_res ^ pipe_flush_req_pre);
 
 
 // 如是是dret指令，则跳转地址为dpc；

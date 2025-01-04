@@ -5,8 +5,16 @@ module lnrv_idu_rv16
     output[4 : 0]                           dec_rd,
     output[4 : 0]                           dec_rs1,
     output[4 : 0]                           dec_rs2,
-
     output[31 : 0]                          dec_imm,
+
+    // 送给分支预测模块
+    output[31 : 0]                          dec_imm_jal,
+    output[31 : 0]                          dec_imm_jalr,
+    output[31 : 0]                          dec_imm_bxx,
+    output                                  dec_ir_bxx,
+    output                                  dec_ir_jal,
+    output                                  dec_ir_jalr,
+    output                                  dec_rs1_x1,
 
     // 非法指令
     output                                  dec_ilegl_ir,
@@ -132,9 +140,9 @@ wire[6 : 2]                                 imm_ls;
 wire[31 : 0]                                imm_ls_uext;
 wire                                        imm_ls_sel;
 
-wire[11 : 1]                                imm_jxx;
-wire[31 : 0]                                imm_jxx_sext;
-wire                                        imm_jxx_sel;
+wire[11 : 1]                                imm_j_jal;
+wire[31 : 0]                                imm_j_jal_sext;
+wire                                        imm_j_jal_sel;
 
 wire[7 : 2]                                 imm_swsp;
 wire[31 : 0]                                imm_swsp_uext;
@@ -144,7 +152,7 @@ wire                                        instr_one_of_sub_xor_or_and;
 wire                                        instr_one_of_srxi_andi;
 wire                                        instr_one_of_ebreak_jalr_add;
 wire                                        instr_one_of_jr_mv;
-wire                                        instr_one_of_bxxZ;
+wire                                        instr_one_of_bxx;
 wire                                        instr_one_of_li_addi;
 wire                                        instr_one_of_slli_lwsp;
 wire                                        instr_one_of_lui_addi16sp;
@@ -230,7 +238,7 @@ assign      ir_bit6_5_is_11     = (ir_bit6_5 == 2'b11);
 */
 assign      instr_fmt_ci    = instr_one_of_li_addi | instr_one_of_slli_lwsp | instr_one_of_lui_addi16sp;
 assign      instr_fmt_ciw   = instr_c_addi4spn;
-assign      instr_fmt_cb    = instr_one_of_srxi_andi | instr_one_of_bxxZ;
+assign      instr_fmt_cb    = instr_one_of_srxi_andi | instr_one_of_bxx;
 assign      instr_fmt_cl    = instr_c_lw;
 assign      instr_fmt_cs    = instr_c_sw | instr_one_of_sub_xor_or_and;
 assign      instr_fmt_css   = instr_c_swsp;
@@ -244,7 +252,7 @@ assign      instr_one_of_slli_lwsp          = opcode_is_10 & (funct3_is_000 | fu
 assign      instr_one_of_lui_addi16sp       = opcode_is_01 & funct3_is_011;
 assign      instr_one_of_sub_xor_or_and     = opcode_is_01 & funct3_is_100 & ir_bit12_10_is_011;
 assign      instr_one_of_srxi_andi          = opcode_is_01 & funct3_is_100 & (~ir_bit11_10_is_11);
-assign      instr_one_of_bxxZ               = opcode_is_01 & (funct3_is_110 | funct3_is_111);
+assign      instr_one_of_bxx               = opcode_is_01 & (funct3_is_110 | funct3_is_111);
 assign      instr_one_of_jr_mv              = opcode_is_10 & funct3_is_100 & ir_bit12_is_0;
 assign      instr_one_of_ebreak_jalr_add    = opcode_is_10 & funct3_is_100 & ir_bit12_is_1;
 
@@ -501,8 +509,8 @@ assign      op_bus_brch[`BRCH_JALR_LOC]     = instr_c_jr | instr_c_jalr;
 assign      op_bus_brch[`BRCH_MRET_LOC]     = 1'b0;
 assign      op_bus_brch[`BRCH_DRET_LOC]     = 1'b0;
 assign      op_bus_brch[`BRCH_FENCE_LOC]    = 1'b0 | 1'b0;
-assign      op_bus_brch[`BRCH_OP1_IS_PC]    = (~instr_one_of_bxxZ);
-assign      op_bus_brch[`BRCH_OP2_IS_IMM]   = (~instr_one_of_bxxZ);
+assign      op_bus_brch[`BRCH_OP1_IS_PC]    = (~instr_one_of_bxx);
+assign      op_bus_brch[`BRCH_OP2_IS_IMM]   = (~instr_one_of_bxx);
 
 
 // ===========================================================================
@@ -525,7 +533,7 @@ assign      op_bus_rglr_sel =    instr_one_of_sub_xor_or_and |
 
 assign      op_bus_lsu_sel = (opcode_is_00 | opcode_is_10) & (funct3_is_010 | funct3_is_110);
 
-assign      op_bus_brch_sel = instr_one_of_bxxZ | instr_fmt_cj | instr_c_jr | instr_c_jalr;
+assign      op_bus_brch_sel = instr_one_of_bxx | instr_fmt_cj | instr_c_jr | instr_c_jalr;
 
 assign      op_bus_sys_sel = instr_c_ebreak;
 
@@ -663,18 +671,18 @@ assign      imm_ls_uext = {25'd0, imm_ls, 2'd0};
 //  c.j
 //  c.jal
 assign      {
-                imm_jxx[11],
-                imm_jxx[4],
-                imm_jxx[9 : 8],
-                imm_jxx[10],
-                imm_jxx[6],
-                imm_jxx[7],
-                imm_jxx[3 : 1],
-                imm_jxx[5]
+                imm_j_jal[11],
+                imm_j_jal[4],
+                imm_j_jal[9 : 8],
+                imm_j_jal[10],
+                imm_j_jal[6],
+                imm_j_jal[7],
+                imm_j_jal[3 : 1],
+                imm_j_jal[5]
             } = {
                 ir[12 : 2]
             };
-assign      imm_jxx_sext = {{20{imm_jxx[11]}}, imm_jxx, 1'b0};
+assign      imm_j_jal_sext = {{20{imm_j_jal[11]}}, imm_j_jal, 1'b0};
 
 
 
@@ -728,7 +736,7 @@ assign      imm_ls_sel =    opcode_is_00 &
                                 1'b0
                             );
 
-assign      imm_jxx_sel =   opcode_is_01 &
+assign      imm_j_jal_sel =   opcode_is_01 &
                             (
                                 funct3_is_101 |
                                 funct3_is_001 |
@@ -744,7 +752,7 @@ assign      dec_imm =   ({32{imm_addi_andi_li_sel}} & imm_addi_andi_li_sext  ) |
                         ({32{imm_addi16sp_sel}}     & imm_addi16sp_sext      ) |
                         ({32{imm_addi4spn_sel}}     & imm_addi4spn_uext      ) |
                         ({32{imm_bxx_sel}}          & imm_bxx_sext           ) |
-                        ({32{imm_jxx_sel}}          & imm_jxx_sext           ) |
+                        ({32{imm_j_jal_sel}}        & imm_j_jal_sext           ) |
                         ({32{imm_ls_sel}}           & imm_ls_uext            ) |
                         ({32{imm_lui_sel}}          & imm_lui_sext           ) |
                         ({32{imm_swsp_sel}}         & imm_swsp_uext          ) |
@@ -760,6 +768,7 @@ assign      rs2d        = {2'b01, ir[4 : 2]};
 
 // 判断索引是否为0，有些指令寄存器索引为0时是非法的
 assign      rs1_rd_not_0    = |rs1_rd;
+assign      rx1_rd_is_1     = &{~rs1_rd[4 : 1], rs1_rd[0]};
 assign      rs1_rd_is_0     = ~rs1_rd_not_0;
 assign      rs1_rd_is_2     = (rs1_rd == 6'd2);
 assign      rs1_rd_not_2    = ~rs1_rd_is_2;
@@ -777,7 +786,7 @@ wire        rs1_sel_x0      = instr_c_j | instr_c_li | instr_c_mv;
 wire        rs1_sel_x1      = instr_c_jal;
 wire        rs1_sel_x2      = instr_c_addi4spn | instr_c_lwsp | instr_c_swsp | instr_c_addi16sp;
 
-wire        rs2_sel_x0      = instr_one_of_bxxZ;
+wire        rs2_sel_x0      = instr_one_of_bxx;
 
 // 选择寄存器索引，以下几个指令寄存器索引使用rxd，其余都使用rx
 //  c.srli
@@ -805,6 +814,23 @@ assign      dec_rs2 =   rs2_sel_x0 ? 5'd0 :
                         ridx_sel_d ? rs2d :
                         rs2;
 
-assign      dec_ilegl_ir = 1'b0;
+// 非法指令
+assign      dec_ilegl_ir =  ~(
+                                op_bus_rglr_sel |
+                                op_bus_brch_sel |
+                                op_bus_lsu_sel |
+                                op_bus_sys_sel
+                            );
 
+
+assign      dec_imm_bxx = imm_bxx_sext;
+assign      dec_imm_jal = imm_j_jal_sext;
+// 对于16位指令来说，jalr指令的立即数都是0
+assign      dec_imm_jalr = 32'd0;
+
+assign      dec_ir_bxx = instr_one_of_bxx;
+assign      dec_ir_jal = instr_fmt_cj;
+assign      dec_ir_jalr = instr_c_jr | instr_c_jalr;
+
+assign      dec_rs1_x1 = rx1_rd_is_1;
 endmodule

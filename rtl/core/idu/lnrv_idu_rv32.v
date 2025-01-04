@@ -8,6 +8,16 @@ module lnrv_idu_rv32
     output[11 : 0]                      dec_csr,
     output[31 : 0]                      dec_imm,
 
+    // 送给分支预测模块
+    output                              dec_ir_bxx,
+    output                              dec_ir_jal,
+    output                              dec_ir_jalr,
+    output                              dec_ir_fence,
+    output[31 : 0]                      dec_imm_jal,
+    output[31 : 0]                      dec_imm_jalr,
+    output[31 : 0]                      dec_imm_bxx,
+    output                              dec_rs1_x1,
+
     input                               d_mode,
 
     // 非法指令
@@ -136,7 +146,7 @@ wire[31 : 0]                        imm_i_type;
 wire[31 : 0]                        imm_i_type_shamt;
 wire[31 : 0]                        imm_i_type_csr;
 wire[31 : 0]                        imm_b_type_bxx;
-wire[31 : 0]                        imm_b_type_jal;
+wire[31 : 0]                        imm_j_type_jal;
 wire[31 : 0]                        imm_s_type;
 wire[31 : 0]                        imm_u_type;
 
@@ -149,6 +159,7 @@ wire                                imm_u_type_sel;
 
 wire[4 : 0]                         rs1;
 wire                                rs1_is_0;
+wire                                rs1_is_1;
 wire                                rs1_not_0;
 wire                                rs1_is_31;
 
@@ -260,6 +271,7 @@ assign      rs2_is_0    = ~rs2_not_0;
 assign      rs2_is_31   = &rs2;
 
 assign      rs1_not_0   = |rs1;
+assign      rs1_is_1    = &{~rs1[4 : 1], rs1[0]};
 assign      rs1_is_0    = ~rs1_not_0;
 assign      rs1_is_31   = &rs1;
 
@@ -280,7 +292,7 @@ assign      imm_i_type          = `GET_I_TYPE_IMM(ir);
 assign      imm_i_type_shamt    = `GET_I_TYPE_SHAMT(ir);
 assign      imm_i_type_csr      = `GET_I_TYPE_ZIMM(ir);
 assign      imm_b_type_bxx      = `GET_B_TYPE_BXX_IMM(ir);
-assign      imm_b_type_jal      = `GET_B_TYPE_JAL_IMM(ir);
+assign      imm_j_type_jal      = `GET_J_TYPE_JAL_IMM(ir);
 assign      imm_s_type          = `GET_S_TYPE_IMM(ir);
 assign      imm_u_type          = `GET_U_TYPE_IMM(ir);
 
@@ -308,7 +320,7 @@ assign      imm_u_type_sel = instr_lui | instr_auipc;
 assign      dec_imm =   ({32{imm_i_type_sel     }} & imm_i_type         ) |
                         ({32{imm_i_type_csr_sel }} & imm_i_type_csr     ) |
                         ({32{imm_b_type_bxx_sel }} & imm_b_type_bxx     ) |
-                        ({32{imm_b_type_jal_sel }} & imm_b_type_jal     ) |
+                        ({32{imm_b_type_jal_sel }} & imm_j_type_jal     ) |
                         ({32{imm_s_type_sel     }} & imm_s_type         ) |
                         ({32{imm_u_type_sel     }} & imm_u_type         );
 
@@ -1171,5 +1183,16 @@ assign      dec_rs2 = rs2;
 assign      dec_rd  = rd;
 assign      dec_csr = csr;
 
+
+assign      dec_ir_bxx = instr_b_type;
+assign      dec_ir_jal = instr_jal;
+assign      dec_ir_jalr = instr_jalr;
+assign      dec_ir_fence = instr_fence | instr_fencei;
+
+assign      dec_imm_bxx = imm_b_type_bxx;
+assign      dec_imm_jal = imm_j_type_jal;
+assign      dec_imm_jalr = imm_i_type;
+
+assign      dec_rs1_x1 = rs1_is_1;
 
 endmodule

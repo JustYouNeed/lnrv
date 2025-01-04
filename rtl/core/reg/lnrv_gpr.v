@@ -17,7 +17,7 @@ module	lnrv_gpr#
     input[31 : 0]                   wr_data,
 
     // 特别引出x1
-    output[31 : 0]                  ra,
+    output[31 : 0]                  gpr_x1,
 
     input                           clk,
     input                           reset_n
@@ -80,7 +80,7 @@ assign	wr_rdy = 1'b1;
 
 /* 仿真时使用 */
 wire[31 : 0]        zero = gpr[0];
-assign              ra = gpr[1];
+wire[31 : 0]        ra = gpr[1];
 wire[31 : 0]        sp = gpr[2];
 wire[31 : 0]        gp = gpr[3];
 wire[31 : 0]        tp = gpr[4];
@@ -111,5 +111,7 @@ wire[31 : 0]        t3 = gpr[28];
 wire[31 : 0]        t4 = gpr[29];
 wire[31 : 0]        t5 = gpr[30];
 wire[31 : 0]        t6 = gpr[31];
+
+assign      gpr_x1 = ra;
 
 endmodule

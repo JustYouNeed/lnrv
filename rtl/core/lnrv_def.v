@@ -114,7 +114,7 @@
 `define     GET_I_TYPE_SHAMT(ir)                {{27{1'b0}}, ir[24 : 20]}
 `define     GET_I_TYPE_ZIMM(ir)                 {{27{1'b0}}, ir[19 : 15]}
 `define     GET_B_TYPE_BXX_IMM(ir)              {{19{ir[31]}}, ir[31], ir[7], ir[30 : 25], ir[11 : 8], 1'b0}
-`define     GET_B_TYPE_JAL_IMM(ir)              {{11{ir[31]}}, ir[31], ir[19 : 12], ir[20], ir[30 : 21], 1'b0}
+`define     GET_J_TYPE_JAL_IMM(ir)              {{11{ir[31]}}, ir[31], ir[19 : 12], ir[20], ir[30 : 21], 1'b0}
 `define     GET_U_TYPE_IMM(ir)                  {ir[31 : 12], 12'd0}
 `define     GET_S_TYPE_IMM(ir)                  {{20{ir[31]}}, ir[31 : 25], ir[11 : 7]}
 

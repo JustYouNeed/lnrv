@@ -170,6 +170,21 @@ wire                                    dcsr_ebreakm;
 wire                                    dcsr_stepie;
 wire                                    dcsr_step;
 
+wire                                    dec_ir_jal;
+wire                                    dec_ir_jalr;
+wire                                    dec_ir_fence;
+wire                                    dec_ir_bxx;
+wire[31 : 0]                            dec_imm_bxx;
+wire[31 : 0]                            dec_imm_jal;
+wire[31 : 0]                            dec_imm_jalr;
+wire                                    dec_rs1_x1;
+
+wire                                    bpu_prdt_res;
+wire                                    pipe_flush_req_bpu;
+wire                                    pipe_flush_ack_bpu;
+wire[31 : 0]                            pipe_flush_pc_op1_bpu;
+wire[31 : 0]                            pipe_flush_pc_op2_bpu;
+
 
 wire[31 : 0]                            mepc;
 wire[31 : 0]                            dpc;
@@ -181,6 +196,7 @@ wire                                    mstatus_mie;
 
 
 assign      pipe_flush_ack_cmt = pipe_flush_ack_cmt_ifu & pipe_flush_ack_cmt_idu;
+
 assign      pipe_halt_ack = pipe_halt_ack_ifu & pipe_halt_ack_idu;
 
 // 取指模块
@@ -246,12 +262,16 @@ lnrv_idu u_lnrv_idu
     .pipe_flush_req_cmt         ( pipe_flush_req_cmt        ),
     .pipe_flush_ack_cmt         ( pipe_flush_ack_cmt_idu    ),
 
-    .pipe_flush_req_bpu         ( pipe_flush_req_bpu        ),
-    .pipe_flush_ack_bpu         ( pipe_flush_ack_bpu        ),
-    .pipe_flush_pc_op1_bpu      ( pipe_flush_pc_op1_bpu     ),
-    .pipe_flush_pc_op2_bpu      ( pipe_flush_pc_op2_bpu     ),
-
     .d_mode                     ( d_mode                    ),
+
+    .dec_ir_jal                 ( dec_ir_jal                ),
+    .dec_ir_jalr                ( dec_ir_jalr               ),
+    .dec_ir_fence               ( dec_ir_fence              ),
+    .dec_ir_bxx                 ( dec_ir_bxx                ),
+    .dec_imm_bxx                ( dec_imm_bxx               ),
+    .dec_imm_jal                ( dec_imm_jal               ),
+    .dec_imm_jalr               ( dec_imm_jalr              ),
+    .dec_rs1_x1                 ( dec_rs1_x1                ),
 
     .idu_excp_ilglir            ( idu_excp_ilglir           ),
     .idu_excp_misalgn           ( idu_excp_misalgn          ),
@@ -273,6 +293,40 @@ lnrv_idu u_lnrv_idu
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   )
 );
+
+// 分支预测模块
+lnrv_bpu u_lnrv_bpu
+(
+    .ifu_vld                    ( ifu_vld                   ),
+    .ifu_rdy                    ( ifu_rdy                   ),
+    .ifu_pc                     ( ifu_pc                    ),
+
+    .idu_vld                    ( idu_vld                   ),
+    .idu_rdy                    ( idu_rdy                   ),
+    .idu_rd                     ( idu_rd                    ),
+
+    .gpr_x1                     ( gpr_x1                    ),
+
+    .dec_ir_jal                 ( dec_ir_jal                ),
+    .dec_ir_jalr                ( dec_ir_jalr               ),
+    .dec_ir_fence               ( dec_ir_fence              ),
+    .dec_ir_bxx                 ( dec_ir_bxx                ),
+    .dec_imm_bxx                ( dec_imm_bxx               ),
+    .dec_imm_jal                ( dec_imm_jal               ),
+    .dec_imm_jalr               ( dec_imm_jalr              ),
+    .dec_rs1_x1                 ( dec_rs1_x1                ),
+
+    .pipe_flush_req             ( pipe_flush_req_bpu        ),
+    .pipe_flush_ack             ( pipe_flush_ack_bpu        ),
+    .pipe_flush_pc_op1          ( pipe_flush_pc_op1_bpu     ),
+    .pipe_flush_pc_op2          ( pipe_flush_pc_op2_bpu     ),
+
+    .bpu_prdt_res               ( bpu_prdt_res              ),
+
+    .clk                        ( clk                       ),
+    .reset_n                    ( reset_n                   )
+);
+
 
 // 指令执行模块
 lnrv_exu u_lnrv_exu
@@ -391,7 +445,7 @@ lnrv_cmt u_lnrv_cmt
     .cmt_lsu_excp_buserr        ( cmt_lsu_excp_buserr       ),
     .cmt_lsu_addr               ( cmt_lsu_addr              ),
 
-    .bpu_prdt_res               ( 1'b0                      ),
+    .bpu_prdt_res               ( bpu_prdt_res              ),
 
     .irq_sft                    ( irq_sft                   ),
     .irq_ext                    ( irq_ext                   ),
@@ -471,7 +525,7 @@ u_lnrv_gpr
     .wr_idx                     ( gpr_wbck_idx              ),
     .wr_data                    ( gpr_wbck_wdata            ),
 
-    .ra                         (                           ),
+    .gpr_x1                     ( gpr_x1                    ),
 
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   )
