@@ -12,7 +12,7 @@ module  lnrv_cmt_dbg
 
     output                      dbg_taken,
 
-    input                       dbg_irq,
+    input                       irq_dbg,
     input                       dbg_halt,
     input                       dbg_step,
     input                       dbg_trig,
@@ -80,7 +80,7 @@ assign      ebreak4debug =  cmt_sys_ebreak &
 assign      dbg_step_req = ifu_vld &
                             (
                                 (dbg_step & non_dbg_mode) |
-                                dbg_irq |
+                                irq_dbg |
                                 dbg_halt |
                                 1'b0
                             );
@@ -98,7 +98,7 @@ assign      dpc_wdata = ebreak4debug ? idu_pc : ifu_pc;
 assign      dcause_wdata =  ebreak4debug ? 3'd2 :
                             dbg_halt ? 3'd3 :
                             dbg_step_trig_q ? 3'd4 :
-                            dbg_irq ? 3'd5 :
+                            irq_dbg ? 3'd5 :
                             3'd0;
 
 assign      dbg_taken = pipe_flush_hsked;

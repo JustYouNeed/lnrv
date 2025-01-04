@@ -124,21 +124,21 @@ wire                                    icb_cmd_ots_d;
 wire                                    no_ots_cmd;
 
 
-wire                                    m_icb_cmd_vld;
-wire                                    m_icb_cmd_rdy;
-wire                                    m_icb_cmd_write;
-wire[P_ADDR_WIDTH - 1 : 0]              m_icb_cmd_addr;
-wire[P_DATA_WIDTH - 1 : 0]              m_icb_cmd_wdata;
-wire[(P_DATA_WIDTH/8) - 1 : 0]          m_icb_cmd_wstrb;
-wire[2 : 0]                             m_icb_cmd_size;
+wire                                    icb_cmd_vld_m;
+wire                                    icb_cmd_rdy_m;
+wire                                    icb_cmd_write_m;
+wire[P_ADDR_WIDTH - 1 : 0]              icb_cmd_addr_m;
+wire[P_DATA_WIDTH - 1 : 0]              icb_cmd_wdata_m;
+wire[(P_DATA_WIDTH/8) - 1 : 0]          icb_cmd_wstrb_m;
+wire[2 : 0]                             icb_cmd_size_m;
 
-wire                                    m_icb_rsp_vld;
-wire                                    m_icb_rsp_rdy;
-wire                                    m_icb_rsp_err;
-wire[P_DATA_WIDTH - 1 : 0]              m_icb_rsp_rdata;
+wire                                    icb_rsp_vld_m;
+wire                                    icb_rsp_rdy_m;
+wire                                    icb_rsp_err_m;
+wire[P_DATA_WIDTH - 1 : 0]              icb_rsp_rdata_m;
 
-wire                                    m_icb_cmd_hsked;
-wire                                    m_icb_rsp_hsked;
+wire                                    icb_cmd_hsked_m;
+wire                                    icb_rsp_hsked_m;
 
 wire                                    icb_cmd_allow;
 
@@ -243,12 +243,12 @@ u_axi_xfr_buf
 );
 
 
-assign      m_icb_cmd_hsked = m_icb_cmd_vld & m_icb_cmd_rdy;
-assign      m_icb_rsp_hsked = m_icb_rsp_vld & m_icb_rsp_rdy;
+assign      icb_cmd_hsked_m = icb_cmd_vld_m & icb_cmd_rdy_m;
+assign      icb_rsp_hsked_m = icb_rsp_vld_m & icb_rsp_rdy_m;
 
 // 滞外交易
-assign      icb_cmd_ots_set = m_icb_cmd_hsked;
-assign      icb_cmd_ots_clr = m_icb_rsp_hsked;
+assign      icb_cmd_ots_set = icb_cmd_hsked_m;
+assign      icb_cmd_ots_clr = icb_rsp_hsked_m;
 assign      icb_cmd_ots_rld = icb_cmd_ots_set | icb_cmd_ots_clr;
 assign      icb_cmd_ots_d = icb_cmd_ots_set;
 always@(posedge clk or negedge reset_n) begin
@@ -267,16 +267,16 @@ assign      icb_cmd_allow =    (axi_write_xfr_vld & axi_wvalid) |
                                 axi_read_xfr_vld;
 
 // 对于ICB总线，每个传输都会有一个地址信息，如果AXI传输信息有效，同时ots队列没有满，则可以继续发送指令
-assign      m_icb_cmd_vld   = no_ots_cmd & icb_cmd_allow;
-assign      m_icb_cmd_size  = axi_size_bufed;
-assign      m_icb_cmd_write = axi_write_xfr;
-assign      m_icb_cmd_wstrb = {(P_DATA_WIDTH/8){axi_write_xfr_vld}} & axi_wstrb;
-assign      m_icb_cmd_wdata = axi_wdata;
-assign      m_icb_cmd_addr  = axi_addr_bufed + ({8'd0, axi_xfr_cnt_q} << axi_size_bufed);
+assign      icb_cmd_vld_m   = no_ots_cmd & icb_cmd_allow;
+assign      icb_cmd_size_m  = axi_size_bufed;
+assign      icb_cmd_write_m = axi_write_xfr;
+assign      icb_cmd_wstrb_m = {(P_DATA_WIDTH/8){axi_write_xfr_vld}} & axi_wstrb;
+assign      icb_cmd_wdata_m = axi_wdata;
+assign      icb_cmd_addr_m  = axi_addr_bufed + ({8'd0, axi_xfr_cnt_q} << axi_size_bufed);
 
 
 // 如果是写操作，则总是可以接收response，读则需要检查axi通道
-assign      m_icb_rsp_rdy = axi_write_xfr_vld ? 1'b1 :
+assign      icb_rsp_rdy_m = axi_write_xfr_vld ? 1'b1 :
                             axi_rready;
 
 // 在icb上插入一个buf
@@ -294,29 +294,29 @@ lnrv_icb_buf#
 )
 u_lnrv_icb_buf
 (
-    .m_icb_cmd_vld          ( m_icb_cmd_vld             ),
-    .m_icb_cmd_rdy          ( m_icb_cmd_rdy             ),
-    .m_icb_cmd_write        ( m_icb_cmd_write           ),
-    .m_icb_cmd_addr         ( m_icb_cmd_addr            ),
-    .m_icb_cmd_wdata        ( m_icb_cmd_wdata           ),
-    .m_icb_cmd_wstrb        ( m_icb_cmd_wstrb           ),
-    .m_icb_cmd_size         ( m_icb_cmd_size            ),
-    .m_icb_rsp_vld          ( m_icb_rsp_vld             ),
-    .m_icb_rsp_rdy          ( m_icb_rsp_rdy             ),
-    .m_icb_rsp_rdata        ( m_icb_rsp_rdata           ),
-    .m_icb_rsp_err          ( m_icb_rsp_err             ),
+    .icb_cmd_vld_m          ( icb_cmd_vld_m             ),
+    .icb_cmd_rdy_m          ( icb_cmd_rdy_m             ),
+    .icb_cmd_write_m        ( icb_cmd_write_m           ),
+    .icb_cmd_addr_m         ( icb_cmd_addr_m            ),
+    .icb_cmd_wdata_m        ( icb_cmd_wdata_m           ),
+    .icb_cmd_wstrb_m        ( icb_cmd_wstrb_m           ),
+    .icb_cmd_size_m         ( icb_cmd_size_m            ),
+    .icb_rsp_vld_m          ( icb_rsp_vld_m             ),
+    .icb_rsp_rdy_m          ( icb_rsp_rdy_m             ),
+    .icb_rsp_rdata_m        ( icb_rsp_rdata_m           ),
+    .icb_rsp_err_m          ( icb_rsp_err_m             ),
 
-    .s_icb_cmd_vld          ( icb_cmd_vld               ),
-    .s_icb_cmd_rdy          ( icb_cmd_rdy               ),
-    .s_icb_cmd_write        ( icb_cmd_write             ),
-    .s_icb_cmd_addr         ( icb_cmd_addr              ),
-    .s_icb_cmd_wdata        ( icb_cmd_wdata             ),
-    .s_icb_cmd_wstrb        ( icb_cmd_wstrb             ),
-    .s_icb_cmd_size         ( icb_cmd_size              ),
-    .s_icb_rsp_vld          ( icb_rsp_vld               ),
-    .s_icb_rsp_rdy          ( icb_rsp_rdy               ),
-    .s_icb_rsp_rdata        ( icb_rsp_rdata             ),
-    .s_icb_rsp_err          ( icb_rsp_err               ),
+    .icb_cmd_vld_s          ( icb_cmd_vld               ),
+    .icb_cmd_rdy_s          ( icb_cmd_rdy               ),
+    .icb_cmd_write_s        ( icb_cmd_write             ),
+    .icb_cmd_addr_s         ( icb_cmd_addr              ),
+    .icb_cmd_wdata_s        ( icb_cmd_wdata             ),
+    .icb_cmd_wstrb_s        ( icb_cmd_wstrb             ),
+    .icb_cmd_size_s         ( icb_cmd_size              ),
+    .icb_rsp_vld_s          ( icb_rsp_vld               ),
+    .icb_rsp_rdy_s          ( icb_rsp_rdy               ),
+    .icb_rsp_rdata_s        ( icb_rsp_rdata             ),
+    .icb_rsp_err_s          ( icb_rsp_err               ),
 
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   )
@@ -330,7 +330,7 @@ assign      axi_r_hsked = axi_rvalid & axi_rready;
 
 // 最后一笔传输
 assign      axi_xfr_last = (axi_xfr_cnt_q == axi_len_bufed);
-assign      axi_xfr_cplt = axi_xfr_last & m_icb_rsp_hsked;
+assign      axi_xfr_cplt = axi_xfr_last & icb_rsp_hsked_m;
 
 
 assign      axi_write_xfr = axi_xfr_type;
@@ -342,7 +342,7 @@ assign      axi_read_xfr_vld = axi_read_xfr & axi_xfr_info_vld;
 
 
 // 统计axi传输的数据量
-assign      axi_xfr_cnt_inc = m_icb_rsp_hsked;
+assign      axi_xfr_cnt_inc = icb_rsp_hsked_m;
 assign      axi_xfr_cnt_clr = axi_xfr_buf_pop_hsked;
 assign      axi_xfr_cnt_rld = axi_xfr_cnt_inc | axi_xfr_cnt_clr;
 assign      axi_xfr_cnt_d = axi_xfr_cnt_clr ? 8'd0 : (axi_xfr_cnt_q + 1'b1);
@@ -370,7 +370,7 @@ end
 
 
 // 如果在写数据过程中发生错误，保存下来
-assign      axi_bresp_set = m_icb_rsp_hsked & m_icb_rsp_err;
+assign      axi_bresp_set = icb_rsp_hsked_m & icb_rsp_err_m;
 assign      axi_bresp_clr = axi_b_hsked;
 assign      axi_bresp_rld = axi_bresp_set | axi_bresp_clr;
 assign      axi_bresp_d = axi_bresp_set;

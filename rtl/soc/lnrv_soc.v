@@ -73,7 +73,7 @@ u_lnrv_cpu
     .irq_ext                ( irq_ext                   ),
 
     .dbg_halt               ( dbg_halt                  ),
-    .dbg_irq                ( dbg_irq                   ),
+    .irq_dbg                ( irq_dbg                   ),
 
     .wfi_mode               ( wfi_mode                  ),
 

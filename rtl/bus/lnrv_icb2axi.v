@@ -61,17 +61,17 @@ module lnrv_icb2axi#
     input                               reset_n
 );
 
-wire                                s_icb_cmd_vld;
-wire                                s_icb_cmd_rdy;
-wire                                s_icb_cmd_write;
-wire[P_ADDR_WIDTH - 1 : 0]          s_icb_cmd_addr;
-wire[P_DATA_WIDTH - 1 : 0]          s_icb_cmd_wdata;
-wire[(P_DATA_WIDTH/8) - 1 : 0]      s_icb_cmd_wstrb;
-wire[2: 0]                          s_icb_cmd_size;
-wire                                s_icb_rsp_vld;
-wire                                s_icb_rsp_rdy;
-wire[P_DATA_WIDTH - 1 : 0]          s_icb_rsp_rdata;
-wire                                s_icb_rsp_err;
+wire                                icb_cmd_vld_s;
+wire                                icb_cmd_rdy_s;
+wire                                icb_cmd_write_s;
+wire[P_ADDR_WIDTH - 1 : 0]          icb_cmd_addr_s;
+wire[P_DATA_WIDTH - 1 : 0]          icb_cmd_wdata_s;
+wire[(P_DATA_WIDTH/8) - 1 : 0]      icb_cmd_wstrb_s;
+wire[2: 0]                          icb_cmd_size_s;
+wire                                icb_rsp_vld_s;
+wire                                icb_rsp_rdy_s;
+wire[P_DATA_WIDTH - 1 : 0]          icb_rsp_rdata_s;
+wire                                icb_rsp_err_s;
 
 wire                                icb_write;
 wire                                icb_read;
@@ -130,29 +130,29 @@ lnrv_icb_buf#
 )
 u_lnrv_icb_buf
 (
-    .m_icb_cmd_vld              ( icb_cmd_vld           ),
-    .m_icb_cmd_rdy              ( icb_cmd_rdy           ),
-    .m_icb_cmd_write            ( icb_cmd_write         ),
-    .m_icb_cmd_addr             ( icb_cmd_addr          ),
-    .m_icb_cmd_wdata            ( icb_cmd_wdata         ),
-    .m_icb_cmd_wstrb            ( icb_cmd_wstrb         ),
-    .m_icb_cmd_size             ( icb_cmd_size          ),
-    .m_icb_rsp_vld              ( icb_rsp_vld           ),
-    .m_icb_rsp_rdy              ( icb_rsp_rdy           ),
-    .m_icb_rsp_rdata            ( icb_rsp_rdata         ),
-    .m_icb_rsp_err              ( icb_rsp_err           ),
+    .icb_cmd_vld_m              ( icb_cmd_vld           ),
+    .icb_cmd_rdy_m              ( icb_cmd_rdy           ),
+    .icb_cmd_write_m            ( icb_cmd_write         ),
+    .icb_cmd_addr_m             ( icb_cmd_addr          ),
+    .icb_cmd_wdata_m            ( icb_cmd_wdata         ),
+    .icb_cmd_wstrb_m            ( icb_cmd_wstrb         ),
+    .icb_cmd_size_m             ( icb_cmd_size          ),
+    .icb_rsp_vld_m              ( icb_rsp_vld           ),
+    .icb_rsp_rdy_m              ( icb_rsp_rdy           ),
+    .icb_rsp_rdata_m            ( icb_rsp_rdata         ),
+    .icb_rsp_err_m              ( icb_rsp_err           ),
 
-    .s_icb_cmd_vld              ( s_icb_cmd_vld         ),
-    .s_icb_cmd_rdy              ( s_icb_cmd_rdy         ),
-    .s_icb_cmd_write            ( s_icb_cmd_write       ),
-    .s_icb_cmd_addr             ( s_icb_cmd_addr        ),
-    .s_icb_cmd_wdata            ( s_icb_cmd_wdata       ),
-    .s_icb_cmd_wstrb            ( s_icb_cmd_wstrb       ),
-    .s_icb_cmd_size             ( s_icb_cmd_size        ),
-    .s_icb_rsp_vld              ( s_icb_rsp_vld         ),
-    .s_icb_rsp_rdy              ( s_icb_rsp_rdy         ),
-    .s_icb_rsp_rdata            ( s_icb_rsp_rdata       ),
-    .s_icb_rsp_err              ( s_icb_rsp_err         ),
+    .icb_cmd_vld_s              ( icb_cmd_vld_s         ),
+    .icb_cmd_rdy_s              ( icb_cmd_rdy_s         ),
+    .icb_cmd_write_s            ( icb_cmd_write_s       ),
+    .icb_cmd_addr_s             ( icb_cmd_addr_s        ),
+    .icb_cmd_wdata_s            ( icb_cmd_wdata_s       ),
+    .icb_cmd_wstrb_s            ( icb_cmd_wstrb_s       ),
+    .icb_cmd_size_s             ( icb_cmd_size_s        ),
+    .icb_rsp_vld_s              ( icb_rsp_vld_s         ),
+    .icb_rsp_rdy_s              ( icb_rsp_rdy_s         ),
+    .icb_rsp_rdata_s            ( icb_rsp_rdata_s       ),
+    .icb_rsp_err_s              ( icb_rsp_err_s         ),
 
     .clk                        ( clk                   ),
     .reset_n                    ( reset_n               )
@@ -203,17 +203,17 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 
-assign      icb_write = s_icb_cmd_vld & s_icb_cmd_write;
-assign      icb_read = s_icb_cmd_vld & (~s_icb_cmd_write);
+assign      icb_write = icb_cmd_vld_s & icb_cmd_write_s;
+assign      icb_read = icb_cmd_vld_s & (~icb_cmd_write_s);
 
 assign      axi_read_ots = ar_hsked_q;
 assign      axi_write_ots = aw_hsked_q & w_hsked_q;
 
 assign      axi_awvalid     = icb_write & no_aw_ots;
 assign      axi_awburst     = 2'b01;                    // 固定为INCR传输
-assign      axi_awsize      = s_icb_cmd_size;
+assign      axi_awsize      = icb_cmd_size_s;
 assign      axi_awlen       = 8'd0;                     // 单笔传输
-assign      axi_awaddr      = s_icb_cmd_addr;
+assign      axi_awaddr      = icb_cmd_addr_s;
 assign      axi_awcache     = 4'b0000;
 assign      axi_awlock      = 1'b0;
 assign      axi_awprot      = 3'b000;
@@ -221,31 +221,31 @@ assign      axi_awid        = 4'd0;
 
 
 assign      axi_wvalid      = icb_write & no_w_ots;
-assign      axi_wdata       = s_icb_cmd_wdata;
-assign      axi_wstrb       = s_icb_cmd_wstrb;
+assign      axi_wdata       = icb_cmd_wdata_s;
+assign      axi_wstrb       = icb_cmd_wstrb_s;
 assign      axi_wlast       = axi_wvalid;
 
-assign      axi_bready      = axi_write_ots & s_icb_rsp_rdy;
+assign      axi_bready      = axi_write_ots & icb_rsp_rdy_s;
 
 assign      axi_arvalid     = icb_read & no_ar_ots;
 assign      axi_arburst     = 2'b01;
-assign      axi_arsize      = s_icb_cmd_size;
+assign      axi_arsize      = icb_cmd_size_s;
 assign      axi_arlen       = 8'd0;
-assign      axi_araddr      = s_icb_cmd_addr;
+assign      axi_araddr      = icb_cmd_addr_s;
 assign      axi_arcache     = 4'b0000;
 assign      axi_arlock      = 1'b0;
 assign      axi_arprot      = 3'b000;
 assign      axi_arid        = 4'd0;
 
 
-assign      axi_rready = axi_read_ots & s_icb_rsp_rdy;
+assign      axi_rready = axi_read_ots & icb_rsp_rdy_s;
 
 // icb总线的response通道，如果是写操作，则需要等bvalid
-assign      s_icb_rsp_vld = (axi_write_ots & axi_bvalid) |
+assign      icb_rsp_vld_s = (axi_write_ots & axi_bvalid) |
                             (axi_read_ots & axi_rvalid);
 
-assign      s_icb_rsp_rdata = axi_rdata;
-assign      s_icb_rsp_err = (axi_write_ots & axi_bresp[0]) |
+assign      icb_rsp_rdata_s = axi_rdata;
+assign      icb_rsp_err_s = (axi_write_ots & axi_bresp[0]) |
                             (axi_read_ots & axi_rresp[0]);
 
 endmodule

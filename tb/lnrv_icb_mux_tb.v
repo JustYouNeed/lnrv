@@ -22,50 +22,50 @@ wire[LP_MN_ICB_DATA_WIDTH - 1 : 0]          mn_icb_rsp_rdata;
 wire[LP_ICB_COUNT - 1 : 0]                  mn_icb_rsp_err;
 
 
-reg                                         ifu2ilm_cmd_vld;
-wire                                        ifu2ilm_cmd_rdy;
-reg                                         ifu2ilm_cmd_write;
-reg[LP_ICB_ADDR_WIDTH - 1 : 0]              ifu2ilm_cmd_addr;
-reg[LP_DATA_WIDTH - 1 : 0]                  ifu2ilm_cmd_wdata;
-reg[(LP_DATA_WIDTH/8) - 1 : 0]              ifu2ilm_cmd_wstrb;
-wire                                        ifu2ilm_rsp_vld;
-reg                                         ifu2ilm_rsp_rdy;
-wire[LP_DATA_WIDTH - 1 : 0]                 ifu2ilm_rsp_rdata;
-wire                                        ifu2ilm_rsp_err;
+reg                                         ifu2icb_cmd_vld_ilm;
+wire                                        ifu2icb_cmd_rdy_ilm;
+reg                                         ifu2icb_cmd_write_ilm;
+reg[LP_ICB_ADDR_WIDTH - 1 : 0]              ifu2icb_cmd_addr_ilm;
+reg[LP_DATA_WIDTH - 1 : 0]                  ifu2icb_cmd_wdata_ilm;
+reg[(LP_DATA_WIDTH/8) - 1 : 0]              ifu2icb_cmd_wstrb_ilm;
+wire                                        ifu2icb_rsp_vld_ilm;
+reg                                         ifu2icb_rsp_rdy_ilm;
+wire[LP_DATA_WIDTH - 1 : 0]                 ifu2icb_rsp_rdata_ilm;
+wire                                        ifu2icb_rsp_err_ilm;
 
-reg                                         lsu2ilm_cmd_vld;
-wire                                        lsu2ilm_cmd_rdy;
-reg                                         lsu2ilm_cmd_write;
-reg[LP_ICB_ADDR_WIDTH - 1 : 0]              lsu2ilm_cmd_addr;
-reg[LP_DATA_WIDTH - 1 : 0]                  lsu2ilm_cmd_wdata;
-reg[(LP_DATA_WIDTH/8) - 1 : 0]              lsu2ilm_cmd_wstrb;
-wire                                        lsu2ilm_rsp_vld;
-reg                                         lsu2ilm_rsp_rdy;
-wire[LP_DATA_WIDTH - 1 : 0]                 lsu2ilm_rsp_rdata;
-wire                                        lsu2ilm_rsp_err;
+reg                                         lsu2icb_cmd_vld_ilm;
+wire                                        lsu2icb_cmd_rdy_ilm;
+reg                                         lsu2icb_cmd_write_ilm;
+reg[LP_ICB_ADDR_WIDTH - 1 : 0]              lsu2icb_cmd_addr_ilm;
+reg[LP_DATA_WIDTH - 1 : 0]                  lsu2icb_cmd_wdata_ilm;
+reg[(LP_DATA_WIDTH/8) - 1 : 0]              lsu2icb_cmd_wstrb_ilm;
+wire                                        lsu2icb_rsp_vld_ilm;
+reg                                         lsu2icb_rsp_rdy_ilm;
+wire[LP_DATA_WIDTH - 1 : 0]                 lsu2icb_rsp_rdata_ilm;
+wire                                        lsu2icb_rsp_err_ilm;
 
-reg                                         slv2ilm_cmd_vld;
-wire                                        slv2ilm_cmd_rdy;
-reg                                         slv2ilm_cmd_write;
-reg[LP_ICB_ADDR_WIDTH - 1 : 0]              slv2ilm_cmd_addr;
-reg[LP_DATA_WIDTH - 1 : 0]                  slv2ilm_cmd_wdata;
-reg[(LP_DATA_WIDTH/8) - 1 : 0]              slv2ilm_cmd_wstrb;
-wire                                        slv2ilm_rsp_vld;
-reg                                         slv2ilm_rsp_rdy;
-wire[LP_DATA_WIDTH - 1 : 0]                 slv2ilm_rsp_rdata;
-wire                                        slv2ilm_rsp_err;
+reg                                         slv2icb_cmd_vld_ilm;
+wire                                        slv2icb_cmd_rdy_ilm;
+reg                                         slv2icb_cmd_write_ilm;
+reg[LP_ICB_ADDR_WIDTH - 1 : 0]              slv2icb_cmd_addr_ilm;
+reg[LP_DATA_WIDTH - 1 : 0]                  slv2icb_cmd_wdata_ilm;
+reg[(LP_DATA_WIDTH/8) - 1 : 0]              slv2icb_cmd_wstrb_ilm;
+wire                                        slv2icb_rsp_vld_ilm;
+reg                                         slv2icb_rsp_rdy_ilm;
+wire[LP_DATA_WIDTH - 1 : 0]                 slv2icb_rsp_rdata_ilm;
+wire                                        slv2icb_rsp_err_ilm;
 
 // ilm总线
-wire                                        ilm_cmd_vld;
-wire                                        ilm_cmd_rdy;
-wire                                        ilm_cmd_write;
-wire[LP_ICB_ADDR_WIDTH - 1 : 0]             ilm_cmd_addr;
-wire[LP_DATA_WIDTH - 1 : 0]                 ilm_cmd_wdata;
-wire[(LP_DATA_WIDTH/8) - 1 : 0]             ilm_cmd_wstrb;
-wire                                        ilm_rsp_vld;
-wire                                        ilm_rsp_rdy;
-wire[LP_DATA_WIDTH - 1 : 0]                 ilm_rsp_rdata;
-wire                                        ilm_rsp_err;
+wire                                        icb_cmd_vld_ilm;
+wire                                        icb_cmd_rdy_ilm;
+wire                                        icb_cmd_write_ilm;
+wire[LP_ICB_ADDR_WIDTH - 1 : 0]             icb_cmd_addr_ilm;
+wire[LP_DATA_WIDTH - 1 : 0]                 icb_cmd_wdata_ilm;
+wire[(LP_DATA_WIDTH/8) - 1 : 0]             icb_cmd_wstrb_ilm;
+wire                                        icb_rsp_vld_ilm;
+wire                                        icb_rsp_rdy_ilm;
+wire[LP_DATA_WIDTH - 1 : 0]                 icb_rsp_rdata_ilm;
+wire                                        icb_rsp_err_ilm;
 
 wire                                        ilm_cs;
 wire                                        ilm_we;
@@ -80,63 +80,63 @@ reg                                         reset_n;
 
 
 assign      mn_icb_cmd_vld =    {
-                                    ifu2ilm_cmd_vld,
-                                    lsu2ilm_cmd_vld,
-                                    slv2ilm_cmd_vld
+                                    ifu2icb_cmd_vld_ilm,
+                                    lsu2icb_cmd_vld_ilm,
+                                    slv2icb_cmd_vld_ilm
                                 };
 
 assign      {
-                ifu2ilm_cmd_rdy,
-                lsu2ilm_cmd_rdy,
-                slv2ilm_cmd_rdy
+                ifu2icb_cmd_rdy_ilm,
+                lsu2icb_cmd_rdy_ilm,
+                slv2icb_cmd_rdy_ilm
             } = mn_icb_cmd_rdy;
 
 assign      mn_icb_cmd_write =  {
-                                    ifu2ilm_cmd_write,
-                                    lsu2ilm_cmd_write,
-                                    slv2ilm_cmd_write
+                                    ifu2icb_cmd_write_ilm,
+                                    lsu2icb_cmd_write_ilm,
+                                    slv2icb_cmd_write_ilm
                                 };
 
 assign      mn_icb_cmd_wdata =  {
-                                    ifu2ilm_cmd_wdata,
-                                    lsu2ilm_cmd_wdata,
-                                    slv2ilm_cmd_wdata
+                                    ifu2icb_cmd_wdata_ilm,
+                                    lsu2icb_cmd_wdata_ilm,
+                                    slv2icb_cmd_wdata_ilm
                                 };
 
 assign      mn_icb_cmd_addr =   {
-                                    ifu2ilm_cmd_addr,
-                                    lsu2ilm_cmd_addr,
-                                    slv2ilm_cmd_addr
+                                    ifu2icb_cmd_addr_ilm,
+                                    lsu2icb_cmd_addr_ilm,
+                                    slv2icb_cmd_addr_ilm
                                 };
 
 assign      mn_icb_cmd_wstrb =  {
-                                    ifu2ilm_cmd_wstrb,
-                                    lsu2ilm_cmd_wstrb,
-                                    slv2ilm_cmd_wstrb
+                                    ifu2icb_cmd_wstrb_ilm,
+                                    lsu2icb_cmd_wstrb_ilm,
+                                    slv2icb_cmd_wstrb_ilm
                                 };
 
 assign      {
-                ifu2ilm_rsp_vld,
-                lsu2ilm_rsp_vld,
-                slv2ilm_rsp_vld
+                ifu2icb_rsp_vld_ilm,
+                lsu2icb_rsp_vld_ilm,
+                slv2icb_rsp_vld_ilm
             } = mn_icb_rsp_vld;
 
 assign      mn_icb_rsp_rdy =  {
-                                    ifu2ilm_rsp_rdy,
-                                    lsu2ilm_rsp_rdy,
-                                    slv2ilm_rsp_rdy
+                                    ifu2icb_rsp_rdy_ilm,
+                                    lsu2icb_rsp_rdy_ilm,
+                                    slv2icb_rsp_rdy_ilm
                                 };
 
 assign      {
-                ifu2ilm_rsp_rdata,
-                lsu2ilm_rsp_rdata,
-                slv2ilm_rsp_rdata
+                ifu2icb_rsp_rdata_ilm,
+                lsu2icb_rsp_rdata_ilm,
+                slv2icb_rsp_rdata_ilm
             } = mn_icb_rsp_rdata;
 
 assign      {
-                ifu2ilm_rsp_err,
-                lsu2ilm_rsp_err,
-                slv2ilm_rsp_err
+                ifu2icb_rsp_err_ilm,
+                lsu2icb_rsp_err_ilm,
+                slv2icb_rsp_err_ilm
             } = mn_icb_rsp_err;
 
 lnrv_icb_mux#
@@ -163,38 +163,38 @@ u_lnrv_icb_mux
     .mn_icb_rsp_rdata           ( mn_icb_rsp_rdata              ),
     .mn_icb_rsp_err             ( mn_icb_rsp_err                ),
 
-    .s_icb_cmd_vld              ( ilm_cmd_vld                   ),
-    .s_icb_cmd_rdy              ( ilm_cmd_rdy                   ),
-    .s_icb_cmd_write            ( ilm_cmd_write                 ),
-    .s_icb_cmd_addr             ( ilm_cmd_addr                  ),
-    .s_icb_cmd_wdata            ( ilm_cmd_wdata                 ),
-    .s_icb_cmd_wstrb            ( ilm_cmd_wstrb                 ),
-    .s_icb_rsp_vld              ( ilm_rsp_vld                   ),
-    .s_icb_rsp_rdy              ( ilm_rsp_rdy                   ),
-    .s_icb_rsp_rdata            ( ilm_rsp_rdata                 ),
-    .s_icb_rsp_err              ( ilm_rsp_err                   )
+    .s_icb_cmd_vld              ( icb_cmd_vld_ilm                   ),
+    .s_icb_cmd_rdy              ( icb_cmd_rdy_ilm                   ),
+    .s_icb_cmd_write            ( icb_cmd_write_ilm                 ),
+    .s_icb_cmd_addr             ( icb_cmd_addr_ilm                  ),
+    .s_icb_cmd_wdata            ( icb_cmd_wdata_ilm                 ),
+    .s_icb_cmd_wstrb            ( icb_cmd_wstrb_ilm                 ),
+    .s_icb_rsp_vld              ( icb_rsp_vld_ilm                   ),
+    .s_icb_rsp_rdy              ( icb_rsp_rdy_ilm                   ),
+    .s_icb_rsp_rdata            ( icb_rsp_rdata_ilm                 ),
+    .s_icb_rsp_err              ( icb_rsp_err_ilm                   )
 );
 
 lnrv_icb2sram#(
     .P_ICB_ADDR_WIDTH           ( LP_ICB_ADDR_WIDTH             ),
     .P_RAM_ADDR_WIDTH           ( LP_ILM_ADDR_WIDTH             ),
     .P_DATA_WIDTH               ( LP_DATA_WIDTH                 )
-)                   
-u_lnrv_ilm_ctrl                 
-(                   
+)
+u_lnrv_ilm_ctrl
+(
     .clk                        ( clk                           ),
     .reset_n                    ( reset_n                       ),
 
-    .icb_cmd_vld                ( ilm_cmd_vld                   ),
-    .icb_cmd_rdy                ( ilm_cmd_rdy                   ),
-    .icb_cmd_write              ( ilm_cmd_write                 ),
-    .icb_cmd_addr               ( ilm_cmd_addr                  ),
-    .icb_cmd_wdata              ( ilm_cmd_wdata                 ),
-    .icb_cmd_wstrb              ( ilm_cmd_wstrb                 ),
-    .icb_rsp_rdy                ( ilm_rsp_rdy                   ),
-    .icb_rsp_vld                ( ilm_rsp_vld                   ),
-    .icb_rsp_rdata              ( ilm_rsp_rdata                 ),
-    .icb_rsp_err                ( ilm_rsp_err                   ),
+    .icb_cmd_vld                ( icb_cmd_vld_ilm                   ),
+    .icb_cmd_rdy                ( icb_cmd_rdy_ilm                   ),
+    .icb_cmd_write              ( icb_cmd_write_ilm                 ),
+    .icb_cmd_addr               ( icb_cmd_addr_ilm                  ),
+    .icb_cmd_wdata              ( icb_cmd_wdata_ilm                 ),
+    .icb_cmd_wstrb              ( icb_cmd_wstrb_ilm                 ),
+    .icb_rsp_rdy                ( icb_rsp_rdy_ilm                   ),
+    .icb_rsp_vld                ( icb_rsp_vld_ilm                   ),
+    .icb_rsp_rdata              ( icb_rsp_rdata_ilm                 ),
+    .icb_rsp_err                ( icb_rsp_err_ilm                   ),
 
     .ram_cs                     ( ilm_cs                        ),
     .ram_we                     ( ilm_we                        ),
@@ -209,9 +209,9 @@ lnrv_gen_ram#
 (
     .P_ADDR_WIDTH               ( LP_ILM_ADDR_WIDTH             ),
     .P_DATA_WIDTH               ( LP_DATA_WIDTH                 )
-)                   
-u_lnrv_ilm                  
-(                   
+)
+u_lnrv_ilm
+(
     .ram_cs                     ( ilm_cs                        ),
     .ram_we                     ( ilm_we                        ),
     .ram_wem                    ( ilm_wem                       ),
@@ -243,7 +243,7 @@ initial begin
     $finish;
 end
 
-initial begin            
+initial begin
     $dumpfile("wave.vcd");        //生成的vcd文件名称
     $dumpvars(0, lnrv_icb_mux_tb);    //tb模块名称
 end
@@ -252,81 +252,81 @@ always #10 clk = ~clk;
 
 
 initial begin
-    ifu2ilm_cmd_vld = 1'b0;
-    ifu2ilm_cmd_write = 1'b0;
-    ifu2ilm_cmd_addr = {LP_ICB_ADDR_WIDTH{1'b0}};
-    ifu2ilm_cmd_wdata = {LP_DATA_WIDTH{1'b0}};
-    ifu2ilm_cmd_wstrb = {(LP_DATA_WIDTH/8){1'b1}};
-    ifu2ilm_rsp_rdy = 1'b1;
+    ifu2icb_cmd_vld_ilm = 1'b0;
+    ifu2icb_cmd_write_ilm = 1'b0;
+    ifu2icb_cmd_addr_ilm = {LP_ICB_ADDR_WIDTH{1'b0}};
+    ifu2icb_cmd_wdata_ilm = {LP_DATA_WIDTH{1'b0}};
+    ifu2icb_cmd_wstrb_ilm = {(LP_DATA_WIDTH/8){1'b1}};
+    ifu2icb_rsp_rdy_ilm = 1'b1;
 end
 
 initial begin
-    lsu2ilm_cmd_vld = 1'b0;
-    lsu2ilm_cmd_write = 1'b0;
-    lsu2ilm_cmd_addr = {LP_ICB_ADDR_WIDTH{1'b0}};
-    lsu2ilm_cmd_wdata = {LP_DATA_WIDTH{1'b0}};
-    lsu2ilm_cmd_wstrb = {(LP_DATA_WIDTH/8){1'b1}};
-    lsu2ilm_rsp_rdy = 1'b1;
+    lsu2icb_cmd_vld_ilm = 1'b0;
+    lsu2icb_cmd_write_ilm = 1'b0;
+    lsu2icb_cmd_addr_ilm = {LP_ICB_ADDR_WIDTH{1'b0}};
+    lsu2icb_cmd_wdata_ilm = {LP_DATA_WIDTH{1'b0}};
+    lsu2icb_cmd_wstrb_ilm = {(LP_DATA_WIDTH/8){1'b1}};
+    lsu2icb_rsp_rdy_ilm = 1'b1;
 end
 
 initial begin
-    slv2ilm_cmd_vld = 1'b0;
-    slv2ilm_cmd_write = 1'b0;
-    slv2ilm_cmd_addr = {LP_ICB_ADDR_WIDTH{1'b0}};
-    slv2ilm_cmd_wdata = {LP_DATA_WIDTH{1'b0}};
-    slv2ilm_cmd_wstrb = {(LP_DATA_WIDTH/8){1'b1}};
-    slv2ilm_rsp_rdy = 1'b1;
+    slv2icb_cmd_vld_ilm = 1'b0;
+    slv2icb_cmd_write_ilm = 1'b0;
+    slv2icb_cmd_addr_ilm = {LP_ICB_ADDR_WIDTH{1'b0}};
+    slv2icb_cmd_wdata_ilm = {LP_DATA_WIDTH{1'b0}};
+    slv2icb_cmd_wstrb_ilm = {(LP_DATA_WIDTH/8){1'b1}};
+    slv2icb_rsp_rdy_ilm = 1'b1;
 end
 
 
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
-        ifu2ilm_cmd_vld <= 1'b0;
+        ifu2icb_cmd_vld_ilm <= 1'b0;
 
-        ifu2ilm_cmd_addr <= {LP_ICB_ADDR_WIDTH{1'b0}};
-        ifu2ilm_cmd_wdata <= {LP_DATA_WIDTH{1'b0}};
-        ifu2ilm_cmd_wstrb <= {(LP_DATA_WIDTH/8){1'b1}};
+        ifu2icb_cmd_addr_ilm <= {LP_ICB_ADDR_WIDTH{1'b0}};
+        ifu2icb_cmd_wdata_ilm <= {LP_DATA_WIDTH{1'b0}};
+        ifu2icb_cmd_wstrb_ilm <= {(LP_DATA_WIDTH/8){1'b1}};
     end else begin
-        ifu2ilm_cmd_vld <= 1'b1;
-        if(ifu2ilm_cmd_rdy) begin
-            ifu2ilm_cmd_addr <= ifu2ilm_cmd_addr + 4;
-            ifu2ilm_cmd_wdata <= ifu2ilm_cmd_wdata + 1;
+        ifu2icb_cmd_vld_ilm <= 1'b1;
+        if(ifu2icb_cmd_rdy_ilm) begin
+            ifu2icb_cmd_addr_ilm <= ifu2icb_cmd_addr_ilm + 4;
+            ifu2icb_cmd_wdata_ilm <= ifu2icb_cmd_wdata_ilm + 1;
         end
-        ifu2ilm_cmd_write <= 1'b0;
+        ifu2icb_cmd_write_ilm <= 1'b0;
     end
 end
 
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
-        lsu2ilm_cmd_vld <= 1'b0;
+        lsu2icb_cmd_vld_ilm <= 1'b0;
 
-        lsu2ilm_cmd_addr <= 32'h000;
-        lsu2ilm_cmd_wdata <= {LP_DATA_WIDTH{1'b0}};
-        lsu2ilm_cmd_wstrb <= {(LP_DATA_WIDTH/8){1'b1}};
+        lsu2icb_cmd_addr_ilm <= 32'h000;
+        lsu2icb_cmd_wdata_ilm <= {LP_DATA_WIDTH{1'b0}};
+        lsu2icb_cmd_wstrb_ilm <= {(LP_DATA_WIDTH/8){1'b1}};
     end else begin
-        lsu2ilm_cmd_vld <= 1'b1;
-        if(lsu2ilm_cmd_rdy) begin
-            lsu2ilm_cmd_addr <= lsu2ilm_cmd_addr + 4;
-            lsu2ilm_cmd_wdata <= lsu2ilm_cmd_addr + 8;
+        lsu2icb_cmd_vld_ilm <= 1'b1;
+        if(lsu2icb_cmd_rdy_ilm) begin
+            lsu2icb_cmd_addr_ilm <= lsu2icb_cmd_addr_ilm + 4;
+            lsu2icb_cmd_wdata_ilm <= lsu2icb_cmd_addr_ilm + 8;
         end
-        lsu2ilm_cmd_write <= 1'b1;
+        lsu2icb_cmd_write_ilm <= 1'b1;
     end
 end
 
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
-        slv2ilm_cmd_vld <= 1'b0;
+        slv2icb_cmd_vld_ilm <= 1'b0;
 
-        slv2ilm_cmd_addr <= 32'h100;
-        slv2ilm_cmd_wdata <= {LP_DATA_WIDTH{1'b0}};
-        slv2ilm_cmd_wstrb <= {(LP_DATA_WIDTH/8){1'b1}};
+        slv2icb_cmd_addr_ilm <= 32'h100;
+        slv2icb_cmd_wdata_ilm <= {LP_DATA_WIDTH{1'b0}};
+        slv2icb_cmd_wstrb_ilm <= {(LP_DATA_WIDTH/8){1'b1}};
     end else begin
-        slv2ilm_cmd_vld <= 1'b0;
-        if(slv2ilm_cmd_rdy) begin
-            slv2ilm_cmd_addr <= slv2ilm_cmd_addr + 4;
-            slv2ilm_cmd_wdata <= slv2ilm_cmd_wdata + 1;
+        slv2icb_cmd_vld_ilm <= 1'b0;
+        if(slv2icb_cmd_rdy_ilm) begin
+            slv2icb_cmd_addr_ilm <= slv2icb_cmd_addr_ilm + 4;
+            slv2icb_cmd_wdata_ilm <= slv2icb_cmd_wdata_ilm + 1;
         end
-        slv2ilm_cmd_write <= 1'b1;
+        slv2icb_cmd_write_ilm <= 1'b1;
     end
 end
 

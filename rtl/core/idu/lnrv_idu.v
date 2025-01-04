@@ -2,8 +2,6 @@
 module lnrv_idu
 (
     output                              idu_active,
-    output                              idu_push_hsked,
-    output                              idu_pop_hsked,
 
     input                               pipe_halt_req,
     output                              pipe_halt_ack,

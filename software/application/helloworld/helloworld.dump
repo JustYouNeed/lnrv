@@ -1,0 +1,102 @@
+
+helloworld：     文件格式 elf32-littleriscv
+
+
+Disassembly of section .init:
+
+00000000 <_start>:
+   0:	00021197          	auipc	gp,0x21
+   4:	80018193          	add	gp,gp,-2048 # 20800 <__global_pointer$>
+   8:	00030117          	auipc	sp,0x30
+   c:	ff810113          	add	sp,sp,-8 # 30000 <__freertos_irq_stack_top>
+  10:	00000d13          	li	s10,0
+  14:	00000d93          	li	s11,0
+  18:	0bc00513          	li	a0,188
+  1c:	00020597          	auipc	a1,0x20
+  20:	fe458593          	add	a1,a1,-28 # 20000 <__bss_start>
+  24:	00020617          	auipc	a2,0x20
+  28:	fdc60613          	add	a2,a2,-36 # 20000 <__bss_start>
+  2c:	00c5fc63          	bgeu	a1,a2,44 <_start+0x44>
+  30:	00052283          	lw	t0,0(a0)
+  34:	0055a023          	sw	t0,0(a1)
+  38:	00450513          	add	a0,a0,4
+  3c:	00458593          	add	a1,a1,4
+  40:	fec5e8e3          	bltu	a1,a2,30 <_start+0x30>
+  44:	00020517          	auipc	a0,0x20
+  48:	fbc50513          	add	a0,a0,-68 # 20000 <__bss_start>
+  4c:	00020597          	auipc	a1,0x20
+  50:	fb458593          	add	a1,a1,-76 # 20000 <__bss_start>
+  54:	00b57863          	bgeu	a0,a1,64 <_start+0x64>
+  58:	00052023          	sw	zero,0(a0)
+  5c:	00450513          	add	a0,a0,4
+  60:	feb56ce3          	bltu	a0,a1,58 <_start+0x58>
+  64:	00c000ef          	jal	70 <main>
+  68:	00100d13          	li	s10,1
+
+0000006c <loop>:
+  6c:	0000006f          	j	6c <loop>
+
+Disassembly of section .text:
+
+00000070 <main>:
+  70:	fe010113          	add	sp,sp,-32
+  74:	00112e23          	sw	ra,28(sp)
+  78:	00812c23          	sw	s0,24(sp)
+  7c:	02010413          	add	s0,sp,32
+  80:	fe042623          	sw	zero,-20(s0)
+  84:	fe042423          	sw	zero,-24(s0)
+  88:	fe042623          	sw	zero,-20(s0)
+  8c:	0200006f          	j	ac <main+0x3c>
+  90:	fe842703          	lw	a4,-24(s0)
+  94:	fec42783          	lw	a5,-20(s0)
+  98:	00f707b3          	add	a5,a4,a5
+  9c:	fef42423          	sw	a5,-24(s0)
+  a0:	fec42783          	lw	a5,-20(s0)
+  a4:	00178793          	add	a5,a5,1
+  a8:	fef42623          	sw	a5,-20(s0)
+  ac:	fec42703          	lw	a4,-20(s0)
+  b0:	06300793          	li	a5,99
+  b4:	fce7dee3          	bge	a5,a4,90 <main+0x20>
+  b8:	0000006f          	j	b8 <main+0x48>
+
+Disassembly of section .stack:
+
+0002e000 <__freertos_irq_stack_top-0x2000>:
+	...
+
+Disassembly of section .riscv.attributes:
+
+00000000 <.riscv.attributes>:
+   0:	1f41                	.insn	2, 0x1f41
+   2:	0000                	.insn	2, 0x
+   4:	7200                	.insn	2, 0x7200
+   6:	7369                	.insn	2, 0x7369
+   8:	01007663          	bgeu	zero,a6,14 <_start+0x14>
+   c:	0015                	.insn	2, 0x0015
+   e:	0000                	.insn	2, 0x
+  10:	1004                	.insn	2, 0x1004
+  12:	7205                	.insn	2, 0x7205
+  14:	3376                	.insn	2, 0x3376
+  16:	6932                	.insn	2, 0x6932
+  18:	7032                	.insn	2, 0x7032
+  1a:	0030                	.insn	2, 0x0030
+  1c:	0108                	.insn	2, 0x0108
+  1e:	0b0a                	.insn	2, 0x0b0a
+
+Disassembly of section .comment:
+
+00000000 <.comment>:
+   0:	3a434347          	.insn	4, 0x3a434347
+   4:	2820                	.insn	2, 0x2820
+   6:	63396667          	.insn	4, 0x63396667
+   a:	3864                	.insn	2, 0x3864
+   c:	64656637          	lui	a2,0x64656
+  10:	2029                	.insn	2, 0x2029
+  12:	3331                	.insn	2, 0x3331
+  14:	312e                	.insn	2, 0x312e
+  16:	312e                	.insn	2, 0x312e
+  18:	3220                	.insn	2, 0x3220
+  1a:	3230                	.insn	2, 0x3230
+  1c:	31373033          	.insn	4, 0x31373033
+  20:	33 00             	Address 0x20 is out of bounds.
+

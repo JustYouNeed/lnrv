@@ -12,7 +12,7 @@ module  lnrv_core
     input                                   irq_tmr,
 
     input                                   dbg_halt,
-    input                                   dbg_irq,
+    input                                   irq_dbg,
 
     // wfi模式指示信号，为高时表示处于wfi模式中
     output                                  wfi_mode,
@@ -24,30 +24,30 @@ module  lnrv_core
     output                                  dcsr_stopcount,
 
     // 取指总线
-    output                                  ifu_cmd_vld,
-    input                                   ifu_cmd_rdy,
-    output                                  ifu_cmd_write,
-    output[31 : 0]                          ifu_cmd_addr,
-    output[31 : 0]                          ifu_cmd_wdata,
-    output[3 : 0]                           ifu_cmd_wstrb,
-    output[2 : 0]                           ifu_cmd_size,
-    input                                   ifu_rsp_vld,
-    output                                  ifu_rsp_rdy,
-    input[31 : 0]                           ifu_rsp_rdata,
-    input                                   ifu_rsp_err,
+    output                                  icb_cmd_vld_ifu,
+    input                                   icb_cmd_rdy_ifu,
+    output                                  icb_cmd_write_ifu,
+    output[31 : 0]                          icb_cmd_addr_ifu,
+    output[31 : 0]                          icb_cmd_wdata_ifu,
+    output[3 : 0]                           icb_cmd_wstrb_ifu,
+    output[2 : 0]                           icb_cmd_size_ifu,
+    input                                   icb_rsp_vld_ifu,
+    output                                  icb_rsp_rdy_ifu,
+    input[31 : 0]                           icb_rsp_rdata_ifu,
+    input                                   icb_rsp_err_ifu,
 
     // 系统访存总线
-    output                                  lsu_cmd_vld,
-    input                                   lsu_cmd_rdy,
-    output                                  lsu_cmd_write,
-    output[31 : 0]                          lsu_cmd_addr,
-    output[31 : 0]                          lsu_cmd_wdata,
-    output[3 : 0]                           lsu_cmd_wstrb,
-    output[2 : 0]                           lsu_cmd_size,
-    input                                   lsu_rsp_vld,
-    output                                  lsu_rsp_rdy,
-    input[31 : 0]                           lsu_rsp_rdata,
-    input                                   lsu_rsp_err,
+    output                                  icb_cmd_vld_lsu,
+    input                                   icb_cmd_rdy_lsu,
+    output                                  icb_cmd_write_lsu,
+    output[31 : 0]                          icb_cmd_addr_lsu,
+    output[31 : 0]                          icb_cmd_wdata_lsu,
+    output[3 : 0]                           icb_cmd_wstrb_lsu,
+    output[2 : 0]                           icb_cmd_size_lsu,
+    input                                   icb_rsp_vld_lsu,
+    output                                  icb_rsp_rdy_lsu,
+    input[31 : 0]                           icb_rsp_rdata_lsu,
+    input                                   icb_rsp_err_lsu,
 
     //
     input                                   ifu_clk,
@@ -97,7 +97,6 @@ wire[11 : 0]                            idu_csr;
 wire[`DEC_OP_BUS_WIDTH - 1 : 0]         idu_op_bus;
 wire[`DEC_OP_TYPE_WIDTH - 1 : 0]        idu_op_type;
 wire                                    idu_rv32;
-wire                                    idu_rv16;
 
 wire                                    pipe_halt_req;
 wire                                    pipe_halt_ack;
@@ -165,7 +164,6 @@ wire                                    csr_wbck_rdy;
 wire[11 : 0]                            csr_wbck_idx;
 wire[31 : 0]                            csr_wbck_wdata;
 
-
 wire                                    dcsr_ebreakm;
 wire                                    dcsr_stepie;
 wire                                    dcsr_step;
@@ -180,11 +178,7 @@ wire[31 : 0]                            dec_imm_jalr;
 wire                                    dec_rs1_x1;
 
 wire                                    bpu_prdt_res;
-wire                                    pipe_flush_req_bpu;
-wire                                    pipe_flush_ack_bpu;
-wire[31 : 0]                            pipe_flush_pc_op1_bpu;
-wire[31 : 0]                            pipe_flush_pc_op2_bpu;
-
+wire[31 : 0]                            gpr_x1;
 
 wire[31 : 0]                            mepc;
 wire[31 : 0]                            dpc;
@@ -231,17 +225,17 @@ lnrv_ifu u_lnrv_ifu
     .ifu_excp_misalgn           ( ifu_excp_misalgn          ),
     .ifu_excp_buserr            ( ifu_excp_buserr           ),
 
-    .ifu_cmd_vld                ( ifu_cmd_vld               ),
-    .ifu_cmd_rdy                ( ifu_cmd_rdy               ),
-    .ifu_cmd_write              ( ifu_cmd_write             ),
-    .ifu_cmd_addr               ( ifu_cmd_addr              ),
-    .ifu_cmd_wdata              ( ifu_cmd_wdata             ),
-    .ifu_cmd_wstrb              ( ifu_cmd_wstrb             ),
-    .ifu_cmd_size               ( ifu_cmd_size              ),
-    .ifu_rsp_vld                ( ifu_rsp_vld               ),
-    .ifu_rsp_rdy                ( ifu_rsp_rdy               ),
-    .ifu_rsp_rdata              ( ifu_rsp_rdata             ),
-    .ifu_rsp_err                ( ifu_rsp_err               )
+    .icb_cmd_vld_ifu            ( icb_cmd_vld_ifu           ),
+    .icb_cmd_rdy_ifu            ( icb_cmd_rdy_ifu           ),
+    .icb_cmd_write_ifu          ( icb_cmd_write_ifu         ),
+    .icb_cmd_addr_ifu           ( icb_cmd_addr_ifu          ),
+    .icb_cmd_wdata_ifu          ( icb_cmd_wdata_ifu         ),
+    .icb_cmd_wstrb_ifu          ( icb_cmd_wstrb_ifu         ),
+    .icb_cmd_size_ifu           ( icb_cmd_size_ifu          ),
+    .icb_rsp_vld_ifu            ( icb_rsp_vld_ifu           ),
+    .icb_rsp_rdy_ifu            ( icb_rsp_rdy_ifu           ),
+    .icb_rsp_rdata_ifu          ( icb_rsp_rdata_ifu         ),
+    .icb_rsp_err_ifu            ( icb_rsp_err_ifu           )
 );
 
 // 译码模块
@@ -396,17 +390,17 @@ lnrv_exu u_lnrv_exu
     .csr_wbck_wdata             ( csr_wbck_wdata            ),
 
     // 访存接口
-    .lsu_cmd_vld                ( lsu_cmd_vld               ),
-    .lsu_cmd_rdy                ( lsu_cmd_rdy               ),
-    .lsu_cmd_write              ( lsu_cmd_write             ),
-    .lsu_cmd_addr               ( lsu_cmd_addr              ),
-    .lsu_cmd_wdata              ( lsu_cmd_wdata             ),
-    .lsu_cmd_wstrb              ( lsu_cmd_wstrb             ),
-    .lsu_cmd_size               ( lsu_cmd_size              ),
-    .lsu_rsp_vld                ( lsu_rsp_vld               ),
-    .lsu_rsp_rdy                ( lsu_rsp_rdy               ),
-    .lsu_rsp_rdata              ( lsu_rsp_rdata             ),
-    .lsu_rsp_err                ( lsu_rsp_err               ),
+    .icb_cmd_vld_lsu                ( icb_cmd_vld_lsu               ),
+    .icb_cmd_rdy_lsu                ( icb_cmd_rdy_lsu               ),
+    .icb_cmd_write_lsu              ( icb_cmd_write_lsu             ),
+    .icb_cmd_addr_lsu               ( icb_cmd_addr_lsu              ),
+    .icb_cmd_wdata_lsu              ( icb_cmd_wdata_lsu             ),
+    .icb_cmd_wstrb_lsu              ( icb_cmd_wstrb_lsu             ),
+    .icb_cmd_size_lsu               ( icb_cmd_size_lsu              ),
+    .icb_rsp_vld_lsu                ( icb_rsp_vld_lsu               ),
+    .icb_rsp_rdy_lsu                ( icb_rsp_rdy_lsu               ),
+    .icb_rsp_rdata_lsu              ( icb_rsp_rdata_lsu             ),
+    .icb_rsp_err_lsu                ( icb_rsp_err_lsu               ),
 
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   )
@@ -469,7 +463,7 @@ lnrv_cmt u_lnrv_cmt
     .dbg_taken                  ( dbg_taken                 ),
     .excp_taken                 ( excp_taken                ),
 
-    .dbg_irq                    ( dbg_irq                   ),
+    .irq_dbg                    ( irq_dbg                   ),
     .dbg_halt                   ( dbg_halt                  ),
     .dbg_step                   ( 1'b0                      ),
     .dbg_trig                   ( 1'b0                      ),

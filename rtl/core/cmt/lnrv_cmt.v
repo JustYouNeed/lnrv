@@ -61,7 +61,7 @@ module lnrv_cmt
     output                      dbg_taken,
     output                      excp_taken,
 
-    input                       dbg_irq,
+    input                       irq_dbg,
     input                       dbg_halt,
     input                       dbg_step,
     input                       dbg_trig,
@@ -231,7 +231,7 @@ lnrv_cmt_dbg u_lnrv_cmt_dbg
     .dbg_req_raw            ( dbg_req_raw                   ),
     .dbg_taken              ( dbg_taken                     ),
 
-    .dbg_irq                ( dbg_irq                       ),
+    .irq_dbg                ( irq_dbg                       ),
     .dbg_halt               ( dbg_halt                      ),
     .dbg_step               ( dcsr_step                     ),
     .dbg_trig               ( 1'b0                          ),

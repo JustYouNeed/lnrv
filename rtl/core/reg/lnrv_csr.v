@@ -725,16 +725,6 @@ assign      dcsr_full[3]         = 1'b0;
 assign      dcsr_full[2]         = dcsr_step_q;
 assign      dcsr_full[1 : 0]     = 2'd3;                // 只支持Machine mode
 
-// // 不可屏蔽中断挂起
-// assign      nmip_d = non_msk_irq;
-// always@(posedge clk or negedge reset_n) begin
-//     if(reset_n == 1'b0 ) begin
-//         nmip_q <= 1'b0;
-//     end else begin
-//         nmip_q <= nmip_d;
-//     end
-// end
-
 // debug mode下用的临时寄存器0
 assign      dscratch0_rld = wbck_DSCRATCH0;
 assign      dscratch0_d = wbck_wdata;

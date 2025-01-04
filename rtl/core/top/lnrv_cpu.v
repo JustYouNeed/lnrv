@@ -18,7 +18,7 @@ module  lnrv_cpu#
     input                                   irq_ext,
 
     input                                   dbg_halt,
-    input                                   dbg_irq,
+    input                                   irq_dbg,
 
     //
     output                                  wfi_mode,
@@ -143,80 +143,80 @@ localparam                      LP_DLM_SIZE = 2 ** P_DLM_ADDR_WIDTH;
 localparam                      LP_DLM_REGION_START = P_DLM_REGION_BASE;
 localparam                      LP_DLM_REGION_END = P_DLM_REGION_BASE + LP_DLM_SIZE;
 
-wire                            ifu_cmd_vld;
-wire                            ifu_cmd_rdy;
-wire                            ifu_cmd_write;
-wire[31 : 0]                    ifu_cmd_addr;
-wire[31 : 0]                    ifu_cmd_wdata;
-wire[3 : 0]                     ifu_cmd_wstrb;
-wire[2 : 0]                     ifu_cmd_size;
-wire                            ifu_rsp_vld;
-wire                            ifu_rsp_rdy;
-wire[31 : 0]                    ifu_rsp_rdata;
-wire                            ifu_rsp_err;
+wire                            icb_cmd_vld_ifu;
+wire                            icb_cmd_rdy_ifu;
+wire                            icb_cmd_write_ifu;
+wire[31 : 0]                    icb_cmd_addr_ifu;
+wire[31 : 0]                    icb_cmd_wdata_ifu;
+wire[3 : 0]                     icb_cmd_wstrb_ifu;
+wire[2 : 0]                     icb_cmd_size_ifu;
+wire                            icb_rsp_vld_ifu;
+wire                            icb_rsp_rdy_ifu;
+wire[31 : 0]                    icb_rsp_rdata_ifu;
+wire                            icb_rsp_err_ifu;
 
 
-wire                            exu_cmd_vld;
-wire                            exu_cmd_rdy;
-wire                            exu_cmd_write;
-wire[31 : 0]                    exu_cmd_addr;
-wire[31 : 0]                    exu_cmd_wdata;
-wire[3 : 0]                     exu_cmd_wstrb;
-wire[2 : 0]                     exu_cmd_size;
-wire                            exu_rsp_vld;
-wire                            exu_rsp_rdy;
-wire[31 : 0]                    exu_rsp_rdata;
-wire                            exu_rsp_err;
+wire                            icb_cmd_vld_exu;
+wire                            icb_cmd_rdy_exu;
+wire                            icb_cmd_write_exu;
+wire[31 : 0]                    icb_cmd_addr_exu;
+wire[31 : 0]                    icb_cmd_wdata_exu;
+wire[3 : 0]                     icb_cmd_wstrb_exu;
+wire[2 : 0]                     icb_cmd_size_exu;
+wire                            icb_rsp_vld_exu;
+wire                            icb_rsp_rdy_exu;
+wire[31 : 0]                    icb_rsp_rdata_exu;
+wire                            icb_rsp_err_exu;
 
 
-wire                            slv_cmd_vld;
-wire                            slv_cmd_rdy;
-wire                            slv_cmd_write;
-wire[31 : 0]                    slv_cmd_addr;
-wire[31 : 0]                    slv_cmd_wdata;
-wire[3 : 0]                     slv_cmd_wstrb;
-wire[2  : 0]                    slv_cmd_size;
-wire                            slv_rsp_vld;
-wire                            slv_rsp_rdy;
-wire[31 : 0]                    slv_rsp_rdata;
-wire                            slv_rsp_err;
+wire                            icb_cmd_vld_slv;
+wire                            icb_cmd_rdy_slv;
+wire                            icb_cmd_write_slv;
+wire[31 : 0]                    icb_cmd_addr_slv;
+wire[31 : 0]                    icb_cmd_wdata_slv;
+wire[3 : 0]                     icb_cmd_wstrb_slv;
+wire[2  : 0]                    icb_cmd_size_slv;
+wire                            icb_rsp_vld_slv;
+wire                            icb_rsp_rdy_slv;
+wire[31 : 0]                    icb_rsp_rdata_slv;
+wire                            icb_rsp_err_slv;
 
-wire                            ilm_cmd_vld;
-wire                            ilm_cmd_rdy;
-wire                            ilm_cmd_write;
-wire[31 : 0]                    ilm_cmd_addr;
-wire[31 : 0]                    ilm_cmd_wdata;
-wire[3 : 0]                     ilm_cmd_wstrb;
-wire[2 : 0]                     ilm_cmd_size;
-wire                            ilm_rsp_vld;
-wire                            ilm_rsp_rdy;
-wire[31 : 0]                    ilm_rsp_rdata;
-wire                            ilm_rsp_err;
+wire                            icb_cmd_vld_ilm;
+wire                            icb_cmd_rdy_ilm;
+wire                            icb_cmd_write_ilm;
+wire[31 : 0]                    icb_cmd_addr_ilm;
+wire[31 : 0]                    icb_cmd_wdata_ilm;
+wire[3 : 0]                     icb_cmd_wstrb_ilm;
+wire[2 : 0]                     icb_cmd_size_ilm;
+wire                            icb_rsp_vld_ilm;
+wire                            icb_rsp_rdy_ilm;
+wire[31 : 0]                    icb_rsp_rdata_ilm;
+wire                            icb_rsp_err_ilm;
 
-wire                            dlm_cmd_vld;
-wire                            dlm_cmd_rdy;
-wire                            dlm_cmd_write;
-wire[31 : 0]                    dlm_cmd_addr;
-wire[31 : 0]                    dlm_cmd_wdata;
-wire[3 : 0]                     dlm_cmd_wstrb;
-wire[2 : 0]                     dlm_cmd_size;
-wire                            dlm_rsp_vld;
-wire                            dlm_rsp_rdy;
-wire[31 : 0]                    dlm_rsp_rdata;
-wire                            dlm_rsp_err;
+wire                            icb_cmd_vld_dlm;
+wire                            icb_cmd_rdy_dlm;
+wire                            icb_cmd_write_dlm;
+wire[31 : 0]                    icb_cmd_addr_dlm;
+wire[31 : 0]                    icb_cmd_wdata_dlm;
+wire[3 : 0]                     icb_cmd_wstrb_dlm;
+wire[2 : 0]                     icb_cmd_size_dlm;
+wire                            icb_rsp_vld_dlm;
+wire                            icb_rsp_rdy_dlm;
+wire[31 : 0]                    icb_rsp_rdata_dlm;
+wire                            icb_rsp_err_dlm;
 
 
-wire                            sys_cmd_vld;
-wire                            sys_cmd_rdy;
-wire                            sys_cmd_write;
-wire[31 : 0]                    sys_cmd_addr;
-wire[31 : 0]                    sys_cmd_wdata;
-wire[3 : 0]                     sys_cmd_wstrb;
-wire[2 : 0]                     sys_cmd_size;
-wire                            sys_rsp_vld;
-wire                            sys_rsp_rdy;
-wire[31 : 0]                    sys_rsp_rdata;
-wire                            sys_rsp_err;
+wire                            icb_cmd_vld_sys;
+wire                            icb_cmd_rdy_sys;
+wire                            icb_cmd_write_sys;
+wire[31 : 0]                    icb_cmd_addr_sys;
+wire[31 : 0]                    icb_cmd_wdata_sys;
+wire[3 : 0]                     icb_cmd_wstrb_sys;
+wire[2 : 0]                     icb_cmd_size_sys;
+wire                            icb_rsp_vld_sys;
+wire                            icb_rsp_rdy_sys;
+wire[31 : 0]                    icb_rsp_rdata_sys;
+wire                            icb_rsp_err_sys;
 
 
 
@@ -225,14 +225,14 @@ lnrv_core u_lnrv_core
 (
     .reset_vector           ( reset_vector              ),
     .reset_mtvec            ( reset_mtvec               ),
-    .firmware_loading          ( firmware_loading             ),
+    .firmware_loading       ( firmware_loading          ),
 
     .irq_sft                ( irq_sft                   ),
     .irq_ext                ( irq_ext                   ),
     .irq_tmr                ( irq_tmr                   ),
 
     .dbg_halt               ( dbg_halt                  ),
-    .dbg_irq                ( dbg_irq                   ),
+    .irq_dbg                ( irq_dbg                   ),
 
     .wfi_mode               ( wfi_mode                  ),
     .d_mode                 ( d_mode                    ),
@@ -241,30 +241,30 @@ lnrv_core u_lnrv_core
     .dcsr_stopcount         ( dcsr_stopcount            ),
 
     // ifu访存接口
-    .ifu_cmd_vld            ( ifu_cmd_vld               ),
-    .ifu_cmd_rdy            ( ifu_cmd_rdy               ),
-    .ifu_cmd_write          ( ifu_cmd_write             ),
-    .ifu_cmd_addr           ( ifu_cmd_addr              ),
-    .ifu_cmd_wdata          ( ifu_cmd_wdata             ),
-    .ifu_cmd_wstrb          ( ifu_cmd_wstrb             ),
-    .ifu_cmd_size           ( ifu_cmd_size              ),
-    .ifu_rsp_vld            ( ifu_rsp_vld               ),
-    .ifu_rsp_rdy            ( ifu_rsp_rdy               ),
-    .ifu_rsp_rdata          ( ifu_rsp_rdata             ),
-    .ifu_rsp_err            ( ifu_rsp_err               ),
+    .icb_cmd_vld_ifu        ( icb_cmd_vld_ifu           ),
+    .icb_cmd_rdy_ifu        ( icb_cmd_rdy_ifu           ),
+    .icb_cmd_write_ifu      ( icb_cmd_write_ifu         ),
+    .icb_cmd_addr_ifu       ( icb_cmd_addr_ifu          ),
+    .icb_cmd_wdata_ifu      ( icb_cmd_wdata_ifu         ),
+    .icb_cmd_wstrb_ifu      ( icb_cmd_wstrb_ifu         ),
+    .icb_cmd_size_ifu       ( icb_cmd_size_ifu          ),
+    .icb_rsp_vld_ifu        ( icb_rsp_vld_ifu           ),
+    .icb_rsp_rdy_ifu        ( icb_rsp_rdy_ifu           ),
+    .icb_rsp_rdata_ifu      ( icb_rsp_rdata_ifu         ),
+    .icb_rsp_err_ifu        ( icb_rsp_err_ifu           ),
 
     // exu访存接口
-    .lsu_cmd_vld            ( exu_cmd_vld               ),
-    .lsu_cmd_rdy            ( exu_cmd_rdy               ),
-    .lsu_cmd_write          ( exu_cmd_write             ),
-    .lsu_cmd_addr           ( exu_cmd_addr              ),
-    .lsu_cmd_wdata          ( exu_cmd_wdata             ),
-    .lsu_cmd_wstrb          ( exu_cmd_wstrb             ),
-    .lsu_cmd_size           ( exu_cmd_size              ),
-    .lsu_rsp_vld            ( exu_rsp_vld               ),
-    .lsu_rsp_rdy            ( exu_rsp_rdy               ),
-    .lsu_rsp_rdata          ( exu_rsp_rdata             ),
-    .lsu_rsp_err            ( exu_rsp_err               ),
+    .icb_cmd_vld_lsu            ( icb_cmd_vld_exu               ),
+    .icb_cmd_rdy_lsu            ( icb_cmd_rdy_exu               ),
+    .icb_cmd_write_lsu          ( icb_cmd_write_exu             ),
+    .icb_cmd_addr_lsu           ( icb_cmd_addr_exu              ),
+    .icb_cmd_wdata_lsu          ( icb_cmd_wdata_exu             ),
+    .icb_cmd_wstrb_lsu          ( icb_cmd_wstrb_exu             ),
+    .icb_cmd_size_lsu           ( icb_cmd_size_exu              ),
+    .icb_rsp_vld_lsu            ( icb_rsp_vld_exu               ),
+    .icb_rsp_rdy_lsu            ( icb_rsp_rdy_exu               ),
+    .icb_rsp_rdata_lsu          ( icb_rsp_rdata_exu             ),
+    .icb_rsp_err_lsu            ( icb_rsp_err_exu               ),
 
     .ifu_clk                ( clk                       ),
     .ifu_active             ( ifu_active                ),
@@ -293,77 +293,77 @@ lnrv_biu#
 )
 u_lnrv_biu
 (
-    .ifu_cmd_vld            ( ifu_cmd_vld               ),
-    .ifu_cmd_rdy            ( ifu_cmd_rdy               ),
-    .ifu_cmd_write          ( ifu_cmd_write             ),
-    .ifu_cmd_addr           ( ifu_cmd_addr              ),
-    .ifu_cmd_wdata          ( ifu_cmd_wdata             ),
-    .ifu_cmd_wstrb          ( ifu_cmd_wstrb             ),
-    .ifu_cmd_size           ( ifu_cmd_size              ),
-    .ifu_rsp_vld            ( ifu_rsp_vld               ),
-    .ifu_rsp_rdy            ( ifu_rsp_rdy               ),
-    .ifu_rsp_rdata          ( ifu_rsp_rdata             ),
-    .ifu_rsp_err            ( ifu_rsp_err               ),
+    .icb_cmd_vld_ifu        ( icb_cmd_vld_ifu           ),
+    .icb_cmd_rdy_ifu        ( icb_cmd_rdy_ifu           ),
+    .icb_cmd_write_ifu      ( icb_cmd_write_ifu         ),
+    .icb_cmd_addr_ifu       ( icb_cmd_addr_ifu          ),
+    .icb_cmd_wdata_ifu      ( icb_cmd_wdata_ifu         ),
+    .icb_cmd_wstrb_ifu      ( icb_cmd_wstrb_ifu         ),
+    .icb_cmd_size_ifu       ( icb_cmd_size_ifu          ),
+    .icb_rsp_vld_ifu        ( icb_rsp_vld_ifu           ),
+    .icb_rsp_rdy_ifu        ( icb_rsp_rdy_ifu           ),
+    .icb_rsp_rdata_ifu      ( icb_rsp_rdata_ifu         ),
+    .icb_rsp_err_ifu        ( icb_rsp_err_ifu           ),
 
-    .exu_cmd_vld            ( exu_cmd_vld               ),
-    .exu_cmd_rdy            ( exu_cmd_rdy               ),
-    .exu_cmd_write          ( exu_cmd_write             ),
-    .exu_cmd_addr           ( exu_cmd_addr              ),
-    .exu_cmd_wdata          ( exu_cmd_wdata             ),
-    .exu_cmd_wstrb          ( exu_cmd_wstrb             ),
-    .exu_cmd_size           ( exu_cmd_size              ),
-    .exu_rsp_vld            ( exu_rsp_vld               ),
-    .exu_rsp_rdy            ( exu_rsp_rdy               ),
-    .exu_rsp_rdata          ( exu_rsp_rdata             ),
-    .exu_rsp_err            ( exu_rsp_err               ),
+    .icb_cmd_vld_exu        ( icb_cmd_vld_exu           ),
+    .icb_cmd_rdy_exu        ( icb_cmd_rdy_exu           ),
+    .icb_cmd_write_exu      ( icb_cmd_write_exu         ),
+    .icb_cmd_addr_exu       ( icb_cmd_addr_exu          ),
+    .icb_cmd_wdata_exu      ( icb_cmd_wdata_exu         ),
+    .icb_cmd_wstrb_exu      ( icb_cmd_wstrb_exu         ),
+    .icb_cmd_size_exu       ( icb_cmd_size_exu          ),
+    .icb_rsp_vld_exu        ( icb_rsp_vld_exu           ),
+    .icb_rsp_rdy_exu        ( icb_rsp_rdy_exu           ),
+    .icb_rsp_rdata_exu      ( icb_rsp_rdata_exu         ),
+    .icb_rsp_err_exu        ( icb_rsp_err_exu           ),
 
-    .slv_cmd_vld            ( slv_cmd_vld               ),
-    .slv_cmd_rdy            ( slv_cmd_rdy               ),
-    .slv_cmd_write          ( slv_cmd_write             ),
-    .slv_cmd_addr           ( slv_cmd_addr              ),
-    .slv_cmd_wdata          ( slv_cmd_wdata             ),
-    .slv_cmd_wstrb          ( slv_cmd_wstrb             ),
-    .slv_cmd_size           ( slv_cmd_size              ),
-    .slv_rsp_vld            ( slv_rsp_vld               ),
-    .slv_rsp_rdy            ( slv_rsp_rdy               ),
-    .slv_rsp_rdata          ( slv_rsp_rdata             ),
-    .slv_rsp_err            ( slv_rsp_err               ),
+    .icb_cmd_vld_slv        ( icb_cmd_vld_slv           ),
+    .icb_cmd_rdy_slv        ( icb_cmd_rdy_slv           ),
+    .icb_cmd_write_slv      ( icb_cmd_write_slv         ),
+    .icb_cmd_addr_slv       ( icb_cmd_addr_slv          ),
+    .icb_cmd_wdata_slv      ( icb_cmd_wdata_slv         ),
+    .icb_cmd_wstrb_slv      ( icb_cmd_wstrb_slv         ),
+    .icb_cmd_size_slv       ( icb_cmd_size_slv          ),
+    .icb_rsp_vld_slv        ( icb_rsp_vld_slv           ),
+    .icb_rsp_rdy_slv        ( icb_rsp_rdy_slv           ),
+    .icb_rsp_rdata_slv      ( icb_rsp_rdata_slv         ),
+    .icb_rsp_err_slv        ( icb_rsp_err_slv           ),
 
-    .ilm_cmd_vld            ( ilm_cmd_vld               ),
-    .ilm_cmd_rdy            ( ilm_cmd_rdy               ),
-    .ilm_cmd_write          ( ilm_cmd_write             ),
-    .ilm_cmd_addr           ( ilm_cmd_addr              ),
-    .ilm_cmd_wdata          ( ilm_cmd_wdata             ),
-    .ilm_cmd_wstrb          ( ilm_cmd_wstrb             ),
-    .ilm_cmd_size           ( ilm_cmd_size              ),
-    .ilm_rsp_vld            ( ilm_rsp_vld               ),
-    .ilm_rsp_rdy            ( ilm_rsp_rdy               ),
-    .ilm_rsp_rdata          ( ilm_rsp_rdata             ),
-    .ilm_rsp_err            ( ilm_rsp_err               ),
+    .icb_cmd_vld_ilm        ( icb_cmd_vld_ilm           ),
+    .icb_cmd_rdy_ilm        ( icb_cmd_rdy_ilm           ),
+    .icb_cmd_write_ilm      ( icb_cmd_write_ilm         ),
+    .icb_cmd_addr_ilm       ( icb_cmd_addr_ilm          ),
+    .icb_cmd_wdata_ilm      ( icb_cmd_wdata_ilm         ),
+    .icb_cmd_wstrb_ilm      ( icb_cmd_wstrb_ilm         ),
+    .icb_cmd_size_ilm       ( icb_cmd_size_ilm          ),
+    .icb_rsp_vld_ilm        ( icb_rsp_vld_ilm           ),
+    .icb_rsp_rdy_ilm        ( icb_rsp_rdy_ilm           ),
+    .icb_rsp_rdata_ilm      ( icb_rsp_rdata_ilm         ),
+    .icb_rsp_err_ilm        ( icb_rsp_err_ilm           ),
 
-    .dlm_cmd_vld            ( dlm_cmd_vld               ),
-    .dlm_cmd_rdy            ( dlm_cmd_rdy               ),
-    .dlm_cmd_write          ( dlm_cmd_write             ),
-    .dlm_cmd_addr           ( dlm_cmd_addr              ),
-    .dlm_cmd_wdata          ( dlm_cmd_wdata             ),
-    .dlm_cmd_wstrb          ( dlm_cmd_wstrb             ),
-    .dlm_cmd_size           ( dlm_cmd_size              ),
-    .dlm_rsp_vld            ( dlm_rsp_vld               ),
-    .dlm_rsp_rdy            ( dlm_rsp_rdy               ),
-    .dlm_rsp_rdata          ( dlm_rsp_rdata             ),
-    .dlm_rsp_err            ( dlm_rsp_err               ),
+    .icb_cmd_vld_dlm        ( icb_cmd_vld_dlm           ),
+    .icb_cmd_rdy_dlm        ( icb_cmd_rdy_dlm           ),
+    .icb_cmd_write_dlm      ( icb_cmd_write_dlm         ),
+    .icb_cmd_addr_dlm       ( icb_cmd_addr_dlm          ),
+    .icb_cmd_wdata_dlm      ( icb_cmd_wdata_dlm         ),
+    .icb_cmd_wstrb_dlm      ( icb_cmd_wstrb_dlm         ),
+    .icb_cmd_size_dlm       ( icb_cmd_size_dlm          ),
+    .icb_rsp_vld_dlm        ( icb_rsp_vld_dlm           ),
+    .icb_rsp_rdy_dlm        ( icb_rsp_rdy_dlm           ),
+    .icb_rsp_rdata_dlm      ( icb_rsp_rdata_dlm         ),
+    .icb_rsp_err_dlm        ( icb_rsp_err_dlm           ),
 
-    .sys_cmd_vld            ( sys_cmd_vld               ),
-    .sys_cmd_rdy            ( sys_cmd_rdy               ),
-    .sys_cmd_write          ( sys_cmd_write             ),
-    .sys_cmd_addr           ( sys_cmd_addr              ),
-    .sys_cmd_wdata          ( sys_cmd_wdata             ),
-    .sys_cmd_wstrb          ( sys_cmd_wstrb             ),
-    .sys_cmd_size           ( sys_cmd_size              ),
-    .sys_rsp_vld            ( sys_rsp_vld               ),
-    .sys_rsp_rdy            ( sys_rsp_rdy               ),
-    .sys_rsp_rdata          ( sys_rsp_rdata             ),
-    .sys_rsp_err            ( sys_rsp_err               ),
+    .icb_cmd_vld_sys        ( icb_cmd_vld_sys           ),
+    .icb_cmd_rdy_sys        ( icb_cmd_rdy_sys           ),
+    .icb_cmd_write_sys      ( icb_cmd_write_sys         ),
+    .icb_cmd_addr_sys       ( icb_cmd_addr_sys          ),
+    .icb_cmd_wdata_sys      ( icb_cmd_wdata_sys         ),
+    .icb_cmd_wstrb_sys      ( icb_cmd_wstrb_sys         ),
+    .icb_cmd_size_sys       ( icb_cmd_size_sys          ),
+    .icb_rsp_vld_sys        ( icb_rsp_vld_sys           ),
+    .icb_rsp_rdy_sys        ( icb_rsp_rdy_sys           ),
+    .icb_rsp_rdata_sys      ( icb_rsp_rdata_sys         ),
+    .icb_rsp_err_sys        ( icb_rsp_err_sys           ),
 
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   )
@@ -381,24 +381,25 @@ u_ilm_ctrl
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   ),
 
-    .icb_cmd_vld            ( ilm_cmd_vld               ),
-    .icb_cmd_rdy            ( ilm_cmd_rdy               ),
-    .icb_cmd_write          ( ilm_cmd_write             ),
-    .icb_cmd_addr           ( ilm_cmd_addr              ),
-    .icb_cmd_wdata          ( ilm_cmd_wdata             ),
-    .icb_cmd_wstrb          ( ilm_cmd_wstrb             ),
-    .icb_cmd_size           ( ilm_cmd_size              ),
-    .icb_rsp_rdy            ( ilm_rsp_rdy               ),
-    .icb_rsp_vld            ( ilm_rsp_vld               ),
-    .icb_rsp_rdata          ( ilm_rsp_rdata             ),
-    .icb_rsp_err            ( ilm_rsp_err               ),
+    .icb_cmd_vld            ( icb_cmd_vld_ilm           ),
+    .icb_cmd_rdy            ( icb_cmd_rdy_ilm           ),
+    .icb_cmd_write          ( icb_cmd_write_ilm         ),
+    .icb_cmd_addr           ( icb_cmd_addr_ilm          ),
+    .icb_cmd_wdata          ( icb_cmd_wdata_ilm         ),
+    .icb_cmd_wstrb          ( icb_cmd_wstrb_ilm         ),
+    .icb_cmd_size           ( icb_cmd_size_ilm          ),
+    .icb_rsp_rdy            ( icb_rsp_rdy_ilm           ),
+    .icb_rsp_vld            ( icb_rsp_vld_ilm           ),
+    .icb_rsp_rdata          ( icb_rsp_rdata_ilm         ),
+    .icb_rsp_err            ( icb_rsp_err_ilm           ),
 
     .ram_cs                 ( ilm_cs                    ),
     .ram_we                 ( ilm_we                    ),
     .ram_addr               ( ilm_addr                  ),
     .ram_wdata              ( ilm_wdata                 ),
     .ram_wem                ( ilm_wem                   ),
-    .ram_rdata              ( ilm_rdata                 )
+    .ram_rdata              ( ilm_rdata                 ),
+    .ram_clk                (                           )
 );
 
 // dlm
@@ -413,24 +414,25 @@ u_dlm_ctrl
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   ),
 
-    .icb_cmd_vld            ( dlm_cmd_vld               ),
-    .icb_cmd_rdy            ( dlm_cmd_rdy               ),
-    .icb_cmd_write          ( dlm_cmd_write             ),
-    .icb_cmd_addr           ( dlm_cmd_addr              ),
-    .icb_cmd_wdata          ( dlm_cmd_wdata             ),
-    .icb_cmd_wstrb          ( dlm_cmd_wstrb             ),
-    .icb_cmd_size           ( dlm_cmd_size              ),
-    .icb_rsp_rdy            ( dlm_rsp_rdy               ),
-    .icb_rsp_vld            ( dlm_rsp_vld               ),
-    .icb_rsp_rdata          ( dlm_rsp_rdata             ),
-    .icb_rsp_err            ( dlm_rsp_err               ),
+    .icb_cmd_vld            ( icb_cmd_vld_dlm           ),
+    .icb_cmd_rdy            ( icb_cmd_rdy_dlm           ),
+    .icb_cmd_write          ( icb_cmd_write_dlm         ),
+    .icb_cmd_addr           ( icb_cmd_addr_dlm          ),
+    .icb_cmd_wdata          ( icb_cmd_wdata_dlm         ),
+    .icb_cmd_wstrb          ( icb_cmd_wstrb_dlm         ),
+    .icb_cmd_size           ( icb_cmd_size_dlm          ),
+    .icb_rsp_rdy            ( icb_rsp_rdy_dlm           ),
+    .icb_rsp_vld            ( icb_rsp_vld_dlm           ),
+    .icb_rsp_rdata          ( icb_rsp_rdata_dlm         ),
+    .icb_rsp_err            ( icb_rsp_err_dlm           ),
 
     .ram_cs                 ( dlm_cs                    ),
     .ram_we                 ( dlm_we                    ),
     .ram_addr               ( dlm_addr                  ),
     .ram_wdata              ( dlm_wdata                 ),
     .ram_wem                ( dlm_wem                   ),
-    .ram_rdata              ( dlm_rdata                 )
+    .ram_rdata              ( dlm_rdata                 ),
+    .ram_clk                (                           )
 );
 
 
@@ -442,17 +444,17 @@ lnrv_icb2axi#
 )
 u_lnrv_icb2axi
 (
-    .icb_cmd_vld            ( sys_cmd_vld               ),
-    .icb_cmd_rdy            ( sys_cmd_rdy               ),
-    .icb_cmd_write          ( sys_cmd_write             ),
-    .icb_cmd_addr           ( sys_cmd_addr              ),
-    .icb_cmd_wdata          ( sys_cmd_wdata             ),
-    .icb_cmd_wstrb          ( sys_cmd_wstrb             ),
-    .icb_cmd_size           ( sys_cmd_size              ),
-    .icb_rsp_rdy            ( sys_rsp_rdy               ),
-    .icb_rsp_vld            ( sys_rsp_vld               ),
-    .icb_rsp_err            ( sys_rsp_err               ),
-    .icb_rsp_rdata          ( sys_rsp_rdata             ),
+    .icb_cmd_vld            ( icb_cmd_vld_sys           ),
+    .icb_cmd_rdy            ( icb_cmd_rdy_sys           ),
+    .icb_cmd_write          ( icb_cmd_write_sys         ),
+    .icb_cmd_addr           ( icb_cmd_addr_sys          ),
+    .icb_cmd_wdata          ( icb_cmd_wdata_sys         ),
+    .icb_cmd_wstrb          ( icb_cmd_wstrb_sys         ),
+    .icb_cmd_size           ( icb_cmd_size_sys          ),
+    .icb_rsp_rdy            ( icb_rsp_rdy_sys           ),
+    .icb_rsp_vld            ( icb_rsp_vld_sys           ),
+    .icb_rsp_err            ( icb_rsp_err_sys           ),
+    .icb_rsp_rdata          ( icb_rsp_rdata_sys         ),
 
     .axi_awvalid            ( sys_awvalid               ),
     .axi_awready            ( sys_awready               ),
@@ -506,17 +508,17 @@ lnrv_axi2icb#
 )
 u_lnrv_axi2icb
 (
-    .icb_cmd_vld            ( slv_cmd_vld               ),
-    .icb_cmd_rdy            ( slv_cmd_rdy               ),
-    .icb_cmd_write          ( slv_cmd_write             ),
-    .icb_cmd_addr           ( slv_cmd_addr              ),
-    .icb_cmd_wdata          ( slv_cmd_wdata             ),
-    .icb_cmd_wstrb          ( slv_cmd_wstrb             ),
-    .icb_cmd_size           ( slv_cmd_size              ),
-    .icb_rsp_rdy            ( slv_rsp_rdy               ),
-    .icb_rsp_vld            ( slv_rsp_vld               ),
-    .icb_rsp_err            ( slv_rsp_err               ),
-    .icb_rsp_rdata          ( slv_rsp_rdata             ),
+    .icb_cmd_vld            ( icb_cmd_vld_slv           ),
+    .icb_cmd_rdy            ( icb_cmd_rdy_slv           ),
+    .icb_cmd_write          ( icb_cmd_write_slv         ),
+    .icb_cmd_addr           ( icb_cmd_addr_slv          ),
+    .icb_cmd_wdata          ( icb_cmd_wdata_slv         ),
+    .icb_cmd_wstrb          ( icb_cmd_wstrb_slv         ),
+    .icb_cmd_size           ( icb_cmd_size_slv          ),
+    .icb_rsp_rdy            ( icb_rsp_rdy_slv           ),
+    .icb_rsp_vld            ( icb_rsp_vld_slv           ),
+    .icb_rsp_err            ( icb_rsp_err_slv           ),
+    .icb_rsp_rdata          ( icb_rsp_rdata_slv         ),
 
     .axi_awvalid            ( slv_awvalid               ),
     .axi_awready            ( slv_awready               ),

@@ -1,4 +1,4 @@
-module lnrv_cpu_tb; 
+module lnrv_cpu_tb;
 
 `define PC_WRITE_TOHOST         32'h0000_0094
 `define PC_EXT_IRQ_ISR          32'h0000_00a8
@@ -27,14 +27,14 @@ wire[LP_DLM_ADDR_WIDTH - 1 :0 ] dlm_addr;
 wire[31 : 0]                    dlm_wdata;
 wire[31 : 0]                    dlm_rdata;
 
-reg                             sft_irq;
-reg                             tmr_irq;
-reg                             ext_irq;
+reg                             irq_sft;
+reg                             irq_tmr;
+reg                             irq_ext;
 reg                             dbg_halt;
-reg                             dbg_irq;
+reg                             irq_dbg;
 wire                            wfi_mode;
 
-reg                             stop_on_reset;
+reg                             firmware_loading;
 
 reg                             clk;
 reg                             reset_n;
@@ -63,13 +63,14 @@ u_lnrv_cpu
     .reset_vector       ( 32'h0000_0000         ),
     .reset_mtvec        ( 32'd0                 ),
 
-    .stop_on_reset      ( stop_on_reset         ),
+    .firmware_loading   ( firmware_loading      ),
 
-    .sft_irq            ( sft_irq               ),
-    .tmr_irq            ( tmr_irq               ),
-    .ext_irq            ( ext_irq               ),
+    .irq_sft            ( irq_sft               ),
+    .irq_tmr            ( irq_tmr               ),
+    .irq_ext            ( irq_ext               ),
+    .irq_dbg            ( irq_dbg               ),
+
     .dbg_halt           ( dbg_halt              ),
-    .dbg_irq            ( dbg_irq               ),
     .wfi_mode           ( wfi_mode              ),
 
     .ilm_clk            ( ilm_clk               ),
@@ -137,7 +138,7 @@ assign      cmt_rdy = u_lnrv_cpu.u_lnrv_core.u_lnrv_cmt.cmt_rdy;
 assign      cmt_hsked = cmt_vld & cmt_rdy;
 
 
-always @(posedge clk or negedge reset_n) begin 
+always @(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         pc_write_to_host_cnt <= 32'b0;
     end else if (cmt_hsked & (pc == `PC_WRITE_TOHOST)) begin
@@ -154,7 +155,7 @@ initial begin
         reset_n <= 1'b1;
     end
 
-    wait(stop_on_reset == 1'b0);
+    wait(firmware_loading == 1'b0);
     force u_lnrv_cpu.u_lnrv_core.u_lnrv_csr.mstatus_mie = 1'b0;
 
     @(pc_write_to_host_cnt == 32'd8) #10 reset_n <=1;
@@ -171,10 +172,10 @@ initial begin
     wait(wfi_mode == 1'b1);
     #100;
     forever begin
-        repeat ($urandom_range(1, 1000)) @(posedge clk) ext_irq = 1'b0; // Wait random times
-        @(posedge clk) ext_irq = 1'b1;
+        repeat ($urandom_range(1, 1000)) @(posedge clk) irq_ext = 1'b0; // Wait random times
+        @(posedge clk) irq_ext = 1'b1;
         wait(pc == `PC_EXT_IRQ_ISR); // Wait the program run into the IRQ handler by check PC values
-        @(posedge clk) ext_irq = 1'b0;
+        @(posedge clk) irq_ext = 1'b0;
         // if(stop_assert_irq) begin
         //     break;
         // end
@@ -186,10 +187,10 @@ end
 //     wait(pc == `PC_POST_MTVEC_DONE ); // Wait the program goes out the reset_vector program
 //     #100;
 //     forever begin
-//         repeat ($urandom_range(1, 1000)) @(posedge clk) sft_irq = 1'b0; // Wait random times
-//         @(posedge clk) sft_irq = 1'b1;
+//         repeat ($urandom_range(1, 1000)) @(posedge clk) irq_sft = 1'b0; // Wait random times
+//         @(posedge clk) irq_sft = 1'b1;
 //         wait(pc == `PC_SFT_IRQ_ISR); // Wait the program run into the IRQ handler by check PC values
-//         @(posedge clk) sft_irq = 1'b0;
+//         @(posedge clk) irq_sft = 1'b0;
 //         // if(stop_assert_irq) begin
 //         //     break;
 //         // end
@@ -201,10 +202,10 @@ end
 //     wait(pc == `PC_POST_MTVEC_DONE ); // Wait the program goes out the reset_vector program
 //     #100;
 //     forever begin
-//         repeat ($urandom_range(1, 1000)) @(posedge clk) tmr_irq = 1'b0; // Wait random times
-//         @(posedge clk) tmr_irq = 1'b1;
+//         repeat ($urandom_range(1, 1000)) @(posedge clk) irq_tmr = 1'b0; // Wait random times
+//         @(posedge clk) irq_tmr = 1'b1;
 //         wait(pc == `PC_TMR_IRQ_ISR); // Wait the program run into the IRQ handler by check PC values
-//         @(posedge clk) tmr_irq = 1'b0;
+//         @(posedge clk) irq_tmr = 1'b0;
 //         // if(stop_assert_irq) begin
 //         //     break;
 //         // end
@@ -232,7 +233,7 @@ end
 
 
 initial begin
-    $display("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");  
+    $display("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     if($value$plusargs("TEST_CASE=%s",testcase))begin
         $display("TEST_CASE=%s",testcase);
     end
@@ -277,11 +278,11 @@ initial begin
 end
 
 initial begin
-    sft_irq = 1'b0;
-    tmr_irq = 1'b0;
-    ext_irq = 1'b0;
+    irq_sft = 1'b0;
+    irq_tmr = 1'b0;
+    irq_ext = 1'b0;
     dbg_halt = 1'b0;
-    dbg_irq = 1'b0;
+    irq_dbg = 1'b0;
 
     // if($value$plusargs("TEST_CASE=%s",testcase))begin
     //   $display("TEST_CASE=%s",testcase);
@@ -294,8 +295,8 @@ integer bin;
 
 reg [7:0] itcm_mem [0 : (LP_ILM_SIZE * 8)-1];
 initial begin
-    stop_on_reset = 1'b1;
-    
+    firmware_loading = 1'b1;
+
     $readmemh({testcase, ".verilog"}, itcm_mem);
     // $readmemh("../simulation/riscv-compliance/build_generated/rv32Zicsr/I-CSRRC-01.elf.bin", itcm_mem);
     // F:\CPU\lnrsv\simulation\riscv-compliance\build_generated\rv32Zicsr\I-CSRRC-01.elf.bin
@@ -321,7 +322,7 @@ initial begin
     // end
     #1000;
     @(posedge clk) begin
-        stop_on_reset <= 1'b0;
+        firmware_loading <= 1'b0;
     end
 
         // $display("ITCM 0x00: %h", `ITCM.mem_r[8'h00]);
@@ -335,6 +336,6 @@ initial begin
         // $display("ITCM 0x16: %h", `ITCM.mem_r[8'h16]);
         // $display("ITCM 0x20: %h", `ITCM.mem_r[8'h20]);
 
-end 
+end
 
 endmodule //lnrv_cpu_tb

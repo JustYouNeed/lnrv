@@ -64,6 +64,7 @@ wire[4 : 0]                                 rs2;
 wire[4 : 0]                                 rs2d;
 
 wire                                        rs1_rd_is_0;
+wire                                        rx1_rd_is_1;
 wire                                        rs1_rd_not_0;
 wire                                        rs1_rd_is_2;
 wire                                        rs1_rd_not_2;

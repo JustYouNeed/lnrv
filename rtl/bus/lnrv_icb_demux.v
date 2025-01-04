@@ -20,30 +20,30 @@ module lnrv_icb_demux#
     input                                               reset_n,
 
     // master
-    input                                               m_icb_cmd_vld,
-    output                                              m_icb_cmd_rdy,
-    input                                               m_icb_cmd_write,
-    input[P_ADDR_WIDTH - 1 : 0]                         m_icb_cmd_addr,
-    input[P_DATA_WIDTH - 1 : 0]                         m_icb_cmd_wdata,
-    input[(P_DATA_WIDTH/8) - 1 : 0]                     m_icb_cmd_wstrb,
-    input[2 : 0]                                        m_icb_cmd_size,
-    input                                               m_icb_rsp_rdy,
-    output                                              m_icb_rsp_vld,
-    output[P_DATA_WIDTH - 1 : 0]                        m_icb_rsp_rdata,
-    output                                              m_icb_rsp_err,
+    input                                               icb_cmd_vld_m,
+    output                                              icb_cmd_rdy_m,
+    input                                               icb_cmd_write_m,
+    input[P_ADDR_WIDTH - 1 : 0]                         icb_cmd_addr_m,
+    input[P_DATA_WIDTH - 1 : 0]                         icb_cmd_wdata_m,
+    input[(P_DATA_WIDTH/8) - 1 : 0]                     icb_cmd_wstrb_m,
+    input[2 : 0]                                        icb_cmd_size_m,
+    input                                               icb_rsp_rdy_m,
+    output                                              icb_rsp_vld_m,
+    output[P_DATA_WIDTH - 1 : 0]                        icb_rsp_rdata_m,
+    output                                              icb_rsp_err_m,
 
     // slave
-    output[P_ICB_COUNT - 1 : 0]                         sn_icb_cmd_vld,
-    input[P_ICB_COUNT - 1 : 0]                          sn_icb_cmd_rdy,
-    output[P_ICB_COUNT - 1 : 0]                         sn_icb_cmd_write,
-    output[(P_ADDR_WIDTH * P_ICB_COUNT) - 1 : 0]        sn_icb_cmd_addr,
-    output[(P_DATA_WIDTH * P_ICB_COUNT) - 1 : 0]        sn_icb_cmd_wdata,
-    output[((P_DATA_WIDTH/8) * P_ICB_COUNT) - 1 : 0]    sn_icb_cmd_wstrb,
-    output[(P_ICB_COUNT * 3) - 1 : 0]                   sn_icb_cmd_size,
-    input[P_ICB_COUNT - 1 : 0]                          sn_icb_rsp_vld,
-    output[P_ICB_COUNT - 1 : 0]                         sn_icb_rsp_rdy,
-    input[(P_DATA_WIDTH * P_ICB_COUNT) - 1 : 0]         sn_icb_rsp_rdata,
-    input[P_ICB_COUNT - 1 : 0]                          sn_icb_rsp_err,
+    output[P_ICB_COUNT - 1 : 0]                         icb_cmd_vld_sn,
+    input[P_ICB_COUNT - 1 : 0]                          icb_cmd_rdy_sn,
+    output[P_ICB_COUNT - 1 : 0]                         icb_cmd_write_sn,
+    output[(P_ADDR_WIDTH * P_ICB_COUNT) - 1 : 0]        icb_cmd_addr_sn,
+    output[(P_DATA_WIDTH * P_ICB_COUNT) - 1 : 0]        icb_cmd_wdata_sn,
+    output[((P_DATA_WIDTH/8) * P_ICB_COUNT) - 1 : 0]    icb_cmd_wstrb_sn,
+    output[(P_ICB_COUNT * 3) - 1 : 0]                   icb_cmd_size_sn,
+    input[P_ICB_COUNT - 1 : 0]                          icb_rsp_vld_sn,
+    output[P_ICB_COUNT - 1 : 0]                         icb_rsp_rdy_sn,
+    input[(P_DATA_WIDTH * P_ICB_COUNT) - 1 : 0]         icb_rsp_rdata_sn,
+    input[P_ICB_COUNT - 1 : 0]                          icb_rsp_err_sn,
 
     // 地址指示
     input[(P_ADDR_WIDTH * P_ICB_COUNT) - 1 : 0]         sn_region_base,
@@ -60,31 +60,31 @@ wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]        disp_buf_pop_data;
 wire                                        disp_buf_pop_vld;
 wire                                        disp_buf_pop_rdy;
 
-wire                                        m_icb_cmd_vld_bufed;
-wire                                        m_icb_cmd_rdy_bufed;
-wire                                        m_icb_cmd_write_bufed;
-wire[P_ADDR_WIDTH - 1 : 0]                  m_icb_cmd_addr_bufed;
-wire[P_DATA_WIDTH - 1 : 0]                  m_icb_cmd_wdata_bufed;
-wire[(P_DATA_WIDTH/8) - 1 : 0]              m_icb_cmd_wstrb_bufed;
-wire[2 : 0]                                 m_icb_cmd_size_bufed;
+wire                                        icb_cmd_vld_bufed_m;
+wire                                        icb_cmd_rdy_bufed_m;
+wire                                        icb_cmd_write_bufed_m;
+wire[P_ADDR_WIDTH - 1 : 0]                  icb_cmd_addr_bufed_m;
+wire[P_DATA_WIDTH - 1 : 0]                  icb_cmd_wdata_bufed_m;
+wire[(P_DATA_WIDTH/8) - 1 : 0]              icb_cmd_wstrb_bufed_m;
+wire[2 : 0]                                 icb_cmd_size_bufed_m;
 
-wire                                        m_icb_rsp_vld_bufed;
-wire                                        m_icb_rsp_rdy_bufed;
-wire[P_DATA_WIDTH - 1 : 0]                  m_icb_rsp_rdata_bufed;
-wire                                        m_icb_rsp_err_bufed;
+wire                                        icb_rsp_vld_bufed_m;
+wire                                        icb_rsp_rdy_bufed_m;
+wire[P_DATA_WIDTH - 1 : 0]                  icb_rsp_rdata_bufed_m;
+wire                                        icb_rsp_err_bufed_m;
 
 
-wire[P_ICB_COUNT - 1 : 0]                   slv_icb_cmd_vld;
-wire[P_ICB_COUNT - 1 : 0]                   slv_icb_cmd_rdy;
-wire[P_ICB_COUNT - 1 : 0]                   slv_icb_cmd_write;
-wire[P_ADDR_WIDTH - 1 : 0]                  slv_icb_cmd_addr[P_ICB_COUNT - 1 : 0];
-wire[P_DATA_WIDTH - 1 : 0]                  slv_icb_cmd_wdata[P_ICB_COUNT - 1 : 0];
-wire[(P_DATA_WIDTH/8) - 1 : 0]              slv_icb_cmd_wstrb[P_ICB_COUNT - 1 : 0];
-wire[2 : 0]                                 slv_icb_cmd_size[P_ICB_COUNT - 1 : 0];
-wire[P_ICB_COUNT - 1 : 0]                   slv_icb_rsp_vld;
-wire[P_ICB_COUNT - 1 : 0]                   slv_icb_rsp_rdy;
-wire[P_DATA_WIDTH - 1 : 0]                  slv_icb_rsp_rdata[P_ICB_COUNT - 1 : 0];
-wire[P_ICB_COUNT - 1 : 0]                   slv_icb_rsp_err;
+wire[P_ICB_COUNT - 1 : 0]                   icb_cmd_vld_slv;
+wire[P_ICB_COUNT - 1 : 0]                   icb_cmd_rdy_slv;
+wire[P_ICB_COUNT - 1 : 0]                   icb_cmd_write_slv;
+wire[P_ADDR_WIDTH - 1 : 0]                  icb_cmd_addr_slv[P_ICB_COUNT - 1 : 0];
+wire[P_DATA_WIDTH - 1 : 0]                  icb_cmd_wdata_slv[P_ICB_COUNT - 1 : 0];
+wire[(P_DATA_WIDTH/8) - 1 : 0]              icb_cmd_wstrb_slv[P_ICB_COUNT - 1 : 0];
+wire[2 : 0]                                 icb_cmd_size_slv[P_ICB_COUNT - 1 : 0];
+wire[P_ICB_COUNT - 1 : 0]                   icb_rsp_vld_slv;
+wire[P_ICB_COUNT - 1 : 0]                   icb_rsp_rdy_slv;
+wire[P_DATA_WIDTH - 1 : 0]                  icb_rsp_rdata_slv[P_ICB_COUNT - 1 : 0];
+wire[P_ICB_COUNT - 1 : 0]                   icb_rsp_err_slv;
 
 wire[P_ADDR_WIDTH - 1 : 0]                  slv_region_start_addr[P_ICB_COUNT - 1 : 0];
 wire[P_ADDR_WIDTH - 1 : 0]                  slv_region_end_addr[P_ICB_COUNT - 1 : 0];
@@ -99,20 +99,20 @@ wire                                        no_region_match;
 wire                                        no_region_match_bufed;
 
 
-wire                                        m_icb_cmd_rdy_mux;
-wire                                        m_icb_rsp_vld_mux;
-reg[P_DATA_WIDTH - 1 : 0]                   m_icb_rsp_rdata_mux;
-reg                                         m_icb_rsp_err_mux;
+wire                                        icb_cmd_rdy_mux_m;
+wire                                        icb_rsp_vld_mux_m;
+reg[P_DATA_WIDTH - 1 : 0]                   icb_rsp_rdata_mux_m;
+reg                                         icb_rsp_err_mux_m;
 
-wire                                        m_icb_cmd_hsked;
-wire                                        m_icb_rsp_hsked;
+wire                                        icb_cmd_hsked_m;
+wire                                        icb_rsp_hsked_m;
 
 genvar                                      i;
 integer                                     j;
 
 
-assign      m_icb_cmd_hsked = m_icb_cmd_vld & m_icb_cmd_rdy;
-assign      m_icb_rsp_hsked = m_icb_rsp_vld & m_icb_rsp_rdy;
+assign      icb_cmd_hsked_m = icb_cmd_vld_m & icb_cmd_rdy_m;
+assign      icb_rsp_hsked_m = icb_rsp_vld_m & icb_rsp_rdy_m;
 
 // 根据参数决定是否需要在输入端口插入一个buff
 lnrv_icb_buf#
@@ -132,42 +132,42 @@ lnrv_icb_buf#
 )
 u_lnrv_icb_buf
 (
-    .m_icb_cmd_vld          ( m_icb_cmd_vld             ),
-    .m_icb_cmd_rdy          ( m_icb_cmd_rdy             ),
-    .m_icb_cmd_write        ( m_icb_cmd_write           ),
-    .m_icb_cmd_addr         ( m_icb_cmd_addr            ),
-    .m_icb_cmd_wdata        ( m_icb_cmd_wdata           ),
-    .m_icb_cmd_wstrb        ( m_icb_cmd_wstrb           ),
-    .m_icb_cmd_size         ( m_icb_cmd_size            ),
-    .m_icb_rsp_vld          ( m_icb_rsp_vld             ),
-    .m_icb_rsp_rdy          ( m_icb_rsp_rdy             ),
-    .m_icb_rsp_rdata        ( m_icb_rsp_rdata           ),
-    .m_icb_rsp_err          ( m_icb_rsp_err             ),
+    .icb_cmd_vld_m          ( icb_cmd_vld_m             ),
+    .icb_cmd_rdy_m          ( icb_cmd_rdy_m             ),
+    .icb_cmd_write_m        ( icb_cmd_write_m           ),
+    .icb_cmd_addr_m         ( icb_cmd_addr_m            ),
+    .icb_cmd_wdata_m        ( icb_cmd_wdata_m           ),
+    .icb_cmd_wstrb_m        ( icb_cmd_wstrb_m           ),
+    .icb_cmd_size_m         ( icb_cmd_size_m            ),
+    .icb_rsp_vld_m          ( icb_rsp_vld_m             ),
+    .icb_rsp_rdy_m          ( icb_rsp_rdy_m             ),
+    .icb_rsp_rdata_m        ( icb_rsp_rdata_m           ),
+    .icb_rsp_err_m          ( icb_rsp_err_m             ),
 
-    .s_icb_cmd_vld          ( m_icb_cmd_vld_bufed       ),
-    .s_icb_cmd_rdy          ( m_icb_cmd_rdy_bufed       ),
-    .s_icb_cmd_write        ( m_icb_cmd_write_bufed     ),
-    .s_icb_cmd_addr         ( m_icb_cmd_addr_bufed      ),
-    .s_icb_cmd_wdata        ( m_icb_cmd_wdata_bufed     ),
-    .s_icb_cmd_wstrb        ( m_icb_cmd_wstrb_bufed     ),
-    .s_icb_cmd_size         ( m_icb_cmd_size_bufed      ),
-    .s_icb_rsp_vld          ( m_icb_rsp_vld_bufed       ),
-    .s_icb_rsp_rdy          ( m_icb_rsp_rdy_bufed       ),
-    .s_icb_rsp_rdata        ( m_icb_rsp_rdata_bufed     ),
-    .s_icb_rsp_err          ( m_icb_rsp_err_bufed       ),
+    .icb_cmd_vld_s          ( icb_cmd_vld_bufed_m       ),
+    .icb_cmd_rdy_s          ( icb_cmd_rdy_bufed_m       ),
+    .icb_cmd_write_s        ( icb_cmd_write_bufed_m     ),
+    .icb_cmd_addr_s         ( icb_cmd_addr_bufed_m      ),
+    .icb_cmd_wdata_s        ( icb_cmd_wdata_bufed_m     ),
+    .icb_cmd_wstrb_s        ( icb_cmd_wstrb_bufed_m     ),
+    .icb_cmd_size_s         ( icb_cmd_size_bufed_m      ),
+    .icb_rsp_vld_s          ( icb_rsp_vld_bufed_m       ),
+    .icb_rsp_rdy_s          ( icb_rsp_rdy_bufed_m       ),
+    .icb_rsp_rdata_s        ( icb_rsp_rdata_bufed_m     ),
+    .icb_rsp_err_s          ( icb_rsp_err_bufed_m       ),
 
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   )
 );
 
 // 指令通道握手成功后，将当前选择的通道信息推入disp_fifo中
-assign      disp_buf_push_vld   = m_icb_cmd_hsked;
+assign      disp_buf_push_vld   = icb_cmd_hsked_m;
 assign      disp_buf_push_data  = slv_region_match;
 
 assign      no_region_match = ~(|slv_region_match);
 
 // 应答通道握手成功，表示已经完成一次通信，将保存的通道信息弹出
-assign      disp_buf_pop_rdy        = m_icb_rsp_hsked;
+assign      disp_buf_pop_rdy        = icb_rsp_hsked_m;
 assign      slv_region_match_bufed  = disp_buf_pop_data;
 assign      no_region_match_bufed = ~(|slv_region_match_bufed);
 
@@ -199,12 +199,12 @@ u_icb_disp_buf
  // 分离出各个地址区间的base和mask信息，进行匹配
 generate
     for(i = 0; i < P_ICB_COUNT; i = i + 1) begin
-        assign      slv_region_start_addr[i] = sn_region_base[i * P_ADDR_WIDTH +: P_ADDR_WIDTH];
-        assign      slv_region_end_addr[i] = sn_region_end[i * P_ADDR_WIDTH +: P_ADDR_WIDTH];
+        assign      slv_region_start_addr[i]    = sn_region_base[i * P_ADDR_WIDTH +: P_ADDR_WIDTH];
+        assign      slv_region_end_addr[i]      = sn_region_end[i * P_ADDR_WIDTH +: P_ADDR_WIDTH];
 
-        assign      addr_gte_start_addr[i] = (m_icb_cmd_addr_bufed >= slv_region_start_addr[i]);
-        assign      addr_ls_end_addr[i] = (m_icb_cmd_addr_bufed < slv_region_end_addr[i]);
-        assign      end_addr_is_zero[i] = ~(|slv_region_end_addr[i]);
+        assign      addr_gte_start_addr[i]      = (icb_cmd_addr_bufed_m >= slv_region_start_addr[i]);
+        assign      addr_ls_end_addr[i]         = (icb_cmd_addr_bufed_m < slv_region_end_addr[i]);
+        assign      end_addr_is_zero[i]         = ~(|slv_region_end_addr[i]);
     end
 
 
@@ -214,65 +214,64 @@ generate
 
     // 最后一个通道的匹配规则不一样，如果结束地址为0，则不需要进行匹配，没有选中其他通道时，默认选中最后一个通道
     // 如果最后一个通道的结束地址不为0，则正常进行匹配
-    assign      slv_region_match[P_ICB_COUNT - 1] = end_addr_is_zero[P_ICB_COUNT - 1] ? (~|(slv_region_match[P_ICB_COUNT - 2 : 0])) :
-                                                    (addr_gte_start_addr[P_ICB_COUNT - 1] & addr_ls_end_addr[P_ICB_COUNT - 1]);
+    assign      slv_region_match[P_ICB_COUNT - 1] = (~|(slv_region_match[P_ICB_COUNT - 2 : 0]));
 endgenerate
 
 // 根据地址匹配，进行分发
 generate
     // 分离slave port
     for(i = 0; i < P_ICB_COUNT; i = i + 1) begin
-        assign      slv_icb_cmd_vld[i]      = slv_region_match[i] & m_icb_cmd_vld_bufed;
-        assign      slv_icb_cmd_write[i]    = slv_region_match[i] & m_icb_cmd_write_bufed;
-        assign      slv_icb_cmd_addr[i]     = {P_ADDR_WIDTH{slv_region_match[i]}} & m_icb_cmd_addr_bufed;
-        assign      slv_icb_cmd_wdata[i]    = {P_DATA_WIDTH{slv_region_match[i]}} & m_icb_cmd_wdata_bufed;
-        assign      slv_icb_cmd_wstrb[i]    = {(P_DATA_WIDTH/8){slv_region_match[i]}} & m_icb_cmd_wstrb_bufed;
-        assign      slv_icb_cmd_size[i]     = {3{slv_region_match[i]}} & m_icb_cmd_size_bufed;
-        assign      slv_icb_cmd_rdy[i]      = slv_region_match[i] & sn_icb_cmd_rdy[i];
+        assign      icb_cmd_vld_slv[i]      = slv_region_match[i] & icb_cmd_vld_bufed_m;
+        assign      icb_cmd_write_slv[i]    = slv_region_match[i] & icb_cmd_write_bufed_m;
+        assign      icb_cmd_addr_slv[i]     = {P_ADDR_WIDTH{slv_region_match[i]}} & icb_cmd_addr_bufed_m;
+        assign      icb_cmd_wdata_slv[i]    = {P_DATA_WIDTH{slv_region_match[i]}} & icb_cmd_wdata_bufed_m;
+        assign      icb_cmd_wstrb_slv[i]    = {(P_DATA_WIDTH/8){slv_region_match[i]}} & icb_cmd_wstrb_bufed_m;
+        assign      icb_cmd_size_slv[i]     = {3{slv_region_match[i]}} & icb_cmd_size_bufed_m;
+        assign      icb_cmd_rdy_slv[i]      = slv_region_match[i] & icb_cmd_rdy_sn[i];
 
-        assign      slv_icb_rsp_rdy[i]      = slv_region_match_bufed[i] & m_icb_rsp_rdy_bufed;
-        assign      slv_icb_rsp_vld[i]      = slv_region_match_bufed[i] & sn_icb_rsp_vld[i];
-        assign      slv_icb_rsp_rdata[i]    = {P_DATA_WIDTH{slv_region_match_bufed[i]}} & sn_icb_rsp_rdata[i * P_DATA_WIDTH +: P_DATA_WIDTH];
-        assign      slv_icb_rsp_err[i]      = slv_region_match_bufed[i] & sn_icb_rsp_err[i];
+        assign      icb_rsp_rdy_slv[i]      = slv_region_match_bufed[i] & icb_rsp_rdy_bufed_m;
+        assign      icb_rsp_vld_slv[i]      = slv_region_match_bufed[i] & icb_rsp_vld_sn[i];
+        assign      icb_rsp_rdata_slv[i]    = {P_DATA_WIDTH{slv_region_match_bufed[i]}} & icb_rsp_rdata_sn[i * P_DATA_WIDTH +: P_DATA_WIDTH];
+        assign      icb_rsp_err_slv[i]      = slv_region_match_bufed[i] & icb_rsp_err_sn[i];
     end
 
     for(i = 0; i < P_ICB_COUNT; i = i + 1) begin
-        assign      sn_icb_cmd_vld[i]                                           = slv_icb_cmd_vld[i];
-        assign      sn_icb_cmd_addr[i * P_ADDR_WIDTH +: P_ADDR_WIDTH]           = slv_icb_cmd_addr[i];
-        assign      sn_icb_cmd_write[i]                                         = slv_icb_cmd_write[i];
-        assign      sn_icb_cmd_wdata[i * P_DATA_WIDTH +: P_DATA_WIDTH]          = slv_icb_cmd_wdata[i];
-        assign      sn_icb_cmd_wstrb[i * (P_DATA_WIDTH/8) +: (P_DATA_WIDTH/8)]  = slv_icb_cmd_wstrb[i];
-        assign      sn_icb_cmd_size[i * 3 +: 3]                                 = slv_icb_cmd_size[i];
+        assign      icb_cmd_vld_sn[i]                                           = icb_cmd_vld_slv[i];
+        assign      icb_cmd_addr_sn[i * P_ADDR_WIDTH +: P_ADDR_WIDTH]           = icb_cmd_addr_slv[i];
+        assign      icb_cmd_write_sn[i]                                         = icb_cmd_write_slv[i];
+        assign      icb_cmd_wdata_sn[i * P_DATA_WIDTH +: P_DATA_WIDTH]          = icb_cmd_wdata_slv[i];
+        assign      icb_cmd_wstrb_sn[i * (P_DATA_WIDTH/8) +: (P_DATA_WIDTH/8)]  = icb_cmd_wstrb_slv[i];
+        assign      icb_cmd_size_sn[i * 3 +: 3]                                 = icb_cmd_size_slv[i];
 
-        assign      sn_icb_rsp_rdy[i] = slv_icb_rsp_rdy[i];
+        assign      icb_rsp_rdy_sn[i] = icb_rsp_rdy_slv[i];
     end
 endgenerate
 
 
 
 // 从slave中选中一个数据
-assign      m_icb_cmd_rdy_mux = |{slv_icb_cmd_rdy};
-assign      m_icb_rsp_vld_mux = |{slv_icb_rsp_vld};
+assign      icb_cmd_rdy_mux_m = |{icb_cmd_rdy_slv};
+assign      icb_rsp_vld_mux_m = |{icb_rsp_vld_slv};
 generate
     always@(*) begin
-        m_icb_rsp_rdata_mux = {P_DATA_WIDTH{1'b0}};
-        m_icb_rsp_err_mux = 1'b0;
+        icb_rsp_rdata_mux_m = {P_DATA_WIDTH{1'b0}};
+        icb_rsp_err_mux_m = 1'b0;
 
         // 从slave中选出rsp
         for(j = 0; j < P_ICB_COUNT; j = j + 1) begin
-            m_icb_rsp_rdata_mux     = m_icb_rsp_rdata_mux | slv_icb_rsp_rdata[j];
-            m_icb_rsp_err_mux       = m_icb_rsp_err_mux | slv_icb_rsp_err[j];
+            icb_rsp_rdata_mux_m     = icb_rsp_rdata_mux_m | icb_rsp_rdata_slv[j];
+            icb_rsp_err_mux_m       = icb_rsp_err_mux_m | icb_rsp_err_slv[j];
         end
     end
 endgenerate
 
 
 // 如果没有匹配到任一地址区间，则立即回rdy
-assign      m_icb_cmd_rdy_bufed = no_region_match ? m_icb_cmd_vld : m_icb_cmd_rdy_mux;
+assign      icb_cmd_rdy_bufed_m = no_region_match ? icb_cmd_vld_m : icb_cmd_rdy_mux_m;
 
-assign      m_icb_rsp_vld_bufed = no_region_match_bufed ? disp_buf_pop_vld : m_icb_rsp_vld_mux;
-assign      m_icb_rsp_err_bufed = m_icb_rsp_err_mux | no_region_match_bufed;
-assign      m_icb_rsp_rdata_bufed = m_icb_rsp_rdata_mux;
+assign      icb_rsp_vld_bufed_m = no_region_match_bufed ? disp_buf_pop_vld : icb_rsp_vld_mux_m;
+assign      icb_rsp_err_bufed_m = icb_rsp_err_mux_m | no_region_match_bufed;
+assign      icb_rsp_rdata_bufed_m = icb_rsp_rdata_mux_m;
 
 
 endmodule //lnrv_icb_demux

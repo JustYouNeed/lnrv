@@ -1,5 +1,5 @@
 
-module lnrv_icb_rsp_buf#
+module icb_rsp_buf_lnrv#
 (
     parameter                           P_BUFF_ENABLE = "true",
     parameter                           P_BUFF_CUT_READY = "true",
@@ -9,15 +9,15 @@ module lnrv_icb_rsp_buf#
     parameter                           P_DATA_WIDTH = 32
 )
 (
-    input                               s_icb_rsp_vld,
-    output                              s_icb_rsp_rdy,
-    input[P_DATA_WIDTH - 1 : 0]         s_icb_rsp_rdata,
-    input                               s_icb_rsp_err,
+    input                               icb_rsp_vld_s,
+    output                              icb_rsp_rdy_s,
+    input[P_DATA_WIDTH - 1 : 0]         icb_rsp_rdata_s,
+    input                               icb_rsp_err_s,
 
-    output                              m_icb_rsp_vld,
-    input                               m_icb_rsp_rdy,
-    output[P_DATA_WIDTH - 1 : 0]        m_icb_rsp_rdata,
-    output                              m_icb_rsp_err,
+    output                              icb_rsp_vld_m,
+    input                               icb_rsp_rdy_m,
+    output[P_DATA_WIDTH - 1 : 0]        icb_rsp_rdata_m,
+    output                              icb_rsp_err_m,
 
     input                               clk,
     input                               reset_n
@@ -38,19 +38,19 @@ generate
         wire                                buf_pop_rdy;
 
 
-        assign      buf_push_vld = s_icb_rsp_vld;
+        assign      buf_push_vld = icb_rsp_vld_s;
         assign      buf_push_data = {
-                                        s_icb_rsp_err,
-                                        s_icb_rsp_rdata
+                                        icb_rsp_err_s,
+                                        icb_rsp_rdata_s
                                     };
-        assign      s_icb_rsp_rdy = buf_push_rdy;
+        assign      icb_rsp_rdy_s = buf_push_rdy;
 
-        assign      buf_pop_rdy = m_icb_rsp_rdy;
+        assign      buf_pop_rdy = icb_rsp_rdy_m;
         assign      {
-                        m_icb_rsp_err,
-                        m_icb_rsp_rdata
+                        icb_rsp_err_m,
+                        icb_rsp_rdata_m
                     } = buf_pop_data;
-        assign      m_icb_rsp_vld = buf_pop_vld;
+        assign      icb_rsp_vld_m = buf_pop_vld;
 
         lnrv_gnrl_buffer#
         (
@@ -59,7 +59,7 @@ generate
             .P_CUT_READY        ( P_BUFF_CUT_READY          ),
             .P_BYPASS           ( P_BUFF_BYPASS             )
         )
-        u_icb_cmd_buff
+        icb_cmd_buff_u
         (
             .clk                ( clk                       ),
             .reset_n            ( reset_n                   ),
@@ -76,11 +76,11 @@ generate
         );
 
     end else begin
-        assign      m_icb_rsp_vld   = s_icb_rsp_vld;
-        assign      m_icb_rsp_err   = s_icb_rsp_err;
-        assign      m_icb_rsp_rdata = s_icb_rsp_rdata;
+        assign      icb_rsp_vld_m   = icb_rsp_vld_s;
+        assign      icb_rsp_err_m   = icb_rsp_err_s;
+        assign      icb_rsp_rdata_m = icb_rsp_rdata_s;
 
-        assign      s_icb_rsp_rdy   = m_icb_rsp_rdy;
+        assign      icb_rsp_rdy_s   = icb_rsp_rdy_m;
     end
 endgenerate
 

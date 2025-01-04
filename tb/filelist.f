@@ -37,7 +37,9 @@
 ~/proj/lnrv/rtl/core/reg/lnrv_csr.v
 ~/proj/lnrv/rtl/core/reg/lnrv_gpr.v
 ~/proj/lnrv/rtl/core/idu/lnrv_idu.v
-~/proj/lnrv/rtl/core/idu/lnrv_idu_decode.v
+~/proj/lnrv/rtl/core/idu/lnrv_idu_rv16.v
+~/proj/lnrv/rtl/core/idu/lnrv_idu_rv32.v
+~/proj/lnrv/rtl/core/bpu/lnrv_bpu.v
 ~/proj/lnrv/rtl/bus/lnrv_icb2axi.v
 ~/proj/lnrv/rtl/bus/lnrv_icb_mux.v
 ~/proj/lnrv/rtl/bus/lnrv_icb_demux.v

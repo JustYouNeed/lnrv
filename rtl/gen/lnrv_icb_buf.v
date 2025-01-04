@@ -14,38 +14,38 @@ module lnrv_icb_buf#
     parameter                           P_OTS_COUNT = 1
 )
 (
-    input                               m_icb_cmd_vld,
-    output                              m_icb_cmd_rdy,
-    input                               m_icb_cmd_write,
-    input[P_ADDR_WIDTH - 1 : 0]         m_icb_cmd_addr,
-    input[P_DATA_WIDTH - 1 : 0]         m_icb_cmd_wdata,
-    input[(P_DATA_WIDTH/8) - 1 : 0]     m_icb_cmd_wstrb,
-    input[2 : 0]                        m_icb_cmd_size,
+    input                               icb_cmd_vld_m,
+    output                              icb_cmd_rdy_m,
+    input                               icb_cmd_write_m,
+    input[P_ADDR_WIDTH - 1 : 0]         icb_cmd_addr_m,
+    input[P_DATA_WIDTH - 1 : 0]         icb_cmd_wdata_m,
+    input[(P_DATA_WIDTH/8) - 1 : 0]     icb_cmd_wstrb_m,
+    input[2 : 0]                        icb_cmd_size_m,
 
-    output                              m_icb_rsp_vld,
-    input                               m_icb_rsp_rdy,
-    output[P_DATA_WIDTH - 1 : 0]        m_icb_rsp_rdata,
-    output                              m_icb_rsp_err,
+    output                              icb_rsp_vld_m,
+    input                               icb_rsp_rdy_m,
+    output[P_DATA_WIDTH - 1 : 0]        icb_rsp_rdata_m,
+    output                              icb_rsp_err_m,
 
-    output                              s_icb_cmd_vld,
-    input                               s_icb_cmd_rdy,
-    output                              s_icb_cmd_write,
-    output[P_ADDR_WIDTH - 1 : 0]        s_icb_cmd_addr,
-    output[P_DATA_WIDTH - 1 : 0]        s_icb_cmd_wdata,
-    output[(P_DATA_WIDTH/8) - 1 : 0]    s_icb_cmd_wstrb,
-    output[2 : 0]                       s_icb_cmd_size,
+    output                              icb_cmd_vld_s,
+    input                               icb_cmd_rdy_s,
+    output                              icb_cmd_write_s,
+    output[P_ADDR_WIDTH - 1 : 0]        icb_cmd_addr_s,
+    output[P_DATA_WIDTH - 1 : 0]        icb_cmd_wdata_s,
+    output[(P_DATA_WIDTH/8) - 1 : 0]    icb_cmd_wstrb_s,
+    output[2 : 0]                       icb_cmd_size_s,
 
-    input                               s_icb_rsp_vld,
-    output                              s_icb_rsp_rdy,
-    input[P_DATA_WIDTH - 1 : 0]         s_icb_rsp_rdata,
-    input                               s_icb_rsp_err,
+    input                               icb_rsp_vld_s,
+    output                              icb_rsp_rdy_s,
+    input[P_DATA_WIDTH - 1 : 0]         icb_rsp_rdata_s,
+    input                               icb_rsp_err_s,
 
     input                               clk,
     input                               reset_n
 );
 
 // command
-lnrv_icb_cmd_buf#
+icb_cmd_buf_lnrv#
 (
     .P_BUFF_ENABLE          ( P_CMD_BUFF_ENABLE         ),
     .P_BUFF_CUT_READY       ( P_CMD_BUFF_CUT_READY      ),
@@ -54,30 +54,30 @@ lnrv_icb_cmd_buf#
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              )
 )
-u_lnrv_icb_cmd_buf
+icb_cmd_buf_u_lnrv
 (
-    .m_icb_cmd_vld          ( m_icb_cmd_vld             ),
-    .m_icb_cmd_rdy          ( m_icb_cmd_rdy             ),
-    .m_icb_cmd_write        ( m_icb_cmd_write           ),
-    .m_icb_cmd_addr         ( m_icb_cmd_addr            ),
-    .m_icb_cmd_wdata        ( m_icb_cmd_wdata           ),
-    .m_icb_cmd_wstrb        ( m_icb_cmd_wstrb           ),
-    .m_icb_cmd_size         ( m_icb_cmd_size            ),
+    .icb_cmd_vld_m          ( icb_cmd_vld_m             ),
+    .icb_cmd_rdy_m          ( icb_cmd_rdy_m             ),
+    .icb_cmd_write_m        ( icb_cmd_write_m           ),
+    .icb_cmd_addr_m         ( icb_cmd_addr_m            ),
+    .icb_cmd_wdata_m        ( icb_cmd_wdata_m           ),
+    .icb_cmd_wstrb_m        ( icb_cmd_wstrb_m           ),
+    .icb_cmd_size_m         ( icb_cmd_size_m            ),
 
-    .s_icb_cmd_vld          ( s_icb_cmd_vld             ),
-    .s_icb_cmd_rdy          ( s_icb_cmd_rdy             ),
-    .s_icb_cmd_write        ( s_icb_cmd_write           ),
-    .s_icb_cmd_addr         ( s_icb_cmd_addr            ),
-    .s_icb_cmd_wdata        ( s_icb_cmd_wdata           ),
-    .s_icb_cmd_wstrb        ( s_icb_cmd_wstrb           ),
-    .s_icb_cmd_size         ( s_icb_cmd_size            ),
+    .icb_cmd_vld_s          ( icb_cmd_vld_s             ),
+    .icb_cmd_rdy_s          ( icb_cmd_rdy_s             ),
+    .icb_cmd_write_s        ( icb_cmd_write_s           ),
+    .icb_cmd_addr_s         ( icb_cmd_addr_s            ),
+    .icb_cmd_wdata_s        ( icb_cmd_wdata_s           ),
+    .icb_cmd_wstrb_s        ( icb_cmd_wstrb_s           ),
+    .icb_cmd_size_s         ( icb_cmd_size_s            ),
 
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   )
 );
 
 // response
-lnrv_icb_rsp_buf#
+icb_rsp_buf_lnrv#
 (
     .P_BUFF_ENABLE          ( P_RSP_BUFF_ENABLE         ),
     .P_BUFF_CUT_READY       ( P_RSP_BUFF_CUT_READY      ),
@@ -85,17 +85,17 @@ lnrv_icb_rsp_buf#
     .P_OTS_COUNT            ( P_OTS_COUNT               ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              )
 )
-u_lnrv_icb_rsp_buf
+icb_rsp_buf_u_lnrv
 (
-    .s_icb_rsp_vld          ( s_icb_rsp_vld             ),
-    .s_icb_rsp_rdy          ( s_icb_rsp_rdy             ),
-    .s_icb_rsp_rdata        ( s_icb_rsp_rdata           ),
-    .s_icb_rsp_err          ( s_icb_rsp_err             ),
+    .icb_rsp_vld_s          ( icb_rsp_vld_s             ),
+    .icb_rsp_rdy_s          ( icb_rsp_rdy_s             ),
+    .icb_rsp_rdata_s        ( icb_rsp_rdata_s           ),
+    .icb_rsp_err_s          ( icb_rsp_err_s             ),
 
-    .m_icb_rsp_vld          ( m_icb_rsp_vld             ),
-    .m_icb_rsp_rdy          ( m_icb_rsp_rdy             ),
-    .m_icb_rsp_rdata        ( m_icb_rsp_rdata           ),
-    .m_icb_rsp_err          ( m_icb_rsp_err             ),
+    .icb_rsp_vld_m          ( icb_rsp_vld_m             ),
+    .icb_rsp_rdy_m          ( icb_rsp_rdy_m             ),
+    .icb_rsp_rdata_m        ( icb_rsp_rdata_m           ),
+    .icb_rsp_err_m          ( icb_rsp_err_m             ),
 
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   )
