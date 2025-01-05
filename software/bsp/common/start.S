@@ -37,11 +37,11 @@ _start:
 	addi a0, a0, 4
 	bltu a0, a1, 1b
 2:
-
+	call _init
     call main
 
 #ifdef SIMULATION
-    li x26, 0x01
+    li x26, 0x5a5aa5a5
 #endif
 
 loop:

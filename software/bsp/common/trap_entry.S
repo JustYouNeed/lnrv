@@ -3,7 +3,7 @@
 #define LOAD      lw
 
 
-    .section      .text.entry	
+    .section      .text.entry
     .align 2
     .global trap_entry
 trap_entry:

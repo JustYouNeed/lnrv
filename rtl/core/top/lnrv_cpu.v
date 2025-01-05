@@ -27,49 +27,58 @@ module  lnrv_cpu#
     output                                  dcsr_stoptime,
     output                                  dcsr_stopcount,
 
-    // 固件下载模式
-    input                                   dlod_mode,
+    output                                  icb_cmd_vld_sys,
+    input                                   icb_cmd_rdy_sys,
+    output                                  icb_cmd_write_sys,
+    output[31 : 0]                          icb_cmd_addr_sys,
+    output[31 : 0]                          icb_cmd_wdata_sys,
+    output[3 : 0]                           icb_cmd_wstrb_sys,
+    output[2 : 0]                           icb_cmd_size_sys,
+    input                                   icb_rsp_vld_sys,
+    output                                  icb_rsp_rdy_sys,
+    input[31 : 0]                           icb_rsp_rdata_sys,
+    input                                   icb_rsp_err_sys,
 
-    // 系统总线
-    output                                  sys_awvalid,
-    input                                   sys_awready,
-    output                                  sys_awlock,
-    output[31 : 0]                          sys_awaddr,
-    output[3 : 0]                           sys_awid,
-    output[7 : 0]                           sys_awlen,
-    output[2 : 0]                           sys_awsize,
-    output[1 : 0]                           sys_awburst,
-    output[3 : 0]                           sys_awcache,
-    output[2 : 0]                           sys_awprot,
+    // // 系统总线
+    // output                                  sys_awvalid,
+    // input                                   sys_awready,
+    // output                                  sys_awlock,
+    // output[31 : 0]                          sys_awaddr,
+    // output[3 : 0]                           sys_awid,
+    // output[7 : 0]                           sys_awlen,
+    // output[2 : 0]                           sys_awsize,
+    // output[1 : 0]                           sys_awburst,
+    // output[3 : 0]                           sys_awcache,
+    // output[2 : 0]                           sys_awprot,
 
-    output                                  sys_wvalid,
-    input                                   sys_wready,
-    output[31 : 0]                          sys_wdata,
-    output[3 : 0]                           sys_wstrb,
-    output                                  sys_wlast,
+    // output                                  sys_wvalid,
+    // input                                   sys_wready,
+    // output[31 : 0]                          sys_wdata,
+    // output[3 : 0]                           sys_wstrb,
+    // output                                  sys_wlast,
 
-    output                                  sys_bready,
-    input                                   sys_bvalid,
-    input[1 : 0]                            sys_bresp,
-    input[3 : 0]                            sys_bid,
+    // output                                  sys_bready,
+    // input                                   sys_bvalid,
+    // input[1 : 0]                            sys_bresp,
+    // input[3 : 0]                            sys_bid,
 
-    output                                  sys_arvalid,
-    input                                   sys_arready,
-    output                                  sys_arlock,
-    output[31 : 0]                          sys_araddr,
-    output[3 : 0]                           sys_arid,
-    output[7 : 0]                           sys_arlen,
-    output[2 : 0]                           sys_arsize,
-    output[1 : 0]                           sys_arburst,
-    output[3 : 0]                           sys_arcache,
-    output[2 : 0]                           sys_arprot,
+    // output                                  sys_arvalid,
+    // input                                   sys_arready,
+    // output                                  sys_arlock,
+    // output[31 : 0]                          sys_araddr,
+    // output[3 : 0]                           sys_arid,
+    // output[7 : 0]                           sys_arlen,
+    // output[2 : 0]                           sys_arsize,
+    // output[1 : 0]                           sys_arburst,
+    // output[3 : 0]                           sys_arcache,
+    // output[2 : 0]                           sys_arprot,
 
-    output                                  sys_rready,
-    input                                   sys_rvalid,
-    input[31 : 0]                           sys_rdata,
-    input[1 : 0]                            sys_rresp,
-    input                                   sys_rlast,
-    input[3 : 0]                            sys_rid,
+    // output                                  sys_rready,
+    // input                                   sys_rvalid,
+    // input[31 : 0]                           sys_rdata,
+    // input[1 : 0]                            sys_rresp,
+    // input                                   sys_rlast,
+    // input[3 : 0]                            sys_rid,
 
     // Slave Port
     input                                   slv_awvalid,
@@ -206,17 +215,17 @@ wire[31 : 0]                    icb_rsp_rdata_dlm;
 wire                            icb_rsp_err_dlm;
 
 
-wire                            icb_cmd_vld_sys;
-wire                            icb_cmd_rdy_sys;
-wire                            icb_cmd_write_sys;
-wire[31 : 0]                    icb_cmd_addr_sys;
-wire[31 : 0]                    icb_cmd_wdata_sys;
-wire[3 : 0]                     icb_cmd_wstrb_sys;
-wire[2 : 0]                     icb_cmd_size_sys;
-wire                            icb_rsp_vld_sys;
-wire                            icb_rsp_rdy_sys;
-wire[31 : 0]                    icb_rsp_rdata_sys;
-wire                            icb_rsp_err_sys;
+// wire                            icb_cmd_vld_sys;
+// wire                            icb_cmd_rdy_sys;
+// wire                            icb_cmd_write_sys;
+// wire[31 : 0]                    icb_cmd_addr_sys;
+// wire[31 : 0]                    icb_cmd_wdata_sys;
+// wire[3 : 0]                     icb_cmd_wstrb_sys;
+// wire[2 : 0]                     icb_cmd_size_sys;
+// wire                            icb_rsp_vld_sys;
+// wire                            icb_rsp_rdy_sys;
+// wire[31 : 0]                    icb_rsp_rdata_sys;
+// wire                            icb_rsp_err_sys;
 
 
 
@@ -254,17 +263,17 @@ lnrv_core u_lnrv_core
     .icb_rsp_err_ifu        ( icb_rsp_err_ifu           ),
 
     // exu访存接口
-    .icb_cmd_vld_lsu            ( icb_cmd_vld_exu               ),
-    .icb_cmd_rdy_lsu            ( icb_cmd_rdy_exu               ),
-    .icb_cmd_write_lsu          ( icb_cmd_write_exu             ),
-    .icb_cmd_addr_lsu           ( icb_cmd_addr_exu              ),
-    .icb_cmd_wdata_lsu          ( icb_cmd_wdata_exu             ),
-    .icb_cmd_wstrb_lsu          ( icb_cmd_wstrb_exu             ),
-    .icb_cmd_size_lsu           ( icb_cmd_size_exu              ),
-    .icb_rsp_vld_lsu            ( icb_rsp_vld_exu               ),
-    .icb_rsp_rdy_lsu            ( icb_rsp_rdy_exu               ),
-    .icb_rsp_rdata_lsu          ( icb_rsp_rdata_exu             ),
-    .icb_rsp_err_lsu            ( icb_rsp_err_exu               ),
+    .icb_cmd_vld_lsu        ( icb_cmd_vld_exu           ),
+    .icb_cmd_rdy_lsu        ( icb_cmd_rdy_exu           ),
+    .icb_cmd_write_lsu      ( icb_cmd_write_exu         ),
+    .icb_cmd_addr_lsu       ( icb_cmd_addr_exu          ),
+    .icb_cmd_wdata_lsu      ( icb_cmd_wdata_exu         ),
+    .icb_cmd_wstrb_lsu      ( icb_cmd_wstrb_exu         ),
+    .icb_cmd_size_lsu       ( icb_cmd_size_exu          ),
+    .icb_rsp_vld_lsu        ( icb_rsp_vld_exu           ),
+    .icb_rsp_rdy_lsu        ( icb_rsp_rdy_exu           ),
+    .icb_rsp_rdata_lsu      ( icb_rsp_rdata_exu         ),
+    .icb_rsp_err_lsu        ( icb_rsp_err_exu           ),
 
     .ifu_clk                ( clk                       ),
     .ifu_active             ( ifu_active                ),
@@ -436,69 +445,69 @@ u_dlm_ctrl
 );
 
 
-// 系统总线，axi4
-lnrv_icb2axi#
-(
-    .P_ADDR_WIDTH           ( 32                        ),
-    .P_DATA_WIDTH           ( 32                        )
-)
-u_lnrv_icb2axi
-(
-    .icb_cmd_vld            ( icb_cmd_vld_sys           ),
-    .icb_cmd_rdy            ( icb_cmd_rdy_sys           ),
-    .icb_cmd_write          ( icb_cmd_write_sys         ),
-    .icb_cmd_addr           ( icb_cmd_addr_sys          ),
-    .icb_cmd_wdata          ( icb_cmd_wdata_sys         ),
-    .icb_cmd_wstrb          ( icb_cmd_wstrb_sys         ),
-    .icb_cmd_size           ( icb_cmd_size_sys          ),
-    .icb_rsp_rdy            ( icb_rsp_rdy_sys           ),
-    .icb_rsp_vld            ( icb_rsp_vld_sys           ),
-    .icb_rsp_err            ( icb_rsp_err_sys           ),
-    .icb_rsp_rdata          ( icb_rsp_rdata_sys         ),
+// // 系统总线，axi4
+// lnrv_icb2axi#
+// (
+//     .P_ADDR_WIDTH           ( 32                        ),
+//     .P_DATA_WIDTH           ( 32                        )
+// )
+// u_lnrv_icb2axi
+// (
+//     .icb_cmd_vld            ( icb_cmd_vld_sys           ),
+//     .icb_cmd_rdy            ( icb_cmd_rdy_sys           ),
+//     .icb_cmd_write          ( icb_cmd_write_sys         ),
+//     .icb_cmd_addr           ( icb_cmd_addr_sys          ),
+//     .icb_cmd_wdata          ( icb_cmd_wdata_sys         ),
+//     .icb_cmd_wstrb          ( icb_cmd_wstrb_sys         ),
+//     .icb_cmd_size           ( icb_cmd_size_sys          ),
+//     .icb_rsp_rdy            ( icb_rsp_rdy_sys           ),
+//     .icb_rsp_vld            ( icb_rsp_vld_sys           ),
+//     .icb_rsp_err            ( icb_rsp_err_sys           ),
+//     .icb_rsp_rdata          ( icb_rsp_rdata_sys         ),
 
-    .axi_awvalid            ( sys_awvalid               ),
-    .axi_awready            ( sys_awready               ),
-    .axi_awlock             ( sys_awlock                ),
-    .axi_awaddr             ( sys_awaddr                ),
-    .axi_awid               ( sys_awid                  ),
-    .axi_awlen              ( sys_awlen                 ),
-    .axi_awsize             ( sys_awsize                ),
-    .axi_awburst            ( sys_awburst               ),
-    .axi_awcache            ( sys_awcache               ),
-    .axi_awprot             ( sys_awprot                ),
+//     .axi_awvalid            ( sys_awvalid               ),
+//     .axi_awready            ( sys_awready               ),
+//     .axi_awlock             ( sys_awlock                ),
+//     .axi_awaddr             ( sys_awaddr                ),
+//     .axi_awid               ( sys_awid                  ),
+//     .axi_awlen              ( sys_awlen                 ),
+//     .axi_awsize             ( sys_awsize                ),
+//     .axi_awburst            ( sys_awburst               ),
+//     .axi_awcache            ( sys_awcache               ),
+//     .axi_awprot             ( sys_awprot                ),
 
-    .axi_wvalid             ( sys_wvalid                ),
-    .axi_wready             ( sys_wready                ),
-    .axi_wdata              ( sys_wdata                 ),
-    .axi_wstrb              ( sys_wstrb                 ),
-    .axi_wlast              ( sys_wlast                 ),
+//     .axi_wvalid             ( sys_wvalid                ),
+//     .axi_wready             ( sys_wready                ),
+//     .axi_wdata              ( sys_wdata                 ),
+//     .axi_wstrb              ( sys_wstrb                 ),
+//     .axi_wlast              ( sys_wlast                 ),
 
-    .axi_bready             ( sys_bready                ),
-    .axi_bvalid             ( sys_bvalid                ),
-    .axi_bresp              ( sys_bresp                 ),
-    .axi_bid                ( sys_bid                   ),
+//     .axi_bready             ( sys_bready                ),
+//     .axi_bvalid             ( sys_bvalid                ),
+//     .axi_bresp              ( sys_bresp                 ),
+//     .axi_bid                ( sys_bid                   ),
 
-    .axi_arvalid            ( sys_arvalid               ),
-    .axi_arready            ( sys_arready               ),
-    .axi_arlock             ( sys_arlock                ),
-    .axi_araddr             ( sys_araddr                ),
-    .axi_arid               ( sys_arid                  ),
-    .axi_arlen              ( sys_arlen                 ),
-    .axi_arsize             ( sys_arsize                ),
-    .axi_arburst            ( sys_arburst               ),
-    .axi_arcache            ( sys_arcache               ),
-    .axi_arprot             ( sys_arprot                ),
+//     .axi_arvalid            ( sys_arvalid               ),
+//     .axi_arready            ( sys_arready               ),
+//     .axi_arlock             ( sys_arlock                ),
+//     .axi_araddr             ( sys_araddr                ),
+//     .axi_arid               ( sys_arid                  ),
+//     .axi_arlen              ( sys_arlen                 ),
+//     .axi_arsize             ( sys_arsize                ),
+//     .axi_arburst            ( sys_arburst               ),
+//     .axi_arcache            ( sys_arcache               ),
+//     .axi_arprot             ( sys_arprot                ),
 
-    .axi_rready             ( sys_rready                ),
-    .axi_rvalid             ( sys_rvalid                ),
-    .axi_rdata              ( sys_rdata                 ),
-    .axi_rresp              ( sys_rresp                 ),
-    .axi_rlast              ( sys_rlast                 ),
-    .axi_rid                ( sys_rid                   ),
+//     .axi_rready             ( sys_rready                ),
+//     .axi_rvalid             ( sys_rvalid                ),
+//     .axi_rdata              ( sys_rdata                 ),
+//     .axi_rresp              ( sys_rresp                 ),
+//     .axi_rlast              ( sys_rlast                 ),
+//     .axi_rid                ( sys_rid                   ),
 
-    .clk                    ( clk                       ),
-    .reset_n                ( reset_n                   )
-);
+//     .clk                    ( clk                       ),
+//     .reset_n                ( reset_n                   )
+// );
 
 
 lnrv_axi2icb#

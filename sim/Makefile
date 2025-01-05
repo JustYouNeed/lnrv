@@ -3,10 +3,11 @@ RUN_DIR      	:= ${SIM_DIR}/run
 TB_DIR 			:= ${SIM_DIR}/../tb
 TB_TOP 			:= lnrv_cpu_tb
 
-TEST_NAME     	:= rv32um-p-mulhsu
-TEST_CASE     	:= ${RUN_DIR}/../../riscv-tools/riscv-tests/isa/generated/${TEST_NAME}
+TEST_NAME     	:= helloworld
+TEST_CASE     	:= /home/pluto/proj/lnrv/software/application/helloworld/helloworld
+# TEST_CASE     	:= ${RUN_DIR}/../../riscv-tools/riscv-tests/isa/generated/${TEST_NAME}
 
-SIM_TOOL       	:= vcs 
+SIM_TOOL       	:= vcs
 DUMPWAVE     	:= 1
 
 CORE        := e203
@@ -18,7 +19,7 @@ core_name = $(shell echo $(CORE) | tr A-Z a-z)
 
 all: run_test
 
-install: 
+install:
 	mkdir -p ${SIM_DIR}/install/tb
 	cp ${TB_DIR}/*.v ${SIM_DIR}/install/tb -rf
 	cp ${SIM_DIR}/../rtl/${core_name} ${SIM_DIR}/install/rtl -rf
@@ -59,7 +60,7 @@ regress_collect:
 	@-rm -rf ${RUN_DIR}/regress.res
 	@find ${RUN_DIR} -name "rv32*.log" -exec ./bin/find_test_fail.csh {} >> ${RUN_DIR}/regress.res \;
 	@cat ${RUN_DIR}/regress.res
-regress: regress_prepare regress_run regress_collect 
+regress: regress_prepare regress_run regress_collect
 
 echo:
 	echo ${SELF_TESTS}
@@ -68,5 +69,5 @@ clean:
 	rm -rf run
 	rm -rf install
 
-.PHONY: compile run install clean all run_test regress regress_prepare regress_run regress_collect 
+.PHONY: compile run install clean all run_test regress regress_prepare regress_run regress_collect
 

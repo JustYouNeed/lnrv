@@ -27,7 +27,7 @@ generate
         end
 
         always@(posedge sync_clk or negedge sync_rst_n) begin
-            if(reset_n == 1'b0) begin
+            if(sync_rst_n == 1'b0) begin
                 data_buf_q[i] <= P_RESET_VALUE[0 +: P_DATA_WIDTH];
             end else begin
                 data_buf_q[i] <= data_buf_d[i];

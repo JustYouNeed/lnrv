@@ -1,11 +1,12 @@
 ~/proj/lnrv/rtl/core/lnrv_def.v
 #~/proj/lnrv/rtl/perips/lnrv_plic.v
-#~/proj/lnrv/rtl/perips/lnrv_plmt.v
+~/proj/lnrv/rtl/perips/lnrv_plmt.v
 ~/proj/lnrv/rtl/gen/lnrv_gnrl_buffer.v
 ~/proj/lnrv/rtl/gen/lnrv_icb2sram.v
 ~/proj/lnrv/rtl/gen/lnrv_gnrl_arbiter.v
 ~/proj/lnrv/rtl/gen/lnrv_icb_cmd_buf.v
 ~/proj/lnrv/rtl/gen/lnrv_gen_ram.v
+~/proj/lnrv/rtl/gen/lnrv_gnrl_dat_sync.v
 #~/proj/lnrv/rtl/gen/lnrv_clk_gate.v
 ~/proj/lnrv/rtl/gen/lnrv_icb_buf.v
 ~/proj/lnrv/rtl/gen/lnrv_gnrl_fifo.v
@@ -44,7 +45,7 @@
 ~/proj/lnrv/rtl/bus/lnrv_icb_mux.v
 ~/proj/lnrv/rtl/bus/lnrv_icb_demux.v
 ~/proj/lnrv/rtl/bus/lnrv_axi2icb.v
-/home/pluto/proj/lnrv/tb/booth4_mul32x32.v
+~/proj/lnrv/rtl/bus/lnrv_icb2apb.v
 #~/proj/lnrv/rtl/bus/lnrv_ahb2icb.v
 #~/proj/lnrv/rtl/bus/lnrv_icb2ahb.v
 #~/proj/lnrv/rtl/bus/lnrv_apb2icb.v

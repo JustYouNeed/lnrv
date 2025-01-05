@@ -27,8 +27,8 @@ wire[LP_DLM_ADDR_WIDTH - 1 :0 ] dlm_addr;
 wire[31 : 0]                    dlm_wdata;
 wire[31 : 0]                    dlm_rdata;
 
-reg                             irq_sft;
-reg                             irq_tmr;
+wire                            irq_sft;
+wire                            irq_tmr;
 reg                             irq_ext;
 reg                             dbg_halt;
 reg                             irq_dbg;
@@ -45,89 +45,189 @@ wire                            cmt_vld;
 wire                            cmt_rdy;
 wire                            cmt_hsked;
 
+wire                            dcsr_stoptime;
+wire                            dcsr_stopcount;
+
 integer                         i;
 reg                             fireware_load_cplt;
 reg [31:0]                      pc_write_to_host_cnt;
 reg [31:0]                      pc_write_to_host_cycle;
 reg[8*300:1]                    testcase;
 
+wire                            icb_cmd_vld_sys;
+wire                            icb_cmd_rdy_sys;
+wire                            icb_cmd_write_sys;
+wire[31 : 0]                    icb_cmd_addr_sys;
+wire[31 : 0]                    icb_cmd_wdata_sys;
+wire[3 : 0]                     icb_cmd_wstrb_sys;
+wire[2 : 0]                     icb_cmd_size_sys;
+wire                            icb_rsp_vld_sys;
+wire                            icb_rsp_rdy_sys;
+wire[31 : 0]                    icb_rsp_rdata_sys;
+wire                            icb_rsp_err_sys;
+
+
+wire                            psel;
+wire                            penable;
+wire                            pwrite;
+wire[31 : 0]                    paddr;
+wire[31 : 0]                    pwdata;
+wire[31 : 0]                    prdata;
+wire                            pready;
+wire                            pslverr;
+
+reg                             tclk;
+reg                             treset_n;
+
 
 lnrv_cpu#(
-    .P_ILM_REGION_BASE  ( 32'h0000_0000         ),
-    .P_ILM_ADDR_WIDTH   ( LP_ILM_ADDR_WIDTH     ),
-    .P_DLM_REGION_BASE  ( 32'h0002_0000         ),
-    .P_DLM_ADDR_WIDTH   ( LP_DLM_ADDR_WIDTH     )
+    .P_ILM_REGION_BASE          ( 32'h0000_0000             ),
+    .P_ILM_ADDR_WIDTH           ( LP_ILM_ADDR_WIDTH         ),
+    .P_DLM_REGION_BASE          ( 32'h0002_0000             ),
+    .P_DLM_ADDR_WIDTH           ( LP_DLM_ADDR_WIDTH         )
 )
 u_lnrv_cpu
 (
-    .reset_vector       ( 32'h0000_0000         ),
-    .reset_mtvec        ( 32'd0                 ),
+    .reset_vector               ( 32'h0000_0000             ),
+    .reset_mtvec                ( 32'd0                     ),
 
-    .firmware_loading   ( firmware_loading      ),
+    .firmware_loading           ( firmware_loading          ),
 
-    .irq_sft            ( irq_sft               ),
-    .irq_tmr            ( irq_tmr               ),
-    .irq_ext            ( irq_ext               ),
-    .irq_dbg            ( irq_dbg               ),
+    .irq_sft                    ( irq_sft                   ),
+    .irq_tmr                    ( irq_tmr                   ),
+    .irq_ext                    ( irq_ext                   ),
+    .irq_dbg                    ( irq_dbg                   ),
 
-    .dbg_halt           ( dbg_halt              ),
-    .wfi_mode           ( wfi_mode              ),
+    .dbg_halt                   ( dbg_halt                  ),
+    .wfi_mode                   ( wfi_mode                  ),
 
-    .ilm_clk            ( ilm_clk               ),
-    .ilm_cs             ( ilm_cs                ),
-    .ilm_we             ( ilm_we                ),
-    .ilm_wem            ( ilm_wem               ),
-    .ilm_addr           ( ilm_addr              ),
-    .ilm_wdata          ( ilm_wdata             ),
-    .ilm_rdata          ( ilm_rdata             ),
+    .dcsr_stoptime              ( dcsr_stoptime             ),
+    .dcsr_stopcount             ( dcsr_stopcount            ),
 
-    .dlm_clk            ( dlm_clk               ),
-    .dlm_cs             ( dlm_cs                ),
-    .dlm_we             ( dlm_we                ),
-    .dlm_wem            ( dlm_wem               ),
-    .dlm_addr           ( dlm_addr              ),
-    .dlm_wdata          ( dlm_wdata             ),
-    .dlm_rdata          ( dlm_rdata             ),
+    .icb_cmd_vld_sys            ( icb_cmd_vld_sys           ),
+    .icb_cmd_rdy_sys            ( icb_cmd_rdy_sys           ),
+    .icb_cmd_write_sys          ( icb_cmd_write_sys         ),
+    .icb_cmd_addr_sys           ( icb_cmd_addr_sys          ),
+    .icb_cmd_wdata_sys          ( icb_cmd_wdata_sys         ),
+    .icb_cmd_wstrb_sys          ( icb_cmd_wstrb_sys         ),
+    .icb_cmd_size_sys           ( icb_cmd_size_sys          ),
+    .icb_rsp_vld_sys            ( icb_rsp_vld_sys           ),
+    .icb_rsp_rdy_sys            ( icb_rsp_rdy_sys           ),
+    .icb_rsp_rdata_sys          ( icb_rsp_rdata_sys         ),
+    .icb_rsp_err_sys            ( icb_rsp_err_sys           ),
 
-    .clk                ( clk                   ),
-    .reset_n            ( reset_n               )
+    .ilm_clk                    ( ilm_clk                   ),
+    .ilm_cs                     ( ilm_cs                    ),
+    .ilm_we                     ( ilm_we                    ),
+    .ilm_wem                    ( ilm_wem                   ),
+    .ilm_addr                   ( ilm_addr                  ),
+    .ilm_wdata                  ( ilm_wdata                 ),
+    .ilm_rdata                  ( ilm_rdata                 ),
+
+    .dlm_clk                    ( dlm_clk                   ),
+    .dlm_cs                     ( dlm_cs                    ),
+    .dlm_we                     ( dlm_we                    ),
+    .dlm_wem                    ( dlm_wem                   ),
+    .dlm_addr                   ( dlm_addr                  ),
+    .dlm_wdata                  ( dlm_wdata                 ),
+    .dlm_rdata                  ( dlm_rdata                 ),
+
+    .clk                        ( clk                       ),
+    .reset_n                    ( reset_n                   )
 );
 
 
 // ilm
 lnrv_gen_ram#
 (
-    .P_ADDR_WIDTH       ( LP_ILM_ADDR_WIDTH     ),
-    .P_DATA_WIDTH       ( 32                    )
+    .P_ADDR_WIDTH               ( LP_ILM_ADDR_WIDTH         ),
+    .P_DATA_WIDTH               ( 32                        )
 )
 u_lnrv_ilm
 (
-    .ram_cs             ( ilm_cs                ),
-    .ram_we             ( ilm_we                ),
-    .ram_wem            ( ilm_wem               ),
-    .ram_addr           ( ilm_addr              ),
-    .ram_wdata          ( ilm_wdata             ),
-    .ram_rdata          ( ilm_rdata             ),
+    .ram_cs                     ( ilm_cs                    ),
+    .ram_we                     ( ilm_we                    ),
+    .ram_wem                    ( ilm_wem                   ),
+    .ram_addr                   ( ilm_addr                  ),
+    .ram_wdata                  ( ilm_wdata                 ),
+    .ram_rdata                  ( ilm_rdata                 ),
 
-    .clk                ( clk                   )
+    .clk                        ( clk                       )
 );
 
 // dlm
 lnrv_gen_ram#
 (
-    .P_ADDR_WIDTH       ( LP_DLM_ADDR_WIDTH     ),
-    .P_DATA_WIDTH       ( 32                    )
+    .P_ADDR_WIDTH               ( LP_DLM_ADDR_WIDTH         ),
+    .P_DATA_WIDTH               ( 32                        )
 )
 u_lnrv_dlm
 (
-    .ram_cs             ( dlm_cs                ),
-    .ram_we             ( dlm_we                ),
-    .ram_wem            ( dlm_wem               ),
-    .ram_addr           ( dlm_addr              ),
-    .ram_wdata          ( dlm_wdata             ),
-    .ram_rdata          ( dlm_rdata             ),
+    .ram_cs                     ( dlm_cs                    ),
+    .ram_we                     ( dlm_we                    ),
+    .ram_wem                    ( dlm_wem                   ),
+    .ram_addr                   ( dlm_addr                  ),
+    .ram_wdata                  ( dlm_wdata                 ),
+    .ram_rdata                  ( dlm_rdata                 ),
 
-    .clk                ( clk                   )
+    .clk                        ( clk                       )
+);
+
+
+lnrv_icb2apb#
+(
+    .P_ADDR_WIDTH               ( 32                        ),
+    .P_DATA_WIDTH               ( 32                        ),
+    .P_OTS_COUNT                ( 1                         )
+)
+u_lnrv_icb2apb
+(
+    .clk                        ( clk                       ),
+    .reset_n                    ( reset_n                   ),
+
+    .icb_cmd_vld                ( icb_cmd_vld_sys           ),
+    .icb_cmd_rdy                ( icb_cmd_rdy_sys           ),
+    .icb_cmd_write              ( icb_cmd_write_sys         ),
+    .icb_cmd_addr               ( icb_cmd_addr_sys          ),
+    .icb_cmd_wdata              ( icb_cmd_wdata_sys         ),
+    .icb_cmd_wstrb              ( icb_cmd_wstrb_sys         ),
+    .icb_cmd_size               ( icb_cmd_size_sys          ),
+    .icb_rsp_rdy                ( icb_rsp_rdy_sys           ),
+    .icb_rsp_vld                ( icb_rsp_vld_sys           ),
+    .icb_rsp_err                ( icb_rsp_err_sys           ),
+    .icb_rsp_rdata              ( icb_rsp_rdata_sys         ),
+
+    .psel                       ( psel                      ),
+    .penable                    ( penable                   ),
+    .pwrite                     ( pwrite                    ),
+    .paddr                      ( paddr                     ),
+    .pwdata                     ( pwdata                    ),
+    .prdata                     ( prdata                    ),
+    .pslverr                    ( pslverr                   ),
+    .pready                     ( pready                    )
+);
+
+
+lnrv_plmt u_lnrv_plmt
+(
+    .irq_tmr                    ( irq_tmr                   ),
+    .irq_sft                    ( irq_sft                   ),
+
+    .dcsr_stoptime              ( dcsr_stoptime             ),
+
+    .pclk                       ( clk                       ),
+    .preset_n                   ( reset_n                   ),
+    .psel                       ( psel                      ),
+    .penable                    ( penable                   ),
+    .pwrite                     ( pwrite                    ),
+    .paddr                      ( paddr[11 : 0]             ),
+    .pwdata                     ( pwdata                    ),
+    .prdata                     ( prdata                    ),
+    .pslverr                    ( pslverr                   ),
+    .pready                     ( pready                    ),
+
+    .tclk                       ( tclk                      ),
+    .treset_n                   ( treset_n                  )
 );
 
 
@@ -151,12 +251,12 @@ initial begin
     reset_n = 1'b0;
 
     #100;
-    @(negedge clk) begin
+    @(posedge clk) begin
         reset_n <= 1'b1;
     end
 
     wait(firmware_loading == 1'b0);
-    force u_lnrv_cpu.u_lnrv_core.u_lnrv_csr.mstatus_mie = 1'b0;
+    // force u_lnrv_cpu.u_lnrv_core.u_lnrv_csr.mstatus_mie = 1'b0;
 
     @(pc_write_to_host_cnt == 32'd8) #10 reset_n <=1;
     #40000000;
@@ -165,6 +265,18 @@ end
 
 always #10 clk = ~clk;
 
+
+initial begin
+    tclk = 1'b0;
+    treset_n = 1'b0;
+
+    #100;
+    @(posedge tclk) begin
+        treset_n <= 1'b1;
+    end
+end
+
+always #1525.8789 tclk = ~tclk;
 
 
 initial begin
@@ -278,8 +390,6 @@ initial begin
 end
 
 initial begin
-    irq_sft = 1'b0;
-    irq_tmr = 1'b0;
     irq_ext = 1'b0;
     dbg_halt = 1'b0;
     irq_dbg = 1'b0;
@@ -325,16 +435,16 @@ initial begin
         firmware_loading <= 1'b0;
     end
 
-        // $display("ITCM 0x00: %h", `ITCM.mem_r[8'h00]);
-        // $display("ITCM 0x01: %h", `ITCM.mem_r[8'h01]);
-        // $display("ITCM 0x02: %h", `ITCM.mem_r[8'h02]);
-        // $display("ITCM 0x03: %h", `ITCM.mem_r[8'h03]);
-        // $display("ITCM 0x04: %h", `ITCM.mem_r[8'h04]);
-        // $display("ITCM 0x05: %h", `ITCM.mem_r[8'h05]);
-        // $display("ITCM 0x06: %h", `ITCM.mem_r[8'h06]);
-        // $display("ITCM 0x07: %h", `ITCM.mem_r[8'h07]);
-        // $display("ITCM 0x16: %h", `ITCM.mem_r[8'h16]);
-        // $display("ITCM 0x20: %h", `ITCM.mem_r[8'h20]);
+    $display("ITCM 0x00: %h", u_lnrv_ilm.mem_q[8'h00]);
+    $display("ITCM 0x01: %h", u_lnrv_ilm.mem_q[8'h01]);
+    $display("ITCM 0x02: %h", u_lnrv_ilm.mem_q[8'h02]);
+    $display("ITCM 0x03: %h", u_lnrv_ilm.mem_q[8'h03]);
+    $display("ITCM 0x04: %h", u_lnrv_ilm.mem_q[8'h04]);
+    $display("ITCM 0x05: %h", u_lnrv_ilm.mem_q[8'h05]);
+    $display("ITCM 0x06: %h", u_lnrv_ilm.mem_q[8'h06]);
+    $display("ITCM 0x07: %h", u_lnrv_ilm.mem_q[8'h07]);
+    $display("ITCM 0x16: %h", u_lnrv_ilm.mem_q[8'h16]);
+    $display("ITCM 0x20: %h", u_lnrv_ilm.mem_q[8'h20]);
 
 end
 

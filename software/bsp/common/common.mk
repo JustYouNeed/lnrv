@@ -21,14 +21,20 @@ RISCV_OBJCOPY 		?= $(RISCV_PREFIX)objcopy -O verilog
 .PHONY: all
 all: $(TARGET)
 
+INCLUDES += -I $(COMMON_DIR)
+INCLUDES += -I $(COMMON_DIR)/../includes
+INCLUDES += -I $(COMMON_DIR)/../drivers
+
 ASM_SRCS += $(COMMON_DIR)/start.S
 ASM_SRCS += $(COMMON_DIR)/trap_entry.S
 
 C_SRCS += $(COMMON_DIR)/trap_handler.c
+C_SRCS += $(COMMON_DIR)/init.c
+C_SRCS += $(COMMON_DIR)/../drivers/lnrv_plmt.c
 
 LINKER_SCRIPT := $(COMMON_DIR)/link.lds
 
-INCLUDES += -I $(COMMON_DIR)
+
 
 LDFLAGS += -T $(LINKER_SCRIPT) -nostartfiles -Wl,--gc-sections -Wl,--check-sections
 
