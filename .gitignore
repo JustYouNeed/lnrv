@@ -8,3 +8,4 @@ tool
 sim/run/
 .vscode/
 riscv-tools/riscv-tests/
+*.o
