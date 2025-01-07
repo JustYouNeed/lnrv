@@ -2,15 +2,14 @@ module lnrv_cmt_brch
 (
     // 分支指令交付请求
     input                       cmt_vld,
+    input                       cmt_rv32_ir,
     input                       cmt_brch_bjp,
     input                       cmt_brch_jalr,
     input                       cmt_brch_jal,
+    input                       cmt_prdt_taken,
     input                       cmt_brch_mret,
     input                       cmt_brch_dret,
     input                       cmt_brch_fence,
-
-    // 分支预测结果
-    input                       bpu_prdt_res,
 
     // 分支成立
     output                      brch_taken,
@@ -33,6 +32,7 @@ module lnrv_cmt_brch
 
 wire                            pipe_flush_hsked;
 wire                            pipe_flush_req_pre;
+wire                            bpu_prdt_error;
 
 assign      pipe_flush_hsked = pipe_flush_req & pipe_flush_ack;
 
@@ -44,8 +44,11 @@ assign      pipe_flush_req_pre =    cmt_brch_bjp |
                                     cmt_brch_fence |
                                     1'b0;
 
+// 分支预测结果和实际结果不一样，就表示预测错误，需要冲刷流水线
+assign      bpu_prdt_error = cmt_prdt_taken ^ pipe_flush_req_pre;
+
 // 如果分支预测与实际结果不一致，都需要冲刷流水线
-assign      pipe_flush_req = cmt_vld & (bpu_prdt_res ^ pipe_flush_req_pre);
+assign      pipe_flush_req = cmt_vld & bpu_prdt_error;
 
 
 // 如是是dret指令，则跳转地址为dpc；
@@ -57,11 +60,8 @@ assign      pipe_flush_pc_op1 = cmt_brch_dret ? dpc :
                                 cmt_brch_mret ? mepc :
                                 cmt_brch_jalr ? rs1_rdata :
                                 idu_pc;
-assign      pipe_flush_pc_op2 = cmt_brch_dret ? 32'd0 :
-                                cmt_brch_mret ? 32'd0 :
-                                cmt_brch_fence ? 32'd4 :
-                                cmt_brch_jalr ? imm :
-                                bpu_prdt_res ? 32'd4 :
+assign      pipe_flush_pc_op2 = (cmt_brch_dret | cmt_brch_mret) ? 32'd0 :
+                                (cmt_prdt_taken | cmt_brch_fence) ? (cmt_rv32_ir ? 32'd4 : 32'd2) :
                                 imm;
 
 assign      brch_taken = pipe_flush_hsked;

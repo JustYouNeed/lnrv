@@ -60,17 +60,17 @@ assign      idu_pop_hsked = idu_vld & idu_rdy;
 
 assign      idu_rd_not_x1 = |{idu_rd[4 : 1], ~idu_rd[0]};
 
-assign      bpu_prdt_res_set = pipe_flush_hsked;
-assign      bpu_prdt_res_clr = idu_pop_hsked;
-assign      bpu_prdt_res_rld = bpu_prdt_res_set | bpu_prdt_res_clr;
-assign      bpu_prdt_res_d = bpu_prdt_res_set;
-always@(posedge clk or negedge reset_n) begin
-    if(reset_n == 1'b0) begin
-        bpu_prdt_res_q <= 1'b0;
-    end else if(bpu_prdt_res_rld) begin
-        bpu_prdt_res_q <= bpu_prdt_res_d;
-    end
-end
+// assign      bpu_prdt_res_set = pipe_flush_hsked;
+// assign      bpu_prdt_res_clr = idu_pop_hsked;
+// assign      bpu_prdt_res_rld = bpu_prdt_res_set | bpu_prdt_res_clr;
+// assign      bpu_prdt_res_d = bpu_prdt_res_set;
+// always@(posedge clk or negedge reset_n) begin
+//     if(reset_n == 1'b0) begin
+//         bpu_prdt_res_q <= 1'b0;
+//     end else if(bpu_prdt_res_rld) begin
+//         bpu_prdt_res_q <= bpu_prdt_res_d;
+//     end
+// end
 
 // 对于bneq/bnez/bge/bgeu/blt/bltu等指令，如果是身后跳，则认为分支成立，
 assign      bxx_jump_backward = dec_imm_bxx[31];
@@ -100,6 +100,6 @@ assign      pipe_flush_pc_op2 = pipe_flush_req_jalr ? dec_imm_jalr :
                                 pipe_flush_req_jal ? dec_imm_jal :
                                 32'd4;
 
-assign      bpu_prdt_res = bpu_prdt_res_q;
+assign      bpu_prdt_res = pipe_flush_req;
 
 endmodule

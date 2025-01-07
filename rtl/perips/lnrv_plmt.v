@@ -108,7 +108,9 @@ wire                    mtime_tip_d;
 
 reg                     mtime_sip_q;
 wire                    mtime_sip_rld;
+wire                    mtime_sip_d;
 
+wire[31 : 0]            mtime_cnt_hi_full;
 wire[31 : 0]            mtime_cnt_lo_full;
 wire[31 : 0]            mtime_cmp_hi_full;
 wire[31 : 0]            mtime_cmp_lo_full;

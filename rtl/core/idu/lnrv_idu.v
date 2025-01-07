@@ -19,14 +19,12 @@ module lnrv_idu
 
     input                               d_mode,
 
-    output                              dec_ir_bxx,
-    output                              dec_ir_fence,
-    output                              dec_ir_jal,
-    output                              dec_ir_jalr,
-    output[31 : 0]                      dec_imm_bxx,
-    output[31 : 0]                      dec_imm_jal,
-    output[31 : 0]                      dec_imm_jalr,
-    output                              dec_rs1_x1,
+    input[31 : 0]                       gpr_x1,
+
+    output                              pipe_flush_req_bpu,
+    input                               pipe_flush_ack_bpu,
+    output[31 : 0]                      pipe_flush_pc_op1_bpu,
+    output[31 : 0]                      pipe_flush_pc_op2_bpu,
 
     // 非法指令
     output                              idu_excp_ilglir,
@@ -45,6 +43,8 @@ module lnrv_idu
     output[4 : 0]                       idu_rd,
     output[`DEC_OP_BUS_WIDTH - 1 : 0]   idu_op_bus,
     output[`DEC_OP_TYPE_WIDTH - 1 : 0]  idu_op_type,
+    output                              idu_prdt_taken,
+
 
     output                              idu_rv32,
 
@@ -52,7 +52,7 @@ module lnrv_idu
     input                               reset_n
 );
 
-localparam                              LP_BUFF_WIDTH = 127 + `DEC_OP_BUS_WIDTH + `DEC_OP_TYPE_WIDTH;
+localparam                              LP_BUFF_WIDTH = 128 + `DEC_OP_BUS_WIDTH + `DEC_OP_TYPE_WIDTH;
 
 wire[LP_BUFF_WIDTH - 1 : 0]             idu_buf_push_data;
 wire                                    idu_buf_push_vld;
@@ -109,6 +109,17 @@ wire[31 : 0]                            dec_imm_bxx_rv32;
 wire[31 : 0]                            dec_imm_jal_rv32;
 wire[31 : 0]                            dec_imm_jalr_rv32;
 wire                                    dec_rs1_x1_rv32;
+
+wire                                    dec_ir_bxx;
+wire                                    dec_ir_fence;
+wire                                    dec_ir_jal;
+wire                                    dec_ir_jalr;
+wire[31 : 0]                            dec_imm_bxx;
+wire[31 : 0]                            dec_imm_jal;
+wire[31 : 0]                            dec_imm_jalr;
+wire                                    dec_rs1_x1;
+
+wire                                    bpu_prdt_res;
 
 assign      rv32_sel        = (ifu_ir[1 : 0] == 2'b11);
 assign      ir_rv16         = {16{~rv32_sel}} & ifu_ir[15 : 0];
@@ -167,6 +178,40 @@ lnrv_idu_rv32   u_lnrv_idu_rv32
 );
 
 
+// 分支预测模块
+lnrv_bpu u_lnrv_bpu
+(
+    .ifu_vld            ( ifu_vld                   ),
+    .ifu_rdy            ( ifu_rdy                   ),
+    .ifu_pc             ( ifu_pc                    ),
+
+    .idu_vld            ( idu_vld                   ),
+    .idu_rdy            ( idu_rdy                   ),
+    .idu_rd             ( idu_rd                    ),
+
+    .gpr_x1             ( gpr_x1                    ),
+
+    .dec_ir_jal         ( dec_ir_jal                ),
+    .dec_ir_jalr        ( dec_ir_jalr               ),
+    .dec_ir_fence       ( dec_ir_fence              ),
+    .dec_ir_bxx         ( dec_ir_bxx                ),
+    .dec_imm_bxx        ( dec_imm_bxx               ),
+    .dec_imm_jal        ( dec_imm_jal               ),
+    .dec_imm_jalr       ( dec_imm_jalr              ),
+    .dec_rs1_x1         ( dec_rs1_x1                ),
+
+    .pipe_flush_req     ( pipe_flush_req_bpu        ),
+    .pipe_flush_ack     ( pipe_flush_ack_bpu        ),
+    .pipe_flush_pc_op1  ( pipe_flush_pc_op1_bpu     ),
+    .pipe_flush_pc_op2  ( pipe_flush_pc_op2_bpu     ),
+
+    .bpu_prdt_res       ( bpu_prdt_res              ),
+
+    .clk                ( clk                       ),
+    .reset_n            ( reset_n                   )
+);
+
+
 assign      dec_imm         = rv32_sel ? dec_imm_rv32 : dec_imm_rv16;
 assign      dec_rd          = rv32_sel ? dec_rd_rv32 : dec_rd_rv16;
 assign      dec_rs1         = rv32_sel ? dec_rs1_rv32 : dec_rs1_rv16;
@@ -191,7 +236,8 @@ assign      idu_buf_push_data = {
                                     dec_ilegl_ir,
                                     ifu_pc,
                                     ifu_ir,
-                                    rv32_sel
+                                    rv32_sel,
+                                    bpu_prdt_res
                                 };
 
 
@@ -200,8 +246,12 @@ lnrv_gnrl_buffer#
 (
     .P_DATA_WIDTH       ( LP_BUFF_WIDTH             ),
     .P_DEEPTH           ( 1                         ),
+    .P_CUT_VALID        ( "false"                   ),
     .P_CUT_READY        ( "false"                   ),
-    .P_BYPASS           ( "false"                   )
+    .P_BYPASS           ( "false"                   ),
+
+    // forward mode
+    .P_MODE             ( 0                         )
 )
 u_idu_pipe_stage
 (
@@ -237,22 +287,21 @@ assign      {
                 idu_excp_ilglir,
                 idu_pc,
                 idu_ir,
-                idu_rv32
+                idu_rv32,
+                idu_prdt_taken
             } = idu_buf_pop_data;
 
 assign      idu_active = 1'b1;
 
 assign      pipe_halt_ack = idu_buf_push_rdy;
 
-assign      dec_ir_bxx = rv32_sel ? dec_ir_bxx_rv32 : dec_ir_bxx_rv16;
-assign      dec_ir_fence = dec_ir_fence_rv32;
-assign      dec_ir_jal = rv32_sel ? dec_ir_jal_rv32 : dec_ir_jal_rv16;
-assign      dec_ir_jalr = rv32_sel ? dec_ir_jalr_rv32 : dec_ir_jalr_rv16;
-
-assign      dec_imm_bxx = rv32_sel ? dec_imm_bxx_rv32 : dec_imm_bxx_rv16;
-assign      dec_imm_jal = rv32_sel ? dec_imm_jal_rv32 : dec_imm_jal_rv16;
-assign      dec_imm_jalr = rv32_sel ? dec_imm_jalr_rv32 : dec_imm_jal_rv16;
-
-assign      dec_rs1_x1 = rv32_sel ? dec_rs1_x1_rv32 : dec_rs1_x1_rv16;
+assign      dec_ir_bxx      = rv32_sel ? dec_ir_bxx_rv32 : dec_ir_bxx_rv16;
+assign      dec_ir_fence    = dec_ir_fence_rv32;
+assign      dec_ir_jal      = rv32_sel ? dec_ir_jal_rv32 : dec_ir_jal_rv16;
+assign      dec_ir_jalr     = rv32_sel ? dec_ir_jalr_rv32 : dec_ir_jalr_rv16;
+assign      dec_imm_bxx     = rv32_sel ? dec_imm_bxx_rv32 : dec_imm_bxx_rv16;
+assign      dec_imm_jal     = rv32_sel ? dec_imm_jal_rv32 : dec_imm_jal_rv16;
+assign      dec_imm_jalr    = rv32_sel ? dec_imm_jalr_rv32 : dec_imm_jal_rv16;
+assign      dec_rs1_x1      = rv32_sel ? dec_rs1_x1_rv32 : dec_rs1_x1_rv16;
 
 endmodule //lnrv_idu

@@ -1,13 +1,25 @@
 module lnrv_gnrl_fifo#
 (
-    parameter                       P_DATA_WIDTH = 32,
-    parameter                       P_DEEPTH = 1,
-    parameter                       P_CUT_READY = "false"
+    parameter                       P_DATA_WIDTH    = 32,
+    parameter                       P_DEEPTH        = 1,
+
+    // 切断上游valid向下游的组合路径，当工作于fully mode时该参数默认为true，配置无效
+    parameter                       P_CUT_VALID     = "false",
+
+    // 切断下游ready向上游的组合路径，当工作于fully mode时该参数默认为true，配置无效
+    parameter                       P_CUT_READY     = "false",
+
+    // buffer的工作模式，只有在P_DEEPTH为1时生效，因为深度为1才是真正的buffer
+    // 0: forward mode
+    // 1: backwar mode
+    // 2: fully
+    parameter                       P_MODE          = 0
 )
 (
     input                           clk,
     input                           reset_n,
 
+    // 冲刷请求
     input                           flush_req,
     output                          flush_ack,
 
@@ -23,69 +35,127 @@ module lnrv_gnrl_fifo#
 generate
     // 如果FIFO深度为0，则直接将输出与输入相连即可
     if(P_DEEPTH == 0) begin: FIFO_DEEPTH_IS_0
-        assign      pop_data = push_data;
-        assign      pop_vld = push_vld;
+        assign      pop_data    = push_data;
+        assign      pop_vld     = push_vld;
+        assign      push_rdy    = pop_rdy;
     // FIFO深度为1，则使用一个buffer即可
     end else if(P_DEEPTH == 1) begin: FIFO_DEEPTH_IS_1
-        reg[P_DATA_WIDTH - 1 : 0]           fifo_buf_q;
-        wire                                fifo_buf_rld;
-        wire[P_DATA_WIDTH - 1 : 0]          fifo_buf_d;
+        reg[P_DATA_WIDTH - 1 : 0]           buf_q;
+        wire                                buf_rld;
+        wire[P_DATA_WIDTH - 1 : 0]          buf_d;
 
-        reg                                 fifo_full_q;
-        wire                                fifo_full_set;
-        wire                                fifo_full_clr;
-        wire                                fifo_full_rld;
-        wire                                fifo_full_d;
+        wire                                buf_full;
+        wire                                buf_not_full;
 
-        wire                                fifo_not_full;
+        wire                                buf_empty;
+        wire                                buf_not_empty;
 
         wire                                push_hsked;
         wire                                pop_hsked;
 
-        assign      push_hsked = push_vld & push_rdy & (~flush_req);
+        assign      push_hsked = push_vld & push_rdy;
         assign      pop_hsked = pop_vld & pop_rdy;
 
         // 输入端握手成功，则表示可以将数据加载到buffer中
-        assign      fifo_buf_rld = push_hsked | flush_req;
-        assign      fifo_buf_d = flush_req ? {P_DATA_WIDTH{1'b0}} : push_data;
+        assign      buf_rld = push_hsked;
+        assign      buf_d = push_data;
         always@(posedge clk or negedge reset_n) begin
             if(reset_n == 1'b0) begin
-                fifo_buf_q <= {P_DATA_WIDTH{1'b0}};
-            end else if(fifo_buf_rld) begin
-                fifo_buf_q <= fifo_buf_d;
+                buf_q <= {P_DATA_WIDTH{1'b0}};
+            end else if(buf_rld) begin
+                buf_q <= buf_d;
             end
         end
 
-        // 如果buffer加载了新的数据，则fifo已经满了
-        assign      fifo_full_set = fifo_buf_rld;
-        // 如果输出端读取了buffer中的数据，则标志无效
-        assign      fifo_full_clr = pop_hsked;
-        assign      fifo_full_rld = fifo_full_set | fifo_full_clr;
-        // 读写可能同时发生，此时buffer中的数据仍有效
-        assign      fifo_full_d = fifo_full_set;
-        always@(posedge clk or negedge reset_n) begin
-            if(reset_n == 1'b0) begin
-                fifo_full_q <= 1'b0;
-            end else if(flush_req) begin
-                fifo_full_q <= 1'b0;
-            end else if(fifo_full_rld) begin
-                fifo_full_q <= fifo_full_d;
+        // 前向模式，在该模式下，在valid路径上插入寄存器，打断valid时序路径
+        if((P_MODE == 0) || (P_MODE == 2)) begin: GEN_BUFFER_FULL
+            reg                                 buf_full_q;
+            wire                                buf_full_set;
+            wire                                buf_full_clr;
+            wire                                buf_full_rld;
+            wire                                buf_full_d;
+
+            // 如果buffer加载了新的数据，则buf已经满了
+            assign      buf_full_set = push_hsked;
+            // 如果输出端读取了buffer中的数据，则表示
+            assign      buf_full_clr = pop_hsked;
+            assign      buf_full_rld = buf_full_set | buf_full_clr;
+            // 读写可能同时发生，此时buffer中的数据仍有效
+            assign      buf_full_d = buf_full_set;
+            always@(posedge clk or negedge reset_n) begin
+                if(reset_n == 1'b0) begin
+                    buf_full_q <= 1'b0;
+                end else if(flush_req) begin
+                    buf_full_q <= 1'b0;
+                end else if(buf_full_rld) begin
+                    buf_full_q <= buf_full_d;
+                end
             end
-        end
 
-        assign      fifo_not_full = (~fifo_full_q);
+            if(P_CUT_READY == "true") begin: CUT_READY_ENABLE
+                assign      buf_not_full = (~buf_full_q);
+            end else begin: CUT_READY_DISABLE
+                assign      buf_not_full = (~buf_full_q) | buf_full_clr;
+            end
 
-
-        assign      pop_vld = fifo_full_q;
-        assign      pop_data = fifo_buf_q;
-
-        // 如果配置了切断ready，则只有当fifo为空的时候才可以接收新的数据，此时每两个cycle
-        //      才能接收一个数据，否则当fifo即将为空的时候也可以接收新的数据，此时每个cycle
-        //      都可以接收新的数据
-        if(P_CUT_READY == "true") begin
-            assign      push_rdy = fifo_not_full;
+            assign      buf_full = buf_full_q;
         end else begin
-            assign      push_rdy = fifo_not_full | fifo_full_clr;
+            assign      buf_full = buf_not_empty;
+        end
+
+        // 后向模式，在该模式下，在ready路径上插入寄存器，打断ready的时序路径
+        if((P_MODE == 1) || (P_MODE == 2)) begin: GEN_BUFFER_EMPTY
+            reg                                 buf_empty_q;
+            wire                                buf_empty_set;
+            wire                                buf_empty_clr;
+            wire                                buf_empty_rld;
+            wire                                buf_empty_d;
+
+            assign      buf_empty_set = pop_rdy;
+            assign      buf_empty_clr = push_vld & (~pop_rdy);
+            // 如果set和clr同时发生，则当前寄存器的状态不会有改变，因此只有在set和clr不同时才更新寄存器的值
+            assign      buf_empty_rld = buf_empty_set ^ buf_empty_clr;
+            // set的优先级更高
+            assign      buf_empty_d = buf_empty_set;
+            always@(posedge clk or negedge reset_n) begin
+                if(reset_n == 1'b0) begin
+                    buf_empty_q <= 1'b1;
+                end else if(flush_req) begin
+                    buf_empty_q <= 1'b1;
+                end else if(buf_empty_rld) begin
+                    buf_empty_q <= buf_empty_d;
+                end
+            end
+
+            if(P_CUT_VALID == "true") begin: CUT_VALID_ENABLE
+                assign      buf_not_empty = ~buf_empty_q;
+            end else begin: CUT_VALID_DISABLE
+                assign      buf_not_empty = (~buf_empty_q) | push_vld;
+            end
+
+            assign      buf_empty = buf_empty_q;
+        end else begin
+            assign      buf_empty = buf_not_full;
+        end
+
+        // 前向模式
+        if(P_MODE == 0) begin: FORWARD_MODE
+            assign      pop_vld     = buf_full;
+            assign      push_rdy    = buf_not_full;
+
+            assign      pop_data    = buf_q;
+        // 后向模式
+        end else if(P_MODE == 1) begin: BACKWARD_MODE
+            assign      pop_vld     = buf_not_empty;
+            assign      push_rdy    = buf_empty;
+
+            assign      pop_data    = buf_empty ? push_data : buf_q;
+        // 全向模式
+        end else if(P_MODE == 2) begin: FULLY_MODE
+            assign      pop_vld     = buf_full;
+            assign      push_rdy    = buf_empty;
+
+            assign      pop_data    = buf_q;
         end
     // FIFO深度大于等于2的时候，创建一个真正的FIFO，同时需要保证FIFO深度必须是2的整数次幂
     end else begin: FIFO_DEEPTH_GT_1
@@ -125,9 +195,8 @@ generate
 
         integer                         i;
 
-        assign      push_hsked = push_vld & push_rdy & (~flush_req);
+        assign      push_hsked = push_vld & push_rdy;
         assign      pop_hsked = pop_vld & pop_rdy;
-
 
         assign      fifo_wen = push_hsked;
         assign      fifo_ren = pop_hsked;
@@ -159,7 +228,6 @@ generate
         end
         assign      wr_addr = wr_ptr_q[LP_PTR_WIDTH - 1 : 0];
         assign      wr_cycle = wr_ptr_q[LP_PTR_WIDTH];
-
 
         assign      rd_ptr_inc = fifo_ren;
         assign      rd_ptr_rld = rd_ptr_inc;

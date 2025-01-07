@@ -11,6 +11,7 @@ module lnrv_cmt
     // 来自exu模块的交付信号
     input                       cmt_vld,
     output                      cmt_rdy,
+    input                       cmt_rv32_ir,
     input                       cmt_idu_excp_ilglir,
     input                       cmt_ifu_excp_buserr,
     input                       cmt_ifu_excp_misalgn,
@@ -20,6 +21,7 @@ module lnrv_cmt
     input                       cmt_brch_jalr,
     input                       cmt_brch_fence,
     input                       cmt_brch_bjp,
+    input                       cmt_prdt_taken,
     input                       cmt_csr,
     input                       cmt_csr_idx_err,
     input                       cmt_rglr,
@@ -31,9 +33,6 @@ module lnrv_cmt
     input                       cmt_lsu_excp_misalgn,
     input                       cmt_lsu_excp_buserr,
     input[31 : 0]               cmt_lsu_addr,
-
-    // 分支预测结果
-    input                       bpu_prdt_res,
 
     // 中断输入
     input                       irq_sft,            // 软件中断
@@ -257,14 +256,14 @@ lnrv_cmt_dbg u_lnrv_cmt_dbg
 lnrv_cmt_brch u_lnrv_cmt_brch
 (
     .cmt_vld                ( cmt_vld                       ),
+    .cmt_rv32_ir            ( cmt_rv32_ir                   ),
     .cmt_brch_bjp           ( cmt_brch_bjp                  ),
     .cmt_brch_jal           ( cmt_brch_jal                  ),
     .cmt_brch_jalr          ( cmt_brch_jalr                 ),
     .cmt_brch_mret          ( cmt_brch_mret                 ),
     .cmt_brch_dret          ( cmt_brch_dret                 ),
     .cmt_brch_fence         ( cmt_brch_fence                ),
-
-    .bpu_prdt_res           ( bpu_prdt_res                  ),
+    .cmt_prdt_taken         ( cmt_prdt_taken                ),
 
     .brch_taken             ( brch_taken                    ),
 

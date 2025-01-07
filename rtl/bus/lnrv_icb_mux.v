@@ -158,7 +158,7 @@ lnrv_gnrl_buffer#
     .P_DATA_WIDTH                   ( LP_DISP_BUF_DATA_WIDTH    ),
     .P_DEEPTH                       ( P_OTS_COUNT               ),
     .P_CUT_READY                    ( "false"                   ),
-    .P_BYPASS                       ( "true"                    )
+    .P_BYPASS                       ( "false"                   )
 )
 u_icb_disp_buf
 (

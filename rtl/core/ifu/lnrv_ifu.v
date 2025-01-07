@@ -99,6 +99,8 @@ reg[31 : 0]                             ifu_pc_q;
 wire                                    ifu_pc_rld;
 wire[31 : 0]                            ifu_pc_d;
 
+wire[2 : 0]                             pc_incr;
+
 // 滞外请求标志
 reg                                     cmd_ots_q;
 wire                                    cmd_ots_set;
@@ -139,11 +141,12 @@ wire[LP_IFU_BUF_WIDTH - 1 : 0]          ifu_buf_pop_data;
 wire                                    ifu_buf_pop_hsked;
 
 wire[31 : 0]                            ifu_push_ir;
+wire[31 : 0]                            ifu_push_pc;
 wire                                    ifu_pc_algn_half;
 wire                                    rv32_ir;
 
 wire                                    firmware_loaded;
-
+wire                                    first_cmd_aft_rst;
 
 
 // 接收所有的流水线冲刷请求，且应答是立即的
@@ -196,10 +199,10 @@ end
 
 // 流水线冲刷请求是立即响应的，但是流水线冲刷并不能立即完成，因为有可能上一个取指请求还没有返回，
 // 如果当前不能立即冲刷流水线，就需要锁存流水线冲刷请求，直到新地址的取指请求发出，且被接收。
-assign      flush_req_pend_set = pipe_flush_req & (~icb_cmd_hsked_ifu);
-assign      flush_req_pend_clr = flush_req_pend_q & icb_cmd_hsked_ifu;
+assign      flush_req_pend_set = pipe_flush_req;
+assign      flush_req_pend_clr = icb_cmd_hsked_ifu;
 assign      flush_req_pend_rld = flush_req_pend_set | flush_req_pend_clr;
-assign      flush_req_pend_d = flush_req_pend_set;
+assign      flush_req_pend_d = ~flush_req_pend_clr;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         flush_req_pend_q <= 1'b0;
@@ -215,8 +218,7 @@ assign      fetch_addr_op1 =    pipe_flush_req ? pipe_flush_pc_op1 :
                                 fetch_addr_q;
 
 assign      fetch_addr_op2 =    pipe_flush_req ? pipe_flush_pc_op2 :
-                                flush_req_pend_q ? 32'd0 :
-                                reset_pend_q ? 32'd0 :
+                                (flush_req_pend_q | reset_pend_q) ? 32'd0 :
                                 32'd4;
 assign      fetch_addr_rld = icb_cmd_hsked_ifu | pipe_flush_hsked;
 assign      fetch_addr_d = fetch_addr_op1 + fetch_addr_op2;
@@ -228,10 +230,23 @@ always@(posedge clk or negedge reset_n) begin
     end
 end
 
+// 复位后的第一个fetch command
+assign      first_cmd_aft_rst = reset_pend_q & icb_cmd_hsked_ifu;
+
+
+// 如果是32位指令，则PC地址递增值为4,16位指令递增2
+assign      pc_incr = rv32_ir ? 3'd4 : 3'd2;
+
 // 该寄存器保存真实执行的pc值
-assign      ifu_pc_rld = pipe_flush_hsked | (reset_pend_q & icb_cmd_hsked_ifu) | ifu_buf_push_hsked;
+// 1、如果当前有流水线冲刷请求，则使用冲刷的地址
+// 2、如果当前是第一次取指，也使用取指的地址
+// 3、正常执行指令时根据指令位宽递增
+assign      ifu_pc_rld =    pipe_flush_hsked |
+                            first_cmd_aft_rst |
+                            ifu_buf_push_hsked;
+// 在复位没有完成，或者流水线冲刷没有完成之前，pc都使用取指pc
 assign      ifu_pc_d = (pipe_flush_vld | reset_pend_q) ? fetch_addr_d :
-                        ifu_pc_q + (rv32_ir ? 32'd4 : 32'd2);
+                        ifu_pc_q + pc_incr;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         ifu_pc_q <= 32'd0;
@@ -248,9 +263,9 @@ assign      ifu_pc_algn_half = ifu_pc_q[1];
 assign      cmd_ots_set = icb_cmd_hsked_ifu;
 // 收到指令应答，则表示滞外请求完成
 assign      cmd_ots_clr = icb_rsp_hsked_ifu;
-assign      cmd_ots_rld = cmd_ots_set | cmd_ots_clr;
+assign      cmd_ots_rld = cmd_ots_set ^ cmd_ots_clr;
 // 如果当前没有滞外交易，且slave可以立即回rsp_rdy，则不需要设置ots
-assign      cmd_ots_d = cmd_ots_q ? cmd_ots_set : (~cmd_ots_clr);
+assign      cmd_ots_d = cmd_ots_set;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         cmd_ots_q <= 1'b0;
@@ -279,7 +294,7 @@ end
 //      2、当前leftover_buf无效，但是当前pc值没有对齐到4字节，且取回来的指令是32位指令，我们需要
 //          将高16位指令先保存到leftover_buf，或者当前pc值对齐到4字节，但是取回来的指令是16位的，
 //          我们需要将高16位指令保存到leftover_buf
-assign      leftover_buf_vld_set =  icb_rsp_hsked_ifu &
+assign      leftover_buf_vld_set =  icb_rsp_hsked_ifu & no_flush_req &
                                     (
                                         leftover_buf_vld_q |
                                         (~(ifu_pc_algn_half ^ rv32_ir))
@@ -288,7 +303,7 @@ assign      leftover_buf_vld_set =  icb_rsp_hsked_ifu &
 assign      leftover_buf_vld_clr = ifu_buf_push_hsked | pipe_flush_vld;
 assign      leftover_buf_vld_rld = leftover_buf_vld_set | leftover_buf_vld_clr;
 // 在置位时要确保没有流水线冲刷请求，因为冲刷流水线时，读回来的指令会一直接收，但是无效
-assign      leftover_buf_vld_d = leftover_buf_vld_set & no_flush_req;
+assign      leftover_buf_vld_d = leftover_buf_vld_set;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
         leftover_buf_vld_q <= 1'b0;
@@ -323,19 +338,20 @@ assign      ifu_push_ir =   leftover_buf_vld_q ? {icb_rsp_rdata_ifu[15 : 0], lef
 // 只要指令的最低两比特是2'b11，那就是32位指令
 assign      rv32_ir = &ifu_push_ir[1 : 0];
 
+assign      ifu_push_pc = ifu_pc_q;
+
 // 我们会在以下情况发生时将指令相关信息push到Buff中
-assign      ifu_buf_push_vld =  (~pipe_flush_vld) &
-                                (
-                                    // 如果是32位指令，只要不是第一取指，且指令对齐到2字节，就可以push
-                                    // 如果不是32位指令，只要leftover_buf非空，或者icb_rsp_vld_ifu就可以push
-                                    rv32_ir ? (((~ifu_pc_algn_half) | leftover_buf_vld_q) & icb_rsp_vld_ifu) :
-                                    (icb_rsp_vld_ifu | leftover_buf_vld_q)
-                                );
+// 如果是32位指令，只要不是第一取指，且指令对齐到2字节，就可以push
+// 如果不是32位指令，只要leftover_buf非空，或者icb_rsp_vld_ifu就可以push
+// 这里不考虑流水线冲刷请求，因为流水线冲刷请求会直接作用于buf，有flush_req有效时，push是无效的
+assign      ifu_buf_push_vld =  rv32_ir ? (((~ifu_pc_algn_half) | leftover_buf_vld_q) & icb_rsp_vld_ifu) :
+                                (icb_rsp_vld_ifu | leftover_buf_vld_q);
+
 assign      ifu_buf_push_data = {
                                     fetch_addr_misalgn,
                                     icb_rsp_err_ifu,
                                     ifu_push_ir,
-                                    ifu_pc_q
+                                    ifu_push_pc
                                 };
 assign      ifu_buf_push_hsked = ifu_buf_push_vld & ifu_buf_push_rdy;
 
@@ -344,8 +360,11 @@ lnrv_gnrl_buffer#
 (
     .P_DATA_WIDTH       ( LP_IFU_BUF_WIDTH          ),
     .P_DEEPTH           ( 1                         ),
+    .P_CUT_VALID        ( "false"                   ),
     .P_CUT_READY        ( "false"                   ),
-    .P_BYPASS           ( "false"                   )
+    .P_BYPASS           ( "false"                   ),
+
+    .P_MODE             ( 0                         )
 )
 u_ifu_buffer
 (

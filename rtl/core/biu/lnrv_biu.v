@@ -455,11 +455,11 @@ lnrv_icb_demux#
 
     .P_CMD_BUFF_ENABLE      ( "false"                   ),
     .P_CMD_BUFF_CUT_READY   ( "false"                   ),
-    .P_CMD_BUFF_BYPASS      ( "true"                    ),
+    .P_CMD_BUFF_BYPASS      ( "false"                   ),
 
     .P_RSP_BUFF_ENABLE      ( "true"                    ),
     .P_RSP_BUFF_CUT_READY   ( "false"                   ),
-    .P_RSP_BUFF_BYPASS      ( "true"                    ),
+    .P_RSP_BUFF_BYPASS      ( "false"                   ),
 
     .P_OTS_COUNT            ( 1                         )
 )
@@ -583,11 +583,11 @@ lnrv_icb_demux#
 
     .P_CMD_BUFF_ENABLE      ( "false"                   ),
     .P_CMD_BUFF_CUT_READY   ( "false"                   ),
-    .P_CMD_BUFF_BYPASS      ( "true"                    ),
+    .P_CMD_BUFF_BYPASS      ( "false"                   ),
 
     .P_RSP_BUFF_ENABLE      ( "true"                    ),
     .P_RSP_BUFF_CUT_READY   ( "false"                   ),
-    .P_RSP_BUFF_BYPASS      ( "true"                    ),
+    .P_RSP_BUFF_BYPASS      ( "false"                   ),
 
     .P_OTS_COUNT            ( 1                         )
 )
@@ -765,12 +765,12 @@ lnrv_icb_mux#
     .P_OTS_COUNT            ( 1                         ),
 
     .P_CMD_BUFF_ENABLE      ( "true"                    ),
-    .P_CMD_BUFF_CUT_READY   ( "false"                   ),
-    .P_CMD_BUFF_BYPASS      ( "true"                    ),
+    .P_CMD_BUFF_CUT_READY   ( "true"                    ),
+    .P_CMD_BUFF_BYPASS      ( "false"                   ),
 
-    .P_RSP_BUFF_ENABLE      ( "false"                   ),
-    .P_RSP_BUFF_CUT_READY   ( "false"                   ),
-    .P_RSP_BUFF_BYPASS      ( "true"                    )
+    .P_RSP_BUFF_ENABLE      ( "true"                    ),
+    .P_RSP_BUFF_CUT_READY   ( "true"                    ),
+    .P_RSP_BUFF_BYPASS      ( "false"                   )
 )
 u_ilm_bus_mux
 (
@@ -878,11 +878,11 @@ lnrv_icb_mux#
 
     .P_CMD_BUFF_ENABLE      ( "true"                    ),
     .P_CMD_BUFF_CUT_READY   ( "false"                   ),
-    .P_CMD_BUFF_BYPASS      ( "true"                    ),
+    .P_CMD_BUFF_BYPASS      ( "false"                   ),
 
     .P_RSP_BUFF_ENABLE      ( "false"                   ),
     .P_RSP_BUFF_CUT_READY   ( "false"                   ),
-    .P_RSP_BUFF_BYPASS      ( "true"                    )
+    .P_RSP_BUFF_BYPASS      ( "false"                   )
 )
 u_dlm_bus_mux
 (
@@ -979,11 +979,11 @@ lnrv_icb_mux#
 
     .P_CMD_BUFF_ENABLE      ( "true"                    ),
     .P_CMD_BUFF_CUT_READY   ( "false"                   ),
-    .P_CMD_BUFF_BYPASS      ( "true"                    ),
+    .P_CMD_BUFF_BYPASS      ( "false"                   ),
 
     .P_RSP_BUFF_ENABLE      ( "false"                   ),
     .P_RSP_BUFF_CUT_READY   ( "false"                   ),
-    .P_RSP_BUFF_BYPASS      ( "true"                    )
+    .P_RSP_BUFF_BYPASS      ( "false"                   )
 )
 u_sys_bus_mux
 (

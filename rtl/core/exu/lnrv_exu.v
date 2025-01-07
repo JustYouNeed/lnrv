@@ -26,6 +26,7 @@ module  lnrv_exu#
     input                                   idu_excp_ilglir,
     input                                   idu_excp_misalgn,
     input                                   idu_rv32,
+    input                                   idu_prdt_taken,
 
     // 寄存器读取接口
     input[31 : 0]                           rs1_rdata,
@@ -49,12 +50,14 @@ module  lnrv_exu#
     // 交付接口
     output                                  cmt_vld,
     input                                   cmt_rdy,
+    output                                  cmt_rv32_ir,
     output                                  cmt_brch_dret,
     output                                  cmt_brch_mret,
     output                                  cmt_brch_fence,
     output                                  cmt_brch_jal,
     output                                  cmt_brch_jalr,
     output                                  cmt_brch_bjp,
+    output                                  cmt_prdt_taken,
     output                                  cmt_csr_idx_err,
     output                                  cmt_csr,
     output                                  cmt_rglr,
@@ -443,6 +446,9 @@ assign      cmt_vld =   sel_lsu ? cmt_vld_lsu :
                         sel_csr ? cmt_vld_csr :
                         sel_mdv ? cmt_vld_mdv :
                         idu_vld;
+
+assign      cmt_rv32_ir = idu_rv32;
+assign      cmt_prdt_taken = idu_prdt_taken;
 
 assign      cmt_csr     = sel_csr;
 assign      cmt_rglr    = sel_rglr;

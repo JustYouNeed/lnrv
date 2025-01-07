@@ -1,9 +1,20 @@
 module	lnrv_gnrl_buffer#
 (
-	parameter                       P_DATA_WIDTH = 32,
-    parameter                       P_DEEPTH = 1,
-    parameter                       P_CUT_READY = "true",
-    parameter                       P_BYPASS = "false"
+	parameter                       P_DATA_WIDTH    = 32,
+    parameter                       P_DEEPTH        = 1,
+    parameter                       P_BYPASS        = "false",
+
+    // 切断上游valid向下游的组合路径，当工作于fully mode时该参数默认为true，配置无效
+    parameter                       P_CUT_VALID     = "false",
+
+    // 切断下游ready向上游的组合路径，当工作于fully mode时该参数默认为true，配置无效
+    parameter                       P_CUT_READY     = "false",
+
+    // buffer的工作模式，只有在P_DEEPTH为1时生效，因为深度为1才是真正的buffer
+    // 0: forward mode
+    // 1: backwar mode
+    // 2: fully
+    parameter                       P_MODE          = 0
 )
 (
     input                           clk,
@@ -59,25 +70,27 @@ assign      fifo_pop_rdy = pop_rdy;
 
 lnrv_gnrl_fifo#
 (
-    .P_DATA_WIDTH       ( P_DATA_WIDTH      ),
-    .P_DEEPTH           ( P_DEEPTH          ),
-    .P_CUT_READY        ( P_CUT_READY       )
+    .P_DATA_WIDTH       ( P_DATA_WIDTH              ),
+    .P_DEEPTH           ( P_DEEPTH                  ),
+    .P_CUT_VALID        ( P_CUT_VALID               ),
+    .P_CUT_READY        ( P_CUT_READY               ),
+    .P_MODE             ( P_MODE                    )
 )
 u_lnrv_gnrl_fifo
 (
-    .clk                ( clk               ),
-    .reset_n            ( reset_n           ),
+    .clk                ( clk                       ),
+    .reset_n            ( reset_n                   ),
 
-    .flush_req          ( flush_req         ),
-    .flush_ack          ( flush_ack         ),
+    .flush_req          ( flush_req                 ),
+    .flush_ack          ( flush_ack                 ),
 
-    .push_vld           ( fifo_push_vld     ),
-    .push_rdy           ( fifo_push_rdy     ),
-    .push_data          ( fifo_push_data    ),
+    .push_vld           ( fifo_push_vld             ),
+    .push_rdy           ( fifo_push_rdy             ),
+    .push_data          ( fifo_push_data            ),
 
-    .pop_rdy            ( fifo_pop_rdy      ),
-    .pop_vld            ( fifo_pop_vld      ),
-    .pop_data           ( fifo_pop_data     )
+    .pop_rdy            ( fifo_pop_rdy              ),
+    .pop_vld            ( fifo_pop_vld              ),
+    .pop_data           ( fifo_pop_data             )
 );
 
 

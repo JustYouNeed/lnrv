@@ -258,14 +258,22 @@ lnrv_idu u_lnrv_idu
 
     .d_mode                     ( d_mode                    ),
 
-    .dec_ir_jal                 ( dec_ir_jal                ),
-    .dec_ir_jalr                ( dec_ir_jalr               ),
-    .dec_ir_fence               ( dec_ir_fence              ),
-    .dec_ir_bxx                 ( dec_ir_bxx                ),
-    .dec_imm_bxx                ( dec_imm_bxx               ),
-    .dec_imm_jal                ( dec_imm_jal               ),
-    .dec_imm_jalr               ( dec_imm_jalr              ),
-    .dec_rs1_x1                 ( dec_rs1_x1                ),
+    .gpr_x1                     ( gpr_x1                    ),
+
+    .pipe_flush_req_bpu         ( pipe_flush_req_bpu        ),
+    .pipe_flush_ack_bpu         ( pipe_flush_ack_bpu        ),
+    .pipe_flush_pc_op1_bpu      ( pipe_flush_pc_op1_bpu     ),
+    .pipe_flush_pc_op2_bpu      ( pipe_flush_pc_op2_bpu     ),
+
+
+    // .dec_ir_jal                 ( dec_ir_jal                ),
+    // .dec_ir_jalr                ( dec_ir_jalr               ),
+    // .dec_ir_fence               ( dec_ir_fence              ),
+    // .dec_ir_bxx                 ( dec_ir_bxx                ),
+    // .dec_imm_bxx                ( dec_imm_bxx               ),
+    // .dec_imm_jal                ( dec_imm_jal               ),
+    // .dec_imm_jalr               ( dec_imm_jalr              ),
+    // .dec_rs1_x1                 ( dec_rs1_x1                ),
 
     .idu_excp_ilglir            ( idu_excp_ilglir           ),
     .idu_excp_misalgn           ( idu_excp_misalgn          ),
@@ -283,43 +291,45 @@ lnrv_idu u_lnrv_idu
     .idu_op_bus                 ( idu_op_bus                ),
     .idu_op_type                ( idu_op_type               ),
     .idu_rv32                   ( idu_rv32                  ),
+    .idu_prdt_taken             ( idu_prdt_taken            ),
+
 
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   )
 );
 
-// 分支预测模块
-lnrv_bpu u_lnrv_bpu
-(
-    .ifu_vld                    ( ifu_vld                   ),
-    .ifu_rdy                    ( ifu_rdy                   ),
-    .ifu_pc                     ( ifu_pc                    ),
+// // 分支预测模块
+// lnrv_bpu u_lnrv_bpu
+// (
+//     .ifu_vld                    ( ifu_vld                   ),
+//     .ifu_rdy                    ( ifu_rdy                   ),
+//     .ifu_pc                     ( ifu_pc                    ),
 
-    .idu_vld                    ( idu_vld                   ),
-    .idu_rdy                    ( idu_rdy                   ),
-    .idu_rd                     ( idu_rd                    ),
+//     .idu_vld                    ( idu_vld                   ),
+//     .idu_rdy                    ( idu_rdy                   ),
+//     .idu_rd                     ( idu_rd                    ),
 
-    .gpr_x1                     ( gpr_x1                    ),
+//     .gpr_x1                     ( gpr_x1                    ),
 
-    .dec_ir_jal                 ( dec_ir_jal                ),
-    .dec_ir_jalr                ( dec_ir_jalr               ),
-    .dec_ir_fence               ( dec_ir_fence              ),
-    .dec_ir_bxx                 ( dec_ir_bxx                ),
-    .dec_imm_bxx                ( dec_imm_bxx               ),
-    .dec_imm_jal                ( dec_imm_jal               ),
-    .dec_imm_jalr               ( dec_imm_jalr              ),
-    .dec_rs1_x1                 ( dec_rs1_x1                ),
+//     .dec_ir_jal                 ( dec_ir_jal                ),
+//     .dec_ir_jalr                ( dec_ir_jalr               ),
+//     .dec_ir_fence               ( dec_ir_fence              ),
+//     .dec_ir_bxx                 ( dec_ir_bxx                ),
+//     .dec_imm_bxx                ( dec_imm_bxx               ),
+//     .dec_imm_jal                ( dec_imm_jal               ),
+//     .dec_imm_jalr               ( dec_imm_jalr              ),
+//     .dec_rs1_x1                 ( dec_rs1_x1                ),
 
-    .pipe_flush_req             ( pipe_flush_req_bpu        ),
-    .pipe_flush_ack             ( pipe_flush_ack_bpu        ),
-    .pipe_flush_pc_op1          ( pipe_flush_pc_op1_bpu     ),
-    .pipe_flush_pc_op2          ( pipe_flush_pc_op2_bpu     ),
+//     .pipe_flush_req             ( pipe_flush_req_bpu        ),
+//     .pipe_flush_ack             ( pipe_flush_ack_bpu        ),
+//     .pipe_flush_pc_op1          ( pipe_flush_pc_op1_bpu     ),
+//     .pipe_flush_pc_op2          ( pipe_flush_pc_op2_bpu     ),
 
-    .bpu_prdt_res               ( bpu_prdt_res              ),
+//     .bpu_prdt_res               ( bpu_prdt_res              ),
 
-    .clk                        ( clk                       ),
-    .reset_n                    ( reset_n                   )
-);
+//     .clk                        ( clk                       ),
+//     .reset_n                    ( reset_n                   )
+// );
 
 
 // 指令执行模块
@@ -340,6 +350,7 @@ lnrv_exu u_lnrv_exu
     .idu_excp_misalgn           ( idu_excp_misalgn          ),
     .idu_excp_buserr            ( idu_excp_buserr           ),
     .idu_rv32                   ( idu_rv32                  ),
+    .idu_prdt_taken             ( idu_prdt_taken            ),
 
     // 寄存器读接口
     .rs1_rdata                  ( rs1_rdata                 ),
@@ -350,12 +361,14 @@ lnrv_exu u_lnrv_exu
     // 交付接口
     .cmt_vld                    ( cmt_vld                   ),
     .cmt_rdy                    ( cmt_rdy                   ),
+    .cmt_rv32_ir                ( cmt_rv32_ir               ),
     .cmt_brch_dret              ( cmt_brch_dret             ),
     .cmt_brch_mret              ( cmt_brch_mret             ),
     .cmt_brch_fence             ( cmt_brch_fence            ),
     .cmt_brch_bjp               ( cmt_brch_bjp              ),
     .cmt_brch_jal               ( cmt_brch_jal              ),
     .cmt_brch_jalr              ( cmt_brch_jalr             ),
+    .cmt_prdt_taken             ( cmt_prdt_taken            ),
 
     .cmt_idu_excp_ilglir        ( cmt_idu_excp_ilglir       ),
     .cmt_ifu_excp_buserr        ( cmt_ifu_excp_buserr       ),
@@ -415,6 +428,7 @@ lnrv_cmt u_lnrv_cmt
 
     .cmt_vld                    ( cmt_vld                   ),
     .cmt_rdy                    ( cmt_rdy                   ),
+    .cmt_rv32_ir                ( cmt_rv32_ir               ),
     .cmt_idu_excp_ilglir        ( cmt_idu_excp_ilglir       ),
     .cmt_ifu_excp_buserr        ( cmt_ifu_excp_buserr       ),
     .cmt_ifu_excp_misalgn       ( cmt_ifu_excp_misalgn      ),
@@ -424,6 +438,7 @@ lnrv_cmt u_lnrv_cmt
     .cmt_brch_jalr              ( cmt_brch_jalr             ),
     .cmt_brch_fence             ( cmt_brch_fence            ),
     .cmt_brch_bjp               ( cmt_brch_bjp              ),
+    .cmt_prdt_taken             ( cmt_prdt_taken            ),
     .cmt_rglr                   ( cmt_rglr                  ),
     .cmt_csr                    ( cmt_csr                   ),
     .cmt_csr_idx_err            ( cmt_csr_idx_err           ),
@@ -435,8 +450,6 @@ lnrv_cmt u_lnrv_cmt
     .cmt_lsu_excp_misalgn       ( cmt_lsu_excp_misalgn      ),
     .cmt_lsu_excp_buserr        ( cmt_lsu_excp_buserr       ),
     .cmt_lsu_addr               ( cmt_lsu_addr              ),
-
-    .bpu_prdt_res               ( bpu_prdt_res              ),
 
     .irq_sft                    ( irq_sft                   ),
     .irq_ext                    ( irq_ext                   ),
