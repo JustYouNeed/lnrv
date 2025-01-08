@@ -1,19 +1,19 @@
 module lnrv_icb_demux#
 (
-    parameter                                           P_ADDR_WIDTH = 32,
-    parameter                                           P_DATA_WIDTH = 32,
-    parameter                                           P_ICB_COUNT = 4,
+    parameter                                           P_ADDR_WIDTH            = 32,
+    parameter                                           P_DATA_WIDTH            = 32,
+    parameter                                           P_ICB_COUNT             = 4,
 
     // 是否在master通路上插入一个buffer，可以优化时序
-    parameter                                           P_CMD_BUFF_ENABLE = "true",
-    parameter                                           P_CMD_BUFF_CUT_READY = "true",
-    parameter                                           P_CMD_BUFF_BYPASS = "false",
+    parameter                                           P_CMD_BUFF_ENABLE       = 1'b1,
+    parameter                                           P_CMD_BUFF_CUT_READY    = 1'b1,
+    parameter                                           P_CMD_BUFF_BYPASS       = 1'b0,
+    parameter                                           P_CMD_OTS_COUNT         = 1,
 
-    parameter                                           P_RSP_BUFF_ENABLE = "true",
-    parameter                                           P_RSP_BUFF_CUT_READY = "true",
-    parameter                                           P_RSP_BUFF_BYPASS = "false",
-
-    parameter                                           P_OTS_COUNT = 1
+    parameter                                           P_RSP_BUFF_ENABLE       = 1'b1,
+    parameter                                           P_RSP_BUFF_CUT_READY    = 1'b1,
+    parameter                                           P_RSP_BUFF_BYPASS       = 1'b0,
+    parameter                                           P_RSP_OTS_COUNT         = 1
 )
 (
     input                                               clk,
@@ -111,8 +111,8 @@ genvar                                      i;
 integer                                     j;
 
 
-assign      icb_cmd_hsked_m = icb_cmd_vld_m & icb_cmd_rdy_m;
-assign      icb_rsp_hsked_m = icb_rsp_vld_m & icb_rsp_rdy_m;
+assign      icb_cmd_hsked_m = icb_cmd_vld_bufed_m & icb_cmd_rdy_bufed_m;
+assign      icb_rsp_hsked_m = icb_rsp_vld_bufed_m & icb_rsp_rdy_bufed_m;
 
 // 根据参数决定是否需要在输入端口插入一个buff
 lnrv_icb_buf#
@@ -123,12 +123,12 @@ lnrv_icb_buf#
     .P_CMD_BUFF_ENABLE      ( P_CMD_BUFF_ENABLE         ),
     .P_CMD_BUFF_CUT_READY   ( P_CMD_BUFF_CUT_READY      ),
     .P_CMD_BUFF_BYPASS      ( P_CMD_BUFF_BYPASS         ),
+    .P_CMD_OTS_COUNT        ( P_CMD_OTS_COUNT           ),
 
     .P_RSP_BUFF_ENABLE      ( P_RSP_BUFF_ENABLE         ),
     .P_RSP_BUFF_CUT_READY   ( P_RSP_BUFF_CUT_READY      ),
     .P_RSP_BUFF_BYPASS      ( P_RSP_BUFF_BYPASS         ),
-
-    .P_OTS_COUNT            ( P_OTS_COUNT               )
+    .P_RSP_OTS_COUNT        ( P_RSP_OTS_COUNT           )
 )
 u_lnrv_icb_buf
 (
@@ -175,9 +175,9 @@ assign      no_region_match_bufed   = ~(|slv_region_match_bufed);
 lnrv_gnrl_buffer#
 (
     .P_DATA_WIDTH       ( LP_DISP_BUF_DATA_WIDTH    ),
-    .P_DEEPTH           ( P_OTS_COUNT               ),
-    .P_CUT_READY        ( "false"                   ),
-    .P_BYPASS           ( "false"                   )
+    .P_DEEPTH           ( P_CMD_OTS_COUNT           ),
+    .P_CUT_READY        ( 1'b0                   ),
+    .P_BYPASS           ( 1'b0                   )
 )
 u_icb_disp_buf
 (

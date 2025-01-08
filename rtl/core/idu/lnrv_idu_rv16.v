@@ -253,7 +253,7 @@ assign      instr_one_of_slli_lwsp          = opcode_is_10 & (funct3_is_000 | fu
 assign      instr_one_of_lui_addi16sp       = opcode_is_01 & funct3_is_011;
 assign      instr_one_of_sub_xor_or_and     = opcode_is_01 & funct3_is_100 & ir_bit12_10_is_011;
 assign      instr_one_of_srxi_andi          = opcode_is_01 & funct3_is_100 & (~ir_bit11_10_is_11);
-assign      instr_one_of_bxx               = opcode_is_01 & (funct3_is_110 | funct3_is_111);
+assign      instr_one_of_bxx                = opcode_is_01 & (funct3_is_110 | funct3_is_111);
 assign      instr_one_of_jr_mv              = opcode_is_10 & funct3_is_100 & ir_bit12_is_0;
 assign      instr_one_of_ebreak_jalr_add    = opcode_is_10 & funct3_is_100 & ir_bit12_is_1;
 

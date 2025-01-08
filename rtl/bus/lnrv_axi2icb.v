@@ -222,8 +222,8 @@ lnrv_gnrl_buffer#
 (
     .P_DATA_WIDTH           ( LP_AXI_XFR_BUF_WIDTH      ),
     .P_DEEPTH               ( 1                         ),
-    .P_CUT_READY            ( "true"                    ),
-    .P_BYPASS               ( "false"                   )
+    .P_CUT_READY            ( 1'b1                    ),
+    .P_BYPASS               ( 1'b0                   )
 )
 u_axi_xfr_buf
 (
@@ -284,13 +284,16 @@ lnrv_icb_buf#
     (
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
-    .P_CMD_BUFF_ENABLE      ( "true"                    ),
-    .P_CMD_BUFF_CUT_READY   ( "true"                    ),
-    .P_CMD_BUFF_BYPASS      ( "false"                   ),
-    .P_RSP_BUFF_ENABLE      ( "true"                    ),
-    .P_RSP_BUFF_CUT_READY   ( "true"                    ),
-    .P_RSP_BUFF_BYPASS      ( "false"                   ),
-    .P_OTS_COUNT            ( 1                         )
+
+    .P_CMD_BUFF_ENABLE      ( 1'b1                      ),
+    .P_CMD_BUFF_CUT_READY   ( 1'b1                      ),
+    .P_CMD_BUFF_BYPASS      ( 1'b0                      ),
+    .P_CMD_OTS_COUNT        ( 1                         ),
+
+    .P_RSP_BUFF_ENABLE      ( 1'b1                      ),
+    .P_RSP_BUFF_CUT_READY   ( 1'b1                      ),
+    .P_RSP_BUFF_BYPASS      ( 1'b0                      ),
+    .P_RSP_OTS_COUNT        ( 1                         )
 )
 u_lnrv_icb_buf
 (

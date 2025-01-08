@@ -1,6 +1,6 @@
 module lnrv_cpu_tb;
 
-`define PC_WRITE_TOHOST         32'h0000_0094
+`define PC_WRITE_TOHOST         32'h0000_007c
 `define PC_EXT_IRQ_ISR          32'h0000_00a8
 `define PC_SFT_IRQ_ISR          32'h0000_00c0
 `define PC_TMR_IRQ_ISR          32'h0000_00d8

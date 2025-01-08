@@ -1,17 +1,17 @@
 module lnrv_icb_buf#
 (
-    parameter                           P_ADDR_WIDTH = 32,
-    parameter                           P_DATA_WIDTH = 32,
+    parameter                           P_ADDR_WIDTH            = 32,
+    parameter                           P_DATA_WIDTH            = 32,
 
-    parameter                           P_CMD_BUFF_ENABLE = "true",
-    parameter                           P_CMD_BUFF_CUT_READY = "true",
-    parameter                           P_CMD_BUFF_BYPASS = "false",
+    parameter                           P_CMD_BUFF_ENABLE       = 1'b1,
+    parameter                           P_CMD_BUFF_CUT_READY    = 1'b1,
+    parameter                           P_CMD_BUFF_BYPASS       = 1'b0,
+    parameter                           P_CMD_OTS_COUNT         = 1,
 
-    parameter                           P_RSP_BUFF_ENABLE = "true",
-    parameter                           P_RSP_BUFF_CUT_READY = "true",
-    parameter                           P_RSP_BUFF_BYPASS = "false",
-
-    parameter                           P_OTS_COUNT = 1
+    parameter                           P_RSP_BUFF_ENABLE       = 1'b1,
+    parameter                           P_RSP_BUFF_CUT_READY    = 1'b1,
+    parameter                           P_RSP_BUFF_BYPASS       = 1'b0,
+    parameter                           P_RSP_OTS_COUNT         = 1
 )
 (
     input                               icb_cmd_vld_m,
@@ -50,7 +50,7 @@ icb_cmd_buf_lnrv#
     .P_BUFF_ENABLE          ( P_CMD_BUFF_ENABLE         ),
     .P_BUFF_CUT_READY       ( P_CMD_BUFF_CUT_READY      ),
     .P_BUFF_BYPASS          ( P_CMD_BUFF_BYPASS         ),
-    .P_OTS_COUNT            ( P_OTS_COUNT               ),
+    .P_OTS_COUNT            ( P_CMD_OTS_COUNT           ),
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              )
 )
@@ -82,7 +82,7 @@ icb_rsp_buf_lnrv#
     .P_BUFF_ENABLE          ( P_RSP_BUFF_ENABLE         ),
     .P_BUFF_CUT_READY       ( P_RSP_BUFF_CUT_READY      ),
     .P_BUFF_BYPASS          ( P_RSP_BUFF_BYPASS         ),
-    .P_OTS_COUNT            ( P_OTS_COUNT               ),
+    .P_OTS_COUNT            ( P_RSP_OTS_COUNT           ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              )
 )
 icb_rsp_buf_u_lnrv

@@ -163,7 +163,7 @@ lnrv_icb_demux#(
     .P_ADDR_WIDTH               ( LP_ADDR_WIDTH         ),
     .P_DATA_WIDTH               ( LP_DATA_WIDTH         ),
     .P_ICB_COUNT                ( 3                     ),
-    .P_INSERT_BUFF              ( "false"               ),
+    .P_INSERT_BUFF              ( 1'b0               ),
     .P_OTS_COUNT                ( 4                     )
 )
 u_lnrv_icb_demux

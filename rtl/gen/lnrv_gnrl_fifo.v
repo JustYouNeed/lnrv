@@ -4,10 +4,10 @@ module lnrv_gnrl_fifo#
     parameter                       P_DEEPTH        = 1,
 
     // 切断上游valid向下游的组合路径，当工作于fully mode时该参数默认为true，配置无效
-    parameter                       P_CUT_VALID     = "false",
+    parameter                       P_CUT_VALID     = 1'b0,
 
     // 切断下游ready向上游的组合路径，当工作于fully mode时该参数默认为true，配置无效
-    parameter                       P_CUT_READY     = "false",
+    parameter                       P_CUT_READY     = 1'b0,
 
     // buffer的工作模式，只有在P_DEEPTH为1时生效，因为深度为1才是真正的buffer
     // 0: forward mode
@@ -92,7 +92,7 @@ generate
                 end
             end
 
-            if(P_CUT_READY == "true") begin: CUT_READY_ENABLE
+            if(P_CUT_READY == 1'b1) begin: CUT_READY_ENABLE
                 assign      buf_not_full = (~buf_full_q);
             end else begin: CUT_READY_DISABLE
                 assign      buf_not_full = (~buf_full_q) | buf_full_clr;
@@ -127,7 +127,7 @@ generate
                 end
             end
 
-            if(P_CUT_VALID == "true") begin: CUT_VALID_ENABLE
+            if(P_CUT_VALID == 1'b1) begin: CUT_VALID_ENABLE
                 assign      buf_not_empty = ~buf_empty_q;
             end else begin: CUT_VALID_DISABLE
                 assign      buf_not_empty = (~buf_empty_q) | push_vld;
@@ -256,7 +256,7 @@ generate
         assign      pop_vld = ~fifo_rd_empty;
         assign      pop_data = fifo_mem[rd_addr] & {P_DATA_WIDTH{pop_vld}};
 
-        if(P_CUT_READY == "true") begin
+        if(P_CUT_READY == 1'b1) begin
             assign      push_rdy = (~fifo_wr_full);
         end else begin
             assign      push_rdy = (~fifo_wr_full) | fifo_ren;

@@ -145,7 +145,7 @@ lnrv_icb_mux#
     .P_DATA_WIDTH               ( LP_DATA_WIDTH                 ),
     .P_ICB_COUNT                ( LP_ICB_COUNT                  ),
     .P_OTS_COUNT                ( 4                             ),
-    .P_INSERT_BUFF              ( "true"                        )
+    .P_INSERT_BUFF              ( 1'b1                        )
 )
 u_lnrv_icb_mux
 (

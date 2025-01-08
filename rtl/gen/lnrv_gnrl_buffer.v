@@ -2,13 +2,13 @@ module	lnrv_gnrl_buffer#
 (
 	parameter                       P_DATA_WIDTH    = 32,
     parameter                       P_DEEPTH        = 1,
-    parameter                       P_BYPASS        = "false",
+    parameter                       P_BYPASS        = 1'b0,
 
     // 切断上游valid向下游的组合路径，当工作于fully mode时该参数默认为true，配置无效
-    parameter                       P_CUT_VALID     = "false",
+    parameter                       P_CUT_VALID     = 1'b0,
 
     // 切断下游ready向上游的组合路径，当工作于fully mode时该参数默认为true，配置无效
-    parameter                       P_CUT_READY     = "false",
+    parameter                       P_CUT_READY     = 1'b0,
 
     // buffer的工作模式，只有在P_DEEPTH为1时生效，因为深度为1才是真正的buffer
     // 0: forward mode
@@ -45,7 +45,7 @@ wire[P_DATA_WIDTH - 1 : 0]      fifo_pop_data;
 wire                            bypass;
 
 generate
-    if(P_BYPASS == "true") begin
+    if(P_BYPASS == 1'b1) begin
         // 如果当前fifo为空，且接收端可以接收数据，则表示可以将fifo bypass，
         // 直接将输入数据送到输出端，不需要先保存到fifo中
         assign      bypass = pop_rdy & (~fifo_pop_vld);

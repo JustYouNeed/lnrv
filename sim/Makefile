@@ -3,9 +3,10 @@ RUN_DIR      	:= ${SIM_DIR}/run
 TB_DIR 			:= ${SIM_DIR}/../tb
 TB_TOP 			:= lnrv_cpu_tb
 
-TEST_NAME     	:= helloworld
-TEST_CASE     	:= /home/pluto/proj/lnrv/software/application/helloworld/helloworld
-# TEST_CASE     	:= ${RUN_DIR}/../../riscv-tools/riscv-tests/isa/generated/${TEST_NAME}
+# TEST_NAME     	:= helloworld
+# TEST_CASE     	:= /home/pluto/proj/lnrv/software/application/helloworld/helloworld
+TEST_NAME     	:= rv32uc-p-rvc
+TEST_CASE     	:= ${RUN_DIR}/../../riscv-tools/riscv-tests/isa/generated/${TEST_NAME}
 
 SIM_TOOL       	:= vcs
 DUMPWAVE     	:= 1

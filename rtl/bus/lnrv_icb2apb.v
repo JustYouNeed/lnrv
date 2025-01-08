@@ -1,9 +1,8 @@
 module  lnrv_icb2apb#
 (
-    parameter                           P_ADDR_WIDTH = 32,
-    parameter                           P_DATA_WIDTH = 32,
-
-    parameter                           P_OTS_COUNT = 1
+    parameter                           P_ADDR_WIDTH    = 32,
+    parameter                           P_DATA_WIDTH    = 32,
+    parameter                           P_OTS_COUNT     = 1
 )
 (
     input                               clk,
@@ -79,8 +78,8 @@ lnrv_gnrl_buffer#
 (
     .P_DATA_WIDTH       ( LP_ICB_RSP_BUF_DATA_WIDTH     ),
     .P_DEEPTH           ( P_OTS_COUNT                   ),
-    .P_CUT_READY        ( "false"                       ),
-    .P_BYPASS           ( "false"                       )
+    .P_CUT_READY        ( 1'b0                          ),
+    .P_BYPASS           ( 1'b0                          )
 )
 u_icb_rsp_buf
 (

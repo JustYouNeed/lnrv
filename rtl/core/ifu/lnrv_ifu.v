@@ -360,9 +360,9 @@ lnrv_gnrl_buffer#
 (
     .P_DATA_WIDTH       ( LP_IFU_BUF_WIDTH          ),
     .P_DEEPTH           ( 1                         ),
-    .P_CUT_VALID        ( "false"                   ),
-    .P_CUT_READY        ( "false"                   ),
-    .P_BYPASS           ( "false"                   ),
+    .P_CUT_VALID        ( 1'b0                   ),
+    .P_CUT_READY        ( 1'b0                   ),
+    .P_BYPASS           ( 1'b0                   ),
 
     .P_MODE             ( 0                         )
 )

@@ -1,9 +1,9 @@
 
 module icb_rsp_buf_lnrv#
 (
-    parameter                           P_BUFF_ENABLE = "true",
-    parameter                           P_BUFF_CUT_READY = "true",
-    parameter                           P_BUFF_BYPASS = "false",
+    parameter                           P_BUFF_ENABLE = 1'b1,
+    parameter                           P_BUFF_CUT_READY = 1'b1,
+    parameter                           P_BUFF_BYPASS = 1'b0,
     parameter                           P_OTS_COUNT = 1,
 
     parameter                           P_DATA_WIDTH = 32
@@ -28,7 +28,7 @@ localparam                  LP_BUF_WIDTH = P_DATA_WIDTH + 1;
 
 
 generate
-    if(P_BUFF_ENABLE == "true") begin
+    if(P_BUFF_ENABLE == 1'b1) begin
         wire[LP_BUF_WIDTH - 1 : 0]          buf_push_data;
         wire                                buf_push_vld;
         wire                                buf_push_rdy;
