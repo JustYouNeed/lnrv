@@ -1,13 +1,21 @@
 module  lnrv_icb2apb#
 (
-    parameter                           P_ADDR_WIDTH    = 32,
-    parameter                           P_DATA_WIDTH    = 32,
-    parameter                           P_OTS_COUNT     = 1
+    parameter                           P_ADDR_WIDTH        = 32,
+    parameter                           P_DATA_WIDTH        = 32,
+
+    parameter                           P_CMD_CUT_VALID     = 1'b1,
+    parameter                           P_CMD_CUT_READY     = 1'b1,
+
+    parameter                           P_RSP_CUT_VALID     = 1'b1,
+    parameter                           P_RSP_CUT_READY     = 1'b1,
+
+    parameter                           P_OTS_COUNT         = 1
 )
 (
     input                               clk,
     input                               reset_n,
 
+    // ICB总线接口
     input                               icb_cmd_vld,
     output                              icb_cmd_rdy,
     input                               icb_cmd_write,
@@ -20,6 +28,7 @@ module  lnrv_icb2apb#
     output[P_DATA_WIDTH - 1 : 0]        icb_rsp_rdata,
     output                              icb_rsp_err,
 
+    // APB总线接口
     output                              psel,
     output                              penable,
     output                              pwrite,
@@ -39,22 +48,78 @@ wire                                    penable_clr;
 wire                                    penable_rld;
 wire                                    penable_d;
 
-wire                                    icb_rsp_buf_push_vld;
-wire                                    icb_rsp_buf_push_rdy;
-wire[LP_ICB_RSP_BUF_DATA_WIDTH - 1 : 0] icb_rsp_buf_push_data;
 
-wire                                    icb_rsp_buf_pop_vld;
-wire                                    icb_rsp_buf_pop_rdy;
-wire[LP_ICB_RSP_BUF_DATA_WIDTH - 1 : 0] icb_rsp_buf_pop_data;
+wire                                    icb_cmd_vld_bufed;
+wire                                    icb_cmd_rdy_bufed;
+wire                                    icb_cmd_write_bufed;
+wire[P_ADDR_WIDTH - 1 : 0]              icb_cmd_addr_bufed;
+wire[P_DATA_WIDTH - 1 : 0]              icb_cmd_wdata_bufed;
+wire[(P_DATA_WIDTH/8) - 1 : 0]          icb_cmd_wstrb_bufed;
+wire[2 : 0]                             icb_cmd_size_bufed;
+wire                                    icb_rsp_vld_bufed;
+wire                                    icb_rsp_rdy_bufed;
+wire[P_DATA_WIDTH - 1 : 0]              icb_rsp_rdata_bufed;
+wire                                    icb_rsp_err_bufed;
 
 wire                                    apb_hsked;
 
 assign      apb_hsked = psel & penable & pready;
 
+// 插入buff
+lnrv_icb_slice#
+(
+    .P_ADDR_WIDTH                   ( P_ADDR_WIDTH              ),
+    .P_DATA_WIDTH                   ( P_DATA_WIDTH              ),
+
+    .P_CMD_CUT_VALID                ( P_CMD_CUT_VALID           ),
+    .P_CMD_CUT_READY                ( P_CMD_CUT_READY           ),
+    .P_CMD_BUF_DEEPTH               ( P_OTS_COUNT               ),
+
+    .P_RSP_CUT_VALID                ( P_RSP_CUT_VALID           ),
+    .P_RSP_CUT_READY                ( P_RSP_CUT_READY           ),
+    .P_RSP_BUF_DEEPTH               ( P_OTS_COUNT               ),
+
+    .P_OTS_COUNT                    ( 0                         ),
+    .P_OTS_CTRL_ENABLE              ( 1'b0                      ),
+    .P_FLUSH_ENABLE                 ( 1'b0                      )
+)
+u_lnrv_icb_buf
+(
+    .flush_req                      ( 1'b0                      ),
+    .flush_ack                      (                           ),
+
+    .icb_cmd_vld_m                  ( icb_cmd_vld               ),
+    .icb_cmd_rdy_m                  ( icb_cmd_rdy               ),
+    .icb_cmd_write_m                ( icb_cmd_write             ),
+    .icb_cmd_addr_m                 ( icb_cmd_addr              ),
+    .icb_cmd_wdata_m                ( icb_cmd_wdata             ),
+    .icb_cmd_wstrb_m                ( icb_cmd_wstrb             ),
+    .icb_cmd_size_m                 ( icb_cmd_size              ),
+    .icb_rsp_vld_m                  ( icb_rsp_vld               ),
+    .icb_rsp_rdy_m                  ( icb_rsp_rdy               ),
+    .icb_rsp_rdata_m                ( icb_rsp_rdata             ),
+    .icb_rsp_err_m                  ( icb_rsp_err               ),
+
+    .icb_cmd_vld_s                  ( icb_cmd_vld_bufed         ),
+    .icb_cmd_rdy_s                  ( icb_cmd_rdy_bufed         ),
+    .icb_cmd_write_s                ( icb_cmd_write_bufed       ),
+    .icb_cmd_addr_s                 ( icb_cmd_addr_bufed        ),
+    .icb_cmd_wdata_s                ( icb_cmd_wdata_bufed       ),
+    .icb_cmd_wstrb_s                ( icb_cmd_wstrb_bufed       ),
+    .icb_cmd_size_s                 ( icb_cmd_size_bufed        ),
+    .icb_rsp_vld_s                  ( icb_rsp_vld_bufed         ),
+    .icb_rsp_rdy_s                  ( icb_rsp_rdy_bufed         ),
+    .icb_rsp_rdata_s                ( icb_rsp_rdata_bufed       ),
+    .icb_rsp_err_s                  ( icb_rsp_err_bufed         ),
+
+    .clk                            ( clk                       ),
+    .reset_n                        ( reset_n                   )
+);
+
 
 // 在指令有效，且penable没有拉高，同时rsp buf中有空位的情况下，才可以发送apb操作
 assign      penable_set = psel & (~penable_q);
-assign      penable_clr = icb_cmd_rdy;
+assign      penable_clr = apb_hsked;
 assign      penable_rld = penable_set | penable_clr;
 assign      penable_d = (~penable_clr);
 always@(posedge clk or negedge reset_n) begin
@@ -66,48 +131,15 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 
-assign      icb_rsp_buf_push_data = {
-                                        prdata,
-                                        pslverr
-                                    };
-assign      icb_rsp_buf_push_vld = apb_hsked;
+assign      icb_cmd_rdy_bufed   = apb_hsked;
 
-assign      icb_rsp_buf_pop_rdy = icb_rsp_rdy;
-
-lnrv_gnrl_buffer#
-(
-    .P_DATA_WIDTH       ( LP_ICB_RSP_BUF_DATA_WIDTH     ),
-    .P_DEEPTH           ( P_OTS_COUNT                   ),
-    .P_CUT_READY        ( 1'b0                          ),
-    .P_BYPASS           ( 1'b0                          )
-)
-u_icb_rsp_buf
-(
-    .clk                ( clk                           ),
-    .reset_n            ( reset_n                       ),
-
-    .flush_req          ( 1'b0                          ),
-    .flush_ack          (                               ),
-
-    .push_vld           ( icb_rsp_buf_push_vld          ),
-    .push_rdy           ( icb_rsp_buf_push_rdy          ),
-    .push_data          ( icb_rsp_buf_push_data         ),
-
-    .pop_vld            ( icb_rsp_buf_pop_vld           ),
-    .pop_rdy            ( icb_rsp_buf_pop_rdy           ),
-    .pop_data           ( icb_rsp_buf_pop_data          )
-);
+assign      icb_rsp_vld_bufed   = apb_hsked;
+assign      icb_rsp_rdata_bufed = prdata;
+assign      icb_rsp_err_bufed   = pslverr;
 
 
-assign      icb_cmd_rdy = penable_q & pready;
-
-assign      icb_rsp_vld = icb_rsp_buf_pop_vld;
-assign      {
-                icb_rsp_rdata,
-                icb_rsp_err
-            } = icb_rsp_buf_pop_data;
-
-assign      psel        = icb_cmd_vld & icb_rsp_buf_push_rdy;
+// 可以接收response才发送apb操作
+assign      psel        = icb_cmd_vld_bufed & icb_rsp_rdy_bufed;
 assign      penable     = penable_q;
 assign      paddr       = icb_cmd_addr;
 assign      pwrite      = icb_cmd_write;

@@ -5,15 +5,15 @@ module lnrv_icb_demux#
     parameter                                           P_ICB_COUNT             = 4,
 
     // 是否在master通路上插入一个buffer，可以优化时序
-    parameter                                           P_CMD_BUFF_ENABLE       = 1'b1,
-    parameter                                           P_CMD_BUFF_CUT_READY    = 1'b1,
-    parameter                                           P_CMD_BUFF_BYPASS       = 1'b0,
-    parameter                                           P_CMD_OTS_COUNT         = 1,
+    parameter                                           P_CMD_CUT_VALID         = 1'b1,
+    parameter                                           P_CMD_CUT_READY         = 1'b1,
+    parameter                                           P_CMD_BUF_DEEPTH        = 1,
 
-    parameter                                           P_RSP_BUFF_ENABLE       = 1'b1,
-    parameter                                           P_RSP_BUFF_CUT_READY    = 1'b1,
-    parameter                                           P_RSP_BUFF_BYPASS       = 1'b0,
-    parameter                                           P_RSP_OTS_COUNT         = 1
+    parameter                                           P_RSP_CUT_VALID         = 1'b1,
+    parameter                                           P_RSP_CUT_READY         = 1'b1,
+    parameter                                           P_RSP_BUF_DEEPTH        = 1,
+
+    parameter                                           P_OTS_COUNT             = 1
 )
 (
     input                                               clk,
@@ -50,7 +50,8 @@ module lnrv_icb_demux#
     input[(P_ADDR_WIDTH * P_ICB_COUNT) - 1 : 0]         sn_region_end
 );
 
-localparam                                  LP_DISP_BUF_DATA_WIDTH = P_ICB_COUNT;
+localparam                                  LP_DISP_BUF_DATA_WIDTH  = P_ICB_COUNT;
+localparam                                  LP_DISP_BUF_DEEPTH      = P_OTS_COUNT;
 
 wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]        disp_buf_push_data;
 wire                                        disp_buf_push_vld;
@@ -115,23 +116,28 @@ assign      icb_cmd_hsked_m = icb_cmd_vld_bufed_m & icb_cmd_rdy_bufed_m;
 assign      icb_rsp_hsked_m = icb_rsp_vld_bufed_m & icb_rsp_rdy_bufed_m;
 
 // 根据参数决定是否需要在输入端口插入一个buff
-lnrv_icb_buf#
+lnrv_icb_slice#
 (
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
 
-    .P_CMD_BUFF_ENABLE      ( P_CMD_BUFF_ENABLE         ),
-    .P_CMD_BUFF_CUT_READY   ( P_CMD_BUFF_CUT_READY      ),
-    .P_CMD_BUFF_BYPASS      ( P_CMD_BUFF_BYPASS         ),
-    .P_CMD_OTS_COUNT        ( P_CMD_OTS_COUNT           ),
+    .P_CMD_CUT_VALID        ( P_CMD_CUT_VALID           ),
+    .P_CMD_CUT_READY        ( P_CMD_CUT_READY           ),
+    .P_CMD_BUF_DEEPTH       ( P_CMD_BUF_DEEPTH          ),
 
-    .P_RSP_BUFF_ENABLE      ( P_RSP_BUFF_ENABLE         ),
-    .P_RSP_BUFF_CUT_READY   ( P_RSP_BUFF_CUT_READY      ),
-    .P_RSP_BUFF_BYPASS      ( P_RSP_BUFF_BYPASS         ),
-    .P_RSP_OTS_COUNT        ( P_RSP_OTS_COUNT           )
+    .P_RSP_CUT_VALID        ( P_RSP_CUT_VALID           ),
+    .P_RSP_CUT_READY        ( P_RSP_CUT_READY           ),
+    .P_RSP_BUF_DEEPTH       ( P_RSP_BUF_DEEPTH          ),
+
+    .P_OTS_COUNT            ( 1                         ),
+    .P_OTS_CTRL_ENABLE      ( 1'b0                      ),
+    .P_FLUSH_ENABLE         ( 1'b0                      )
 )
 u_lnrv_icb_buf
 (
+    .flush_req              ( 1'b0                      ),
+    .flush_ack              (                           ),
+
     .icb_cmd_vld_m          ( icb_cmd_vld_m             ),
     .icb_cmd_rdy_m          ( icb_cmd_rdy_m             ),
     .icb_cmd_write_m        ( icb_cmd_write_m           ),
@@ -172,28 +178,30 @@ assign      slv_region_match_bufed  = disp_buf_pop_data;
 assign      no_region_match_bufed   = ~(|slv_region_match_bufed);
 
 // 将分发信息保存下来，用于rsp通道
-lnrv_gnrl_buffer#
+lnrv_gnrl_buf#
 (
-    .P_DATA_WIDTH       ( LP_DISP_BUF_DATA_WIDTH    ),
-    .P_DEEPTH           ( P_CMD_OTS_COUNT           ),
-    .P_CUT_READY        ( 1'b0                   ),
-    .P_BYPASS           ( 1'b0                   )
+    .P_DATA_WIDTH           ( LP_DISP_BUF_DATA_WIDTH    ),
+    .P_DEEPTH               ( LP_DISP_BUF_DEEPTH        ),
+
+    .P_CUT_VALID            ( 1'b0                      ),
+    .P_CUT_READY            ( 1'b1                      ),
+    .P_FLUSH_DELAY          ( 1'b0                      )
 )
 u_icb_disp_buf
 (
-    .clk                ( clk                       ),
-    .reset_n            ( reset_n                   ),
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   ),
 
-    .flush_req          ( 1'b0                      ),
-    .flush_ack          (                           ),
+    .flush_req              ( 1'b0                      ),
+    .flush_ack              (                           ),
 
-    .push_vld           ( disp_buf_push_vld         ),
-    .push_rdy           ( disp_buf_push_rdy         ),
-    .push_data          ( disp_buf_push_data        ),
+    .push_vld               ( disp_buf_push_vld         ),
+    .push_rdy               ( disp_buf_push_rdy         ),
+    .push_data              ( disp_buf_push_data        ),
 
-    .pop_vld            ( disp_buf_pop_vld          ),
-    .pop_rdy            ( disp_buf_pop_rdy          ),
-    .pop_data           ( disp_buf_pop_data         )
+    .pop_vld                ( disp_buf_pop_vld          ),
+    .pop_rdy                ( disp_buf_pop_rdy          ),
+    .pop_data               ( disp_buf_pop_data         )
 );
 
  // 分离出各个地址区间的base和mask信息，进行匹配

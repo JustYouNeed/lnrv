@@ -152,6 +152,55 @@ localparam                      LP_DLM_SIZE = 2 ** P_DLM_ADDR_WIDTH;
 localparam                      LP_DLM_REGION_START = P_DLM_REGION_BASE;
 localparam                      LP_DLM_REGION_END = P_DLM_REGION_BASE + LP_DLM_SIZE;
 
+localparam                      LP_CMD_CUT_VALID_IFU            = 1'b0;
+localparam                      LP_CMD_CUT_READY_IFU            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_IFU           = 1;
+localparam                      LP_RSP_CUT_VALID_IFU            = 1'b1;
+localparam                      LP_RSP_CUT_READY_IFU            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_IFU           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_IFU          = 0;
+
+localparam                      LP_CMD_CUT_VALID_EXU            = 1'b1;
+localparam                      LP_CMD_CUT_READY_EXU            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_EXU           = 1;
+localparam                      LP_RSP_CUT_VALID_EXU            = 1'b1;
+localparam                      LP_RSP_CUT_READY_EXU            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_EXU           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_EXU          = 0;
+
+localparam                      LP_CMD_CUT_VALID_SLV            = 1'b1;
+localparam                      LP_CMD_CUT_READY_SLV            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_SLV           = 1;
+localparam                      LP_RSP_CUT_VALID_SLV            = 1'b1;
+localparam                      LP_RSP_CUT_READY_SLV            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_SLV           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_SLV          = 0;
+
+localparam                      LP_CMD_CUT_VALID_ILM            = 1'b1;
+localparam                      LP_CMD_CUT_READY_ILM            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_ILM           = 1;
+localparam                      LP_RSP_CUT_VALID_ILM            = 1'b1;
+localparam                      LP_RSP_CUT_READY_ILM            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_ILM           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_ILM          = 0;
+
+localparam                      LP_CMD_CUT_VALID_DLM            = 1'b1;
+localparam                      LP_CMD_CUT_READY_DLM            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_DLM           = 1;
+localparam                      LP_RSP_CUT_VALID_DLM            = 1'b1;
+localparam                      LP_RSP_CUT_READY_DLM            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_DLM           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_DLM          = 0;
+
+localparam                      LP_CMD_CUT_VALID_SYS            = 1'b1;
+localparam                      LP_CMD_CUT_READY_SYS            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_SYS           = 1;
+localparam                      LP_RSP_CUT_VALID_SYS            = 1'b1;
+localparam                      LP_RSP_CUT_READY_SYS            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_SYS           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_SYS          = 0;
+
+
 wire                            icb_cmd_vld_ifu;
 wire                            icb_cmd_rdy_ifu;
 wire                            icb_cmd_write_ifu;
@@ -298,7 +347,67 @@ lnrv_biu#
     .P_DLM_REGION_END       ( LP_DLM_REGION_END         ),
 
     .P_ADDR_WIDTH           ( 32                        ),
-    .P_DATA_WIDTH           ( 32                        )
+    .P_DATA_WIDTH           ( 32                        ),
+
+    // IFU接口配置参数
+    .P_CMD_CUT_VALID_IFU    ( 1'b0                      ),
+    .P_CMD_CUT_READY_IFU    ( 1'b1                      ),
+    .P_CMD_BUF_DEEPTH_IFU   ( 1                         ),
+    .P_RSP_CUT_VALID_IFU    ( 1'b1                      ),
+    .P_RSP_CUT_READY_IFU    ( 1'b0                      ),
+    .P_RSP_BUF_DEEPTH_IFU   ( 1                         ),
+    .P_OTS_COUNT_IFU        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_IFU  ( 1'b0                      ),
+
+    // EXU接口配置参数
+    .P_CMD_CUT_VALID_EXU    ( 1'b0                      ),
+    .P_CMD_CUT_READY_EXU    ( 1'b1                      ),
+    .P_CMD_BUF_DEEPTH_EXU   ( 1                         ),
+    .P_RSP_CUT_VALID_EXU    ( 1'b0                      ),
+    .P_RSP_CUT_READY_EXU    ( 1'b1                      ),
+    .P_RSP_BUF_DEEPTH_EXU   ( 1                         ),
+    .P_OTS_COUNT_EXU        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_EXU  ( 1'b0                      ),
+
+    // SLV接口配置参数
+    .P_CMD_CUT_VALID_SLV    ( LP_CMD_CUT_VALID_SLV      ),
+    .P_CMD_CUT_READY_SLV    ( LP_CMD_CUT_READY_SLV      ),
+    .P_CMD_BUF_DEEPTH_SLV   ( LP_CMD_BUF_DEEPTH_SLV     ),
+    .P_RSP_CUT_VALID_SLV    ( LP_RSP_CUT_VALID_SLV      ),
+    .P_RSP_CUT_READY_SLV    ( LP_RSP_CUT_READY_SLV      ),
+    .P_RSP_BUF_DEEPTH_SLV   ( LP_RSP_BUF_DEEPTH_SLV     ),
+    .P_OTS_COUNT_SLV        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_SLV  ( LP_OTS_CTRL_ENABLE_SLV    ),
+
+    // ILM接口配置参数
+    .P_CMD_CUT_VALID_ILM    ( 1'b0                      ),
+    .P_CMD_CUT_READY_ILM    ( 1'b0                      ),
+    .P_CMD_BUF_DEEPTH_ILM   ( 0                         ),
+    .P_RSP_CUT_VALID_ILM    ( 1'b0                      ),
+    .P_RSP_CUT_READY_ILM    ( 1'b0                      ),
+    .P_RSP_BUF_DEEPTH_ILM   ( 1'b0                      ),
+    .P_OTS_COUNT_ILM        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_ILM  ( LP_OTS_CTRL_ENABLE_ILM    ),
+
+    // DLM接口配置参数
+    .P_CMD_CUT_VALID_DLM    ( LP_CMD_CUT_VALID_DLM      ),
+    .P_CMD_CUT_READY_DLM    ( LP_CMD_CUT_READY_DLM      ),
+    .P_CMD_BUF_DEEPTH_DLM   ( LP_CMD_BUF_DEEPTH_DLM     ),
+    .P_RSP_CUT_VALID_DLM    ( LP_RSP_CUT_VALID_DLM      ),
+    .P_RSP_CUT_READY_DLM    ( LP_RSP_CUT_READY_DLM      ),
+    .P_RSP_BUF_DEEPTH_DLM   ( LP_RSP_BUF_DEEPTH_DLM     ),
+    .P_OTS_COUNT_DLM        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_DLM  ( LP_OTS_CTRL_ENABLE_DLM    ),
+
+    // SYS接口配置参数
+    .P_CMD_CUT_VALID_SYS    ( LP_CMD_CUT_VALID_SYS      ),
+    .P_CMD_CUT_READY_SYS    ( LP_CMD_CUT_READY_SYS      ),
+    .P_CMD_BUF_DEEPTH_SYS   ( LP_CMD_BUF_DEEPTH_SYS     ),
+    .P_RSP_CUT_VALID_SYS    ( LP_RSP_CUT_VALID_SYS      ),
+    .P_RSP_CUT_READY_SYS    ( LP_RSP_CUT_READY_SYS      ),
+    .P_RSP_BUF_DEEPTH_SYS   ( LP_RSP_BUF_DEEPTH_SYS     ),
+    .P_OTS_COUNT_SYS        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_SYS  ( LP_OTS_CTRL_ENABLE_SYS    )
 )
 u_lnrv_biu
 (

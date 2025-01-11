@@ -118,23 +118,28 @@ assign      no_w_ots = (~w_hsked_q) | w_hsked_clr;
 assign      no_ar_ots = (~ar_hsked_q) | axi_r_hsked;
 
 // 先在icb路径上插入一个buff
-lnrv_icb_buf#
+lnrv_icb_slice#
 (
     .P_ADDR_WIDTH               ( P_DATA_WIDTH          ),
     .P_DATA_WIDTH               ( P_ADDR_WIDTH          ),
 
-    .P_CMD_BUFF_ENABLE          ( 1'b1                  ),
-    .P_CMD_BUFF_CUT_READY       ( 1'b1                  ),
-    .P_CMD_BUFF_BYPASS          ( 1'b0                  ),
-    .P_CMD_OTS_COUNT            ( 1                     ),
+    .P_CMD_CUT_VALID            ( 1'b1                  ),
+    .P_CMD_CUT_READY            ( 1'b1                  ),
+    .P_CMD_BUF_DEEPTH           ( 1                     ),
 
-    .P_RSP_BUFF_ENABLE          ( 1'b1                  ),
-    .P_RSP_BUFF_CUT_READY       ( 1'b1                  ),
-    .P_RSP_BUFF_BYPASS          ( 1'b0                  ),
-    .P_RSP_OTS_COUNT            ( 1                     )
+    .P_RSP_CUT_VALID            ( 1'b1                  ),
+    .P_RSP_CUT_READY            ( 1'b1                  ),
+    .P_RSP_BUF_DEEPTH           ( 1                     ),
+
+    .P_OTS_COUNT                ( 1                     ),
+    .P_OTS_CTRL_ENABLE          ( 1'b0                  ),
+    .P_FLUSH_ENABLE             ( 1'b0                  )
 )
 u_lnrv_icb_buf
 (
+    .flush_req                  ( 1'b0                  ),
+    .flush_ack                  (                       ),
+
     .icb_cmd_vld_m              ( icb_cmd_vld           ),
     .icb_cmd_rdy_m              ( icb_cmd_rdy           ),
     .icb_cmd_write_m            ( icb_cmd_write         ),

@@ -1,15 +1,76 @@
 module lnrv_biu#
 (
-    parameter                               P_ILM_REGION_START = 32'h0000_0000,
-    parameter                               P_ILM_REGION_END = 32'h0002_0000,
+    parameter                               P_ILM_REGION_START      = 32'h0000_0000,
+    parameter                               P_ILM_REGION_END        = 32'h0002_0000,
 
-    parameter                               P_DLM_REGION_START = 32'h0002_0000,
-    parameter                               P_DLM_REGION_END = 32'h0004_0000,
+    parameter                               P_DLM_REGION_START      = 32'h0002_0000,
+    parameter                               P_DLM_REGION_END        = 32'h0004_0000,
 
-    parameter                               P_ADDR_WIDTH = 32,
-    parameter                               P_DATA_WIDTH = 32
+    parameter                               P_ADDR_WIDTH            = 32,
+    parameter                               P_DATA_WIDTH            = 32,
+
+    // IFU接口配置参数
+    parameter                               P_CMD_CUT_VALID_IFU     = 1'b1,
+    parameter                               P_CMD_CUT_READY_IFU     = 1'b1,
+    parameter                               P_CMD_BUF_DEEPTH_IFU    = 1,
+    parameter                               P_RSP_CUT_VALID_IFU     = 1'b1,
+    parameter                               P_RSP_CUT_READY_IFU     = 1'b1,
+    parameter                               P_RSP_BUF_DEEPTH_IFU    = 1,
+    parameter                               P_OTS_COUNT_IFU         = 1,
+    parameter                               P_OTS_CTRL_ENABLE_IFU   = 0,
+
+    // EXU接口配置参数
+    parameter                               P_CMD_CUT_VALID_EXU     = 1'b1,
+    parameter                               P_CMD_CUT_READY_EXU     = 1'b1,
+    parameter                               P_CMD_BUF_DEEPTH_EXU    = 1,
+    parameter                               P_RSP_CUT_VALID_EXU     = 1'b1,
+    parameter                               P_RSP_CUT_READY_EXU     = 1'b1,
+    parameter                               P_RSP_BUF_DEEPTH_EXU    = 1,
+    parameter                               P_OTS_COUNT_EXU         = 1,
+    parameter                               P_OTS_CTRL_ENABLE_EXU   = 0,
+
+    // SLV接口配置参数
+    parameter                               P_CMD_CUT_VALID_SLV     = 1'b1,
+    parameter                               P_CMD_CUT_READY_SLV     = 1'b1,
+    parameter                               P_CMD_BUF_DEEPTH_SLV    = 1,
+    parameter                               P_RSP_CUT_VALID_SLV     = 1'b1,
+    parameter                               P_RSP_CUT_READY_SLV     = 1'b1,
+    parameter                               P_RSP_BUF_DEEPTH_SLV    = 1,
+    parameter                               P_OTS_COUNT_SLV         = 1,
+    parameter                               P_OTS_CTRL_ENABLE_SLV   = 0,
+
+    // ILM接口配置参数
+    parameter                               P_CMD_CUT_VALID_ILM     = 1'b1,
+    parameter                               P_CMD_CUT_READY_ILM     = 1'b1,
+    parameter                               P_CMD_BUF_DEEPTH_ILM    = 1,
+    parameter                               P_RSP_CUT_VALID_ILM     = 1'b1,
+    parameter                               P_RSP_CUT_READY_ILM     = 1'b1,
+    parameter                               P_RSP_BUF_DEEPTH_ILM    = 1,
+    parameter                               P_OTS_COUNT_ILM         = 1,
+    parameter                               P_OTS_CTRL_ENABLE_ILM   = 0,
+
+    // DLM接口配置参数
+    parameter                               P_CMD_CUT_VALID_DLM     = 1'b1,
+    parameter                               P_CMD_CUT_READY_DLM     = 1'b1,
+    parameter                               P_CMD_BUF_DEEPTH_DLM    = 1,
+    parameter                               P_RSP_CUT_VALID_DLM     = 1'b1,
+    parameter                               P_RSP_CUT_READY_DLM     = 1'b1,
+    parameter                               P_RSP_BUF_DEEPTH_DLM    = 1,
+    parameter                               P_OTS_COUNT_DLM         = 1,
+    parameter                               P_OTS_CTRL_ENABLE_DLM   = 0,
+
+    // SYS接口配置参数
+    parameter                               P_CMD_CUT_VALID_SYS     = 1'b1,
+    parameter                               P_CMD_CUT_READY_SYS     = 1'b1,
+    parameter                               P_CMD_BUF_DEEPTH_SYS    = 1,
+    parameter                               P_RSP_CUT_VALID_SYS     = 1'b1,
+    parameter                               P_RSP_CUT_READY_SYS     = 1'b1,
+    parameter                               P_RSP_BUF_DEEPTH_SYS    = 1,
+    parameter                               P_OTS_COUNT_SYS         = 1,
+    parameter                               P_OTS_CTRL_ENABLE_SYS   = 0
 )
 (
+    // 取指模块
     input                                   icb_cmd_vld_ifu,
     output                                  icb_cmd_rdy_ifu,
     input                                   icb_cmd_write_ifu,
@@ -22,6 +83,7 @@ module lnrv_biu#
     output[P_DATA_WIDTH - 1 : 0]            icb_rsp_rdata_ifu,
     output                                  icb_rsp_err_ifu,
 
+    // exu模块
     input                                   icb_cmd_vld_exu,
     output                                  icb_cmd_rdy_exu,
     input                                   icb_cmd_write_exu,
@@ -34,6 +96,7 @@ module lnrv_biu#
     output[P_DATA_WIDTH - 1 : 0]            icb_rsp_rdata_exu,
     output                                  icb_rsp_err_exu,
 
+    // slave访问接口
     input                                   icb_cmd_vld_slv,
     output                                  icb_cmd_rdy_slv,
     input                                   icb_cmd_write_slv,
@@ -46,6 +109,7 @@ module lnrv_biu#
     output[P_DATA_WIDTH - 1 : 0]            icb_rsp_rdata_slv,
     output                                  icb_rsp_err_slv,
 
+    // 连接到ILM控制模块
     output                                  icb_cmd_vld_ilm,
     input                                   icb_cmd_rdy_ilm,
     output                                  icb_cmd_write_ilm,
@@ -58,6 +122,7 @@ module lnrv_biu#
     input[P_DATA_WIDTH - 1 : 0]             icb_rsp_rdata_ilm,
     input                                   icb_rsp_err_ilm,
 
+    // 连接到DLM控制模块
     output                                  icb_cmd_vld_dlm,
     input                                   icb_cmd_rdy_dlm,
     output                                  icb_cmd_write_dlm,
@@ -70,6 +135,7 @@ module lnrv_biu#
     input[P_DATA_WIDTH - 1 : 0]             icb_rsp_rdata_dlm,
     input                                   icb_rsp_err_dlm,
 
+    // 连接到系统总线
     output                                  icb_cmd_vld_sys,
     input                                   icb_cmd_rdy_sys,
     output                                  icb_cmd_write_sys,
@@ -87,130 +153,130 @@ module lnrv_biu#
 );
 
 // ifu模块可以访问ILM/DLM和系统总线
-localparam                                  LP_IFU_ICB_COUNT = 3;
-localparam                                  LP_IFU_SN_ADDR_WIDTH = LP_IFU_ICB_COUNT * P_ADDR_WIDTH;
-localparam                                  LP_IFU_SN_DATA_WIDTH = LP_IFU_ICB_COUNT * P_DATA_WIDTH;
-localparam                                  LP_IFU_SN_SIZE_WIDTH = LP_IFU_ICB_COUNT * 3;
-localparam                                  LP_IFU_SN_WSTRB_WIDTH = LP_IFU_ICB_COUNT * (P_DATA_WIDTH/8);
+localparam                                  LP_ICB_COUNT_IFU = 3;
+localparam                                  LP_SN_ADDR_WIDTH_IFU = LP_ICB_COUNT_IFU * P_ADDR_WIDTH;
+localparam                                  LP_SN_DATA_WIDTH_IFU = LP_ICB_COUNT_IFU * P_DATA_WIDTH;
+localparam                                  LP_SN_SIZE_WIDTH_IFU = LP_ICB_COUNT_IFU * 3;
+localparam                                  LP_SN_WSTRB_WIDTH_IFU = LP_ICB_COUNT_IFU * (P_DATA_WIDTH/8);
 
 // exu模块可以访问ILM/DLM以及系统总线
-localparam                                  LP_EXU_ICB_COUNT = 3;
-localparam                                  LP_EXU_SN_ADDR_WIDTH = LP_EXU_ICB_COUNT * P_ADDR_WIDTH;
-localparam                                  LP_EXU_SN_DATA_WIDTH = LP_EXU_ICB_COUNT * P_DATA_WIDTH;
-localparam                                  LP_EXU_SN_SIZE_WIDTH = LP_EXU_ICB_COUNT * 3;
-localparam                                  LP_EXU_SN_WSTRB_WIDTH = LP_EXU_ICB_COUNT * (P_DATA_WIDTH/8);
+localparam                                  LP_ICB_COUNT_EXU = 3;
+localparam                                  LP_SN_ADDR_WIDTH_EXU = LP_ICB_COUNT_EXU * P_ADDR_WIDTH;
+localparam                                  LP_SN_DATA_WIDTH_EXU = LP_ICB_COUNT_EXU * P_DATA_WIDTH;
+localparam                                  LP_SN_SIZE_WIDTH_EXU = LP_ICB_COUNT_EXU * 3;
+localparam                                  LP_SN_WSTRB_WIDTH_EXU = LP_ICB_COUNT_EXU * (P_DATA_WIDTH/8);
 
 // slave接口提供外部访问内部ILM/DLM的能力
-localparam                                  LP_SLV_ICB_COUNT = 2;
-localparam                                  LP_SLV_SN_ADDR_WIDTH = LP_SLV_ICB_COUNT * P_ADDR_WIDTH;
-localparam                                  LP_SLV_SN_DATA_WIDTH = LP_SLV_ICB_COUNT * P_DATA_WIDTH;
-localparam                                  LP_SLV_SN_SIZE_WIDTH = LP_SLV_ICB_COUNT * 3;
-localparam                                  LP_SLV_SN_WSTRB_WIDTH = LP_SLV_ICB_COUNT * (P_DATA_WIDTH/8);
+localparam                                  LP_ICB_COUNT_SLV = 2;
+localparam                                  LP_SN_ADDR_WIDTH_SLV = LP_ICB_COUNT_SLV * P_ADDR_WIDTH;
+localparam                                  LP_SN_DATA_WIDTH_SLV = LP_ICB_COUNT_SLV * P_DATA_WIDTH;
+localparam                                  LP_SN_SIZE_WIDTH_SLV = LP_ICB_COUNT_SLV * 3;
+localparam                                  LP_SN_WSTRB_WIDTH_SLV = LP_ICB_COUNT_SLV * (P_DATA_WIDTH/8);
 
 // 有三个接口可能访问ILM
-localparam                                  LP_ILM_ICB_COUNT = 3;
-localparam                                  LP_ILM_MN_ADDR_WIDTH = LP_ILM_ICB_COUNT * P_ADDR_WIDTH;
-localparam                                  LP_ILM_MN_DATA_WIDTH = LP_ILM_ICB_COUNT * P_DATA_WIDTH;
-localparam                                  LP_ILM_MN_SIZE_WIDTH = LP_ILM_ICB_COUNT * 3;
-localparam                                  LP_ILM_MN_WSTRB_WIDTH = LP_ILM_ICB_COUNT * (P_DATA_WIDTH/8);
+localparam                                  LP_ICB_COUNT_ILM = 3;
+localparam                                  LP_MN_ADDR_WIDTH_ILM = LP_ICB_COUNT_ILM * P_ADDR_WIDTH;
+localparam                                  LP_MN_DATA_WIDTH_ILM = LP_ICB_COUNT_ILM * P_DATA_WIDTH;
+localparam                                  LP_MN_SIZE_WIDTH_ILM = LP_ICB_COUNT_ILM * 3;
+localparam                                  LP_MN_WSTRB_WIDTH_ILM = LP_ICB_COUNT_ILM * (P_DATA_WIDTH/8);
 
 // 有三个接口可能访问DLM
-localparam                                  LP_DLM_ICB_COUNT = 3;
-localparam                                  LP_DLM_MN_ADDR_WIDTH = LP_DLM_ICB_COUNT * P_ADDR_WIDTH;
-localparam                                  LP_DLM_MN_DATA_WIDTH = LP_DLM_ICB_COUNT * P_DATA_WIDTH;
-localparam                                  LP_DLM_MN_SIZE_WIDTH = LP_DLM_ICB_COUNT * 3;
-localparam                                  LP_DLM_MN_WSTRB_WIDTH = LP_DLM_ICB_COUNT * (P_DATA_WIDTH/8);
+localparam                                  LP_ICB_COUNT_DLM = 3;
+localparam                                  LP_MN_ADDR_WIDTH_DLM = LP_ICB_COUNT_DLM * P_ADDR_WIDTH;
+localparam                                  LP_MN_DATA_WIDTH_DLM = LP_ICB_COUNT_DLM * P_DATA_WIDTH;
+localparam                                  LP_MN_SIZE_WIDTH_DLM = LP_ICB_COUNT_DLM * 3;
+localparam                                  LP_MN_WSTRB_WIDTH_DLM = LP_ICB_COUNT_DLM * (P_DATA_WIDTH/8);
 
 // 有两个接口可以访问系统总线
-localparam                                  LP_SYS_ICB_COUNT = 2;
-localparam                                  LP_SYS_MN_ADDR_WIDTH = LP_SYS_ICB_COUNT * P_ADDR_WIDTH;
-localparam                                  LP_SYS_MN_DATA_WIDTH = LP_SYS_ICB_COUNT * P_DATA_WIDTH;
-localparam                                  LP_SYS_MN_SIZE_WIDTH = LP_SYS_ICB_COUNT * 3;
-localparam                                  LP_SYS_MN_WSTRB_WIDTH = LP_SYS_ICB_COUNT * (P_DATA_WIDTH/8);
+localparam                                  LP_ICB_COUNT_SYS = 2;
+localparam                                  LP_MN_ADDR_WIDTH_SYS = LP_ICB_COUNT_SYS * P_ADDR_WIDTH;
+localparam                                  LP_MN_DATA_WIDTH_SYS = LP_ICB_COUNT_SYS * P_DATA_WIDTH;
+localparam                                  LP_MN_SIZE_WIDTH_SYS = LP_ICB_COUNT_SYS * 3;
+localparam                                  LP_MN_WSTRB_WIDTH_SYS = LP_ICB_COUNT_SYS * (P_DATA_WIDTH/8);
 
 // 拆分ifu接口
-wire[LP_IFU_ICB_COUNT - 1 : 0]              icb_cmd_vld_ifu_sn;
-wire[LP_IFU_ICB_COUNT - 1 : 0]              icb_cmd_rdy_ifu_sn;
-wire[LP_IFU_ICB_COUNT - 1 : 0]              icb_cmd_write_ifu_sn;
-wire[LP_IFU_SN_ADDR_WIDTH - 1 : 0]          icb_cmd_addr_ifu_sn;
-wire[LP_IFU_SN_DATA_WIDTH - 1 : 0]          icb_cmd_wdata_ifu_sn;
-wire[LP_IFU_SN_WSTRB_WIDTH - 1 : 0]         icb_cmd_wstrb_ifu_sn;
-wire[LP_IFU_SN_SIZE_WIDTH - 1 : 0]          icb_cmd_size_ifu_sn;
-wire[LP_IFU_ICB_COUNT - 1 : 0]              icb_rsp_vld_ifu_sn;
-wire[LP_IFU_ICB_COUNT - 1 : 0]              icb_rsp_rdy_ifu_sn;
-wire[LP_IFU_SN_DATA_WIDTH - 1 : 0]          icb_rsp_rdata_ifu_sn;
-wire[LP_IFU_ICB_COUNT - 1 : 0]              icb_rsp_err_ifu_sn;
-wire[LP_IFU_SN_ADDR_WIDTH - 1 : 0]          ifu_sn_region_base;
-wire[LP_IFU_SN_ADDR_WIDTH - 1 : 0]          ifu_sn_region_end;
+wire[LP_ICB_COUNT_IFU - 1 : 0]              icb_cmd_vld_ifu_sn;
+wire[LP_ICB_COUNT_IFU - 1 : 0]              icb_cmd_rdy_ifu_sn;
+wire[LP_ICB_COUNT_IFU - 1 : 0]              icb_cmd_write_ifu_sn;
+wire[LP_SN_ADDR_WIDTH_IFU - 1 : 0]          icb_cmd_addr_ifu_sn;
+wire[LP_SN_DATA_WIDTH_IFU - 1 : 0]          icb_cmd_wdata_ifu_sn;
+wire[LP_SN_WSTRB_WIDTH_IFU - 1 : 0]         icb_cmd_wstrb_ifu_sn;
+wire[LP_SN_SIZE_WIDTH_IFU - 1 : 0]          icb_cmd_size_ifu_sn;
+wire[LP_ICB_COUNT_IFU - 1 : 0]              icb_rsp_vld_ifu_sn;
+wire[LP_ICB_COUNT_IFU - 1 : 0]              icb_rsp_rdy_ifu_sn;
+wire[LP_SN_DATA_WIDTH_IFU - 1 : 0]          icb_rsp_rdata_ifu_sn;
+wire[LP_ICB_COUNT_IFU - 1 : 0]              icb_rsp_err_ifu_sn;
+wire[LP_SN_ADDR_WIDTH_IFU - 1 : 0]          ifu_sn_region_base;
+wire[LP_SN_ADDR_WIDTH_IFU - 1 : 0]          ifu_sn_region_end;
 
 // 拆分exu接口
-wire[LP_EXU_ICB_COUNT - 1 : 0]              icb_cmd_vld_exu_sn;
-wire[LP_EXU_ICB_COUNT - 1 : 0]              icb_cmd_rdy_exu_sn;
-wire[LP_EXU_ICB_COUNT - 1 : 0]              icb_cmd_write_exu_sn;
-wire[LP_EXU_SN_ADDR_WIDTH - 1 : 0]          icb_cmd_addr_exu_sn;
-wire[LP_EXU_SN_DATA_WIDTH - 1 : 0]          icb_cmd_wdata_exu_sn;
-wire[LP_EXU_SN_WSTRB_WIDTH - 1 : 0]         icb_cmd_wstrb_exu_sn;
-wire[LP_EXU_SN_SIZE_WIDTH - 1 : 0]          icb_cmd_size_exu_sn;
-wire[LP_EXU_ICB_COUNT - 1 : 0]              icb_rsp_vld_exu_sn;
-wire[LP_EXU_ICB_COUNT - 1 : 0]              icb_rsp_rdy_exu_sn;
-wire[LP_EXU_SN_DATA_WIDTH - 1 : 0]          icb_rsp_rdata_exu_sn;
-wire[LP_EXU_ICB_COUNT - 1 : 0]              icb_rsp_err_exu_sn;
-wire[LP_EXU_SN_ADDR_WIDTH - 1 : 0]          exu_sn_region_base;
-wire[LP_EXU_SN_ADDR_WIDTH - 1 : 0]          exu_sn_region_end;
+wire[LP_ICB_COUNT_EXU - 1 : 0]              icb_cmd_vld_exu_sn;
+wire[LP_ICB_COUNT_EXU - 1 : 0]              icb_cmd_rdy_exu_sn;
+wire[LP_ICB_COUNT_EXU - 1 : 0]              icb_cmd_write_exu_sn;
+wire[LP_SN_ADDR_WIDTH_EXU - 1 : 0]          icb_cmd_addr_exu_sn;
+wire[LP_SN_DATA_WIDTH_EXU - 1 : 0]          icb_cmd_wdata_exu_sn;
+wire[LP_SN_WSTRB_WIDTH_EXU - 1 : 0]         icb_cmd_wstrb_exu_sn;
+wire[LP_SN_SIZE_WIDTH_EXU - 1 : 0]          icb_cmd_size_exu_sn;
+wire[LP_ICB_COUNT_EXU - 1 : 0]              icb_rsp_vld_exu_sn;
+wire[LP_ICB_COUNT_EXU - 1 : 0]              icb_rsp_rdy_exu_sn;
+wire[LP_SN_DATA_WIDTH_EXU - 1 : 0]          icb_rsp_rdata_exu_sn;
+wire[LP_ICB_COUNT_EXU - 1 : 0]              icb_rsp_err_exu_sn;
+wire[LP_SN_ADDR_WIDTH_EXU - 1 : 0]          exu_sn_region_base;
+wire[LP_SN_ADDR_WIDTH_EXU - 1 : 0]          exu_sn_region_end;
 
 // 拆分slave接口
-wire[LP_SLV_ICB_COUNT - 1 : 0]              icb_cmd_vld_slv_sn;
-wire[LP_SLV_ICB_COUNT - 1 : 0]              icb_cmd_rdy_slv_sn;
-wire[LP_SLV_ICB_COUNT - 1 : 0]              icb_cmd_write_slv_sn;
-wire[LP_SLV_SN_ADDR_WIDTH - 1 : 0]          icb_cmd_addr_slv_sn;
-wire[LP_SLV_SN_DATA_WIDTH - 1 : 0]          icb_cmd_wdata_slv_sn;
-wire[LP_SLV_SN_WSTRB_WIDTH - 1 : 0]         icb_cmd_wstrb_slv_sn;
-wire[LP_SLV_SN_SIZE_WIDTH - 1 : 0]          icb_cmd_size_slv_sn;
-wire[LP_SLV_ICB_COUNT - 1 : 0]              icb_rsp_vld_slv_sn;
-wire[LP_SLV_ICB_COUNT - 1 : 0]              icb_rsp_rdy_slv_sn;
-wire[LP_SLV_SN_DATA_WIDTH - 1 : 0]          icb_rsp_rdata_slv_sn;
-wire[LP_SLV_ICB_COUNT - 1 : 0]              icb_rsp_err_slv_sn;
-wire[LP_SLV_SN_ADDR_WIDTH - 1 : 0]          slv_sn_region_base;
-wire[LP_SLV_SN_ADDR_WIDTH - 1 : 0]          slv_sn_region_end;
+wire[LP_ICB_COUNT_SLV - 1 : 0]              icb_cmd_vld_slv_sn;
+wire[LP_ICB_COUNT_SLV - 1 : 0]              icb_cmd_rdy_slv_sn;
+wire[LP_ICB_COUNT_SLV - 1 : 0]              icb_cmd_write_slv_sn;
+wire[LP_SN_ADDR_WIDTH_SLV - 1 : 0]          icb_cmd_addr_slv_sn;
+wire[LP_SN_DATA_WIDTH_SLV - 1 : 0]          icb_cmd_wdata_slv_sn;
+wire[LP_SN_WSTRB_WIDTH_SLV - 1 : 0]         icb_cmd_wstrb_slv_sn;
+wire[LP_SN_SIZE_WIDTH_SLV - 1 : 0]          icb_cmd_size_slv_sn;
+wire[LP_ICB_COUNT_SLV - 1 : 0]              icb_rsp_vld_slv_sn;
+wire[LP_ICB_COUNT_SLV - 1 : 0]              icb_rsp_rdy_slv_sn;
+wire[LP_SN_DATA_WIDTH_SLV - 1 : 0]          icb_rsp_rdata_slv_sn;
+wire[LP_ICB_COUNT_SLV - 1 : 0]              icb_rsp_err_slv_sn;
+wire[LP_SN_ADDR_WIDTH_SLV - 1 : 0]          slv_sn_region_base;
+wire[LP_SN_ADDR_WIDTH_SLV - 1 : 0]          slv_sn_region_end;
 
 // 合并去往ilm的访问
-wire[LP_ILM_ICB_COUNT - 1 : 0]              icb_cmd_vld_ilm_mn;
-wire[LP_ILM_ICB_COUNT - 1 : 0]              icb_cmd_rdy_ilm_mn;
-wire[LP_ILM_ICB_COUNT - 1 : 0]              icb_cmd_write_ilm_mn;
-wire[LP_ILM_MN_ADDR_WIDTH - 1 : 0]          icb_cmd_addr_ilm_mn;
-wire[LP_ILM_MN_DATA_WIDTH - 1 : 0]          icb_cmd_wdata_ilm_mn;
-wire[LP_ILM_MN_WSTRB_WIDTH - 1 : 0]         icb_cmd_wstrb_ilm_mn;
-wire[LP_ILM_MN_SIZE_WIDTH - 1 : 0]          icb_cmd_size_ilm_mn;
-wire[LP_ILM_ICB_COUNT - 1 : 0]              icb_rsp_rdy_ilm_mn;
-wire[LP_ILM_ICB_COUNT - 1 : 0]              icb_rsp_vld_ilm_mn;
-wire[LP_ILM_MN_DATA_WIDTH - 1 : 0]          icb_rsp_rdata_ilm_mn;
-wire[LP_ILM_ICB_COUNT - 1 : 0]              icb_rsp_err_ilm_mn;
+wire[LP_ICB_COUNT_ILM - 1 : 0]              icb_cmd_vld_ilm_mn;
+wire[LP_ICB_COUNT_ILM - 1 : 0]              icb_cmd_rdy_ilm_mn;
+wire[LP_ICB_COUNT_ILM - 1 : 0]              icb_cmd_write_ilm_mn;
+wire[LP_MN_ADDR_WIDTH_ILM - 1 : 0]          icb_cmd_addr_ilm_mn;
+wire[LP_MN_DATA_WIDTH_ILM - 1 : 0]          icb_cmd_wdata_ilm_mn;
+wire[LP_MN_WSTRB_WIDTH_ILM - 1 : 0]         icb_cmd_wstrb_ilm_mn;
+wire[LP_MN_SIZE_WIDTH_ILM - 1 : 0]          icb_cmd_size_ilm_mn;
+wire[LP_ICB_COUNT_ILM - 1 : 0]              icb_rsp_rdy_ilm_mn;
+wire[LP_ICB_COUNT_ILM - 1 : 0]              icb_rsp_vld_ilm_mn;
+wire[LP_MN_DATA_WIDTH_ILM - 1 : 0]          icb_rsp_rdata_ilm_mn;
+wire[LP_ICB_COUNT_ILM - 1 : 0]              icb_rsp_err_ilm_mn;
 
 //合并去往dlm的访问
-wire[LP_DLM_ICB_COUNT - 1 : 0]              icb_cmd_vld_dlm_mn;
-wire[LP_DLM_ICB_COUNT - 1 : 0]              icb_cmd_rdy_dlm_mn;
-wire[LP_DLM_ICB_COUNT - 1 : 0]              icb_cmd_write_dlm_mn;
-wire[LP_DLM_MN_ADDR_WIDTH - 1 : 0]          icb_cmd_addr_dlm_mn;
-wire[LP_DLM_MN_DATA_WIDTH - 1 : 0]          icb_cmd_wdata_dlm_mn;
-wire[LP_DLM_MN_WSTRB_WIDTH - 1 : 0]         icb_cmd_wstrb_dlm_mn;
-wire[LP_DLM_MN_SIZE_WIDTH - 1 : 0]          icb_cmd_size_dlm_mn;
-wire[LP_DLM_ICB_COUNT - 1 : 0]              icb_rsp_rdy_dlm_mn;
-wire[LP_DLM_ICB_COUNT - 1 : 0]              icb_rsp_vld_dlm_mn;
-wire[LP_DLM_MN_DATA_WIDTH - 1 : 0]          icb_rsp_rdata_dlm_mn;
-wire[LP_DLM_ICB_COUNT - 1 : 0]              icb_rsp_err_dlm_mn;
+wire[LP_ICB_COUNT_DLM - 1 : 0]              icb_cmd_vld_dlm_mn;
+wire[LP_ICB_COUNT_DLM - 1 : 0]              icb_cmd_rdy_dlm_mn;
+wire[LP_ICB_COUNT_DLM - 1 : 0]              icb_cmd_write_dlm_mn;
+wire[LP_MN_ADDR_WIDTH_DLM - 1 : 0]          icb_cmd_addr_dlm_mn;
+wire[LP_MN_DATA_WIDTH_DLM - 1 : 0]          icb_cmd_wdata_dlm_mn;
+wire[LP_MN_WSTRB_WIDTH_DLM - 1 : 0]         icb_cmd_wstrb_dlm_mn;
+wire[LP_MN_SIZE_WIDTH_DLM - 1 : 0]          icb_cmd_size_dlm_mn;
+wire[LP_ICB_COUNT_DLM - 1 : 0]              icb_rsp_rdy_dlm_mn;
+wire[LP_ICB_COUNT_DLM - 1 : 0]              icb_rsp_vld_dlm_mn;
+wire[LP_MN_DATA_WIDTH_DLM - 1 : 0]          icb_rsp_rdata_dlm_mn;
+wire[LP_ICB_COUNT_DLM - 1 : 0]              icb_rsp_err_dlm_mn;
 
 // 合并去往系统总线的访问
-wire[LP_SYS_ICB_COUNT - 1 : 0]              icb_cmd_vld_sys_mn;
-wire[LP_SYS_ICB_COUNT - 1 : 0]              icb_cmd_rdy_sys_mn;
-wire[LP_SYS_ICB_COUNT - 1 : 0]              icb_cmd_write_sys_mn;
-wire[LP_SYS_MN_ADDR_WIDTH - 1 : 0]          icb_cmd_addr_sys_mn;
-wire[LP_SYS_MN_DATA_WIDTH - 1 : 0]          icb_cmd_wdata_sys_mn;
-wire[LP_SYS_MN_WSTRB_WIDTH - 1 : 0]         icb_cmd_wstrb_sys_mn;
-wire[LP_SYS_MN_SIZE_WIDTH - 1 : 0]          icb_cmd_size_sys_mn;
-wire[LP_SYS_ICB_COUNT - 1 : 0]              icb_rsp_rdy_sys_mn;
-wire[LP_SYS_ICB_COUNT - 1 : 0]              icb_rsp_vld_sys_mn;
-wire[LP_SYS_MN_DATA_WIDTH - 1 : 0]          icb_rsp_rdata_sys_mn;
-wire[LP_SYS_ICB_COUNT - 1 : 0]              icb_rsp_err_sys_mn;
+wire[LP_ICB_COUNT_SYS - 1 : 0]              icb_cmd_vld_sys_mn;
+wire[LP_ICB_COUNT_SYS - 1 : 0]              icb_cmd_rdy_sys_mn;
+wire[LP_ICB_COUNT_SYS - 1 : 0]              icb_cmd_write_sys_mn;
+wire[LP_MN_ADDR_WIDTH_SYS - 1 : 0]          icb_cmd_addr_sys_mn;
+wire[LP_MN_DATA_WIDTH_SYS - 1 : 0]          icb_cmd_wdata_sys_mn;
+wire[LP_MN_WSTRB_WIDTH_SYS - 1 : 0]         icb_cmd_wstrb_sys_mn;
+wire[LP_MN_SIZE_WIDTH_SYS - 1 : 0]          icb_cmd_size_sys_mn;
+wire[LP_ICB_COUNT_SYS - 1 : 0]              icb_rsp_rdy_sys_mn;
+wire[LP_ICB_COUNT_SYS - 1 : 0]              icb_rsp_vld_sys_mn;
+wire[LP_MN_DATA_WIDTH_SYS - 1 : 0]          icb_rsp_rdata_sys_mn;
+wire[LP_ICB_COUNT_SYS - 1 : 0]              icb_rsp_err_sys_mn;
 
 
 wire                                        icb_cmd_vld_ifu_ilm;
@@ -321,17 +387,17 @@ lnrv_icb_demux#
 (
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
-    .P_ICB_COUNT            ( LP_IFU_ICB_COUNT          ),
+    .P_ICB_COUNT            ( LP_ICB_COUNT_IFU          ),
 
-    .P_CMD_BUFF_ENABLE      ( 1'b0                   ),
-    .P_CMD_BUFF_CUT_READY   ( 1'b0                   ),
-    .P_CMD_BUFF_BYPASS      ( 1'b1                    ),
+    .P_CMD_CUT_VALID        ( P_CMD_CUT_VALID_IFU       ),
+    .P_CMD_CUT_READY        ( P_CMD_CUT_READY_IFU       ),
+    .P_CMD_BUF_DEEPTH       ( P_CMD_BUF_DEEPTH_IFU      ),
 
-    .P_RSP_BUFF_ENABLE      ( 1'b1                    ),
-    .P_RSP_BUFF_CUT_READY   ( 1'b0                   ),
-    .P_RSP_BUFF_BYPASS      ( 1'b1                    ),
+    .P_RSP_CUT_VALID        ( P_RSP_CUT_VALID_IFU       ),
+    .P_RSP_CUT_READY        ( P_RSP_CUT_READY_IFU       ),
+    .P_RSP_BUF_DEEPTH       ( P_RSP_BUF_DEEPTH_IFU      ),
 
-    .P_OTS_COUNT            ( 1                         )
+    .P_OTS_COUNT            ( P_OTS_COUNT_IFU           )
 )
 u_ifu_bus_demux
 (
@@ -451,17 +517,17 @@ lnrv_icb_demux#
 (
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
-    .P_ICB_COUNT            ( LP_EXU_ICB_COUNT          ),
+    .P_ICB_COUNT            ( LP_ICB_COUNT_EXU          ),
 
-    .P_CMD_BUFF_ENABLE      ( 1'b1                    ),
-    .P_CMD_BUFF_CUT_READY   ( 1'b0                   ),
-    .P_CMD_BUFF_BYPASS      ( 1'b0                   ),
+    .P_CMD_CUT_VALID        ( P_CMD_CUT_VALID_EXU       ),
+    .P_CMD_CUT_READY        ( P_CMD_CUT_READY_EXU       ),
+    .P_CMD_BUF_DEEPTH       ( P_CMD_BUF_DEEPTH_EXU      ),
 
-    .P_RSP_BUFF_ENABLE      ( 1'b1                    ),
-    .P_RSP_BUFF_CUT_READY   ( 1'b0                   ),
-    .P_RSP_BUFF_BYPASS      ( 1'b0                   ),
+    .P_RSP_CUT_VALID        ( P_RSP_CUT_VALID_EXU       ),
+    .P_RSP_CUT_READY        ( P_RSP_CUT_READY_EXU       ),
+    .P_RSP_BUF_DEEPTH       ( P_RSP_BUF_DEEPTH_EXU      ),
 
-    .P_OTS_COUNT            ( 1                         )
+    .P_OTS_COUNT            ( P_OTS_COUNT_EXU           )
 )
 u_exu_bus_demux
 (
@@ -579,17 +645,17 @@ lnrv_icb_demux#
 (
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
-    .P_ICB_COUNT            ( LP_SLV_ICB_COUNT          ),
+    .P_ICB_COUNT            ( LP_ICB_COUNT_SLV          ),
 
-    .P_CMD_BUFF_ENABLE      ( 1'b0                   ),
-    .P_CMD_BUFF_CUT_READY   ( 1'b0                   ),
-    .P_CMD_BUFF_BYPASS      ( 1'b0                   ),
+    .P_CMD_CUT_VALID        ( P_CMD_CUT_VALID_SLV       ),
+    .P_CMD_CUT_READY        ( P_CMD_CUT_READY_SLV       ),
+    .P_CMD_BUF_DEEPTH       ( P_CMD_BUF_DEEPTH_SLV      ),
 
-    .P_RSP_BUFF_ENABLE      ( 1'b1                    ),
-    .P_RSP_BUFF_CUT_READY   ( 1'b0                   ),
-    .P_RSP_BUFF_BYPASS      ( 1'b0                   ),
+    .P_RSP_CUT_VALID        ( P_RSP_CUT_VALID_SLV       ),
+    .P_RSP_CUT_READY        ( P_RSP_CUT_READY_SLV       ),
+    .P_RSP_BUF_DEEPTH       ( P_RSP_BUF_DEEPTH_SLV      ),
 
-    .P_OTS_COUNT            ( 1                         )
+    .P_OTS_COUNT            ( P_OTS_COUNT_SLV           )
 )
 u_slv_bus_demux
 (
@@ -761,16 +827,17 @@ lnrv_icb_mux#
 (
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
-    .P_ICB_COUNT            ( LP_ILM_ICB_COUNT          ),
-    .P_OTS_COUNT            ( 1                         ),
+    .P_ICB_COUNT            ( LP_ICB_COUNT_ILM          ),
 
-    .P_CMD_BUFF_ENABLE      ( 1'b1                    ),
-    .P_CMD_BUFF_CUT_READY   ( 1'b0                   ),
-    .P_CMD_BUFF_BYPASS      ( 1'b1                    ),
+    .P_CMD_CUT_VALID        ( P_CMD_CUT_VALID_ILM       ),
+    .P_CMD_CUT_READY        ( P_CMD_CUT_READY_ILM       ),
+    .P_CMD_BUF_DEEPTH       ( P_CMD_BUF_DEEPTH_ILM      ),
 
-    .P_RSP_BUFF_ENABLE      ( 1'b1                    ),
-    .P_RSP_BUFF_CUT_READY   ( 1'b1                    ),
-    .P_RSP_BUFF_BYPASS      ( 1'b0                   )
+    .P_RSP_CUT_VALID        ( P_RSP_CUT_VALID_ILM       ),
+    .P_RSP_CUT_READY        ( P_RSP_CUT_READY_ILM       ),
+    .P_RSP_BUF_DEEPTH       ( P_RSP_BUF_DEEPTH_ILM      ),
+
+    .P_OTS_COUNT            ( P_OTS_COUNT_ILM           )
 )
 u_ilm_bus_mux
 (
@@ -873,16 +940,17 @@ lnrv_icb_mux#
 (
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
-    .P_ICB_COUNT            ( LP_DLM_ICB_COUNT          ),
-    .P_OTS_COUNT            ( 1                         ),
+    .P_ICB_COUNT            ( LP_ICB_COUNT_DLM          ),
 
-    .P_CMD_BUFF_ENABLE      ( 1'b1                    ),
-    .P_CMD_BUFF_CUT_READY   ( 1'b0                   ),
-    .P_CMD_BUFF_BYPASS      ( 1'b1                    ),
+    .P_CMD_CUT_VALID        ( P_CMD_CUT_VALID_DLM       ),
+    .P_CMD_CUT_READY        ( P_CMD_CUT_READY_DLM       ),
+    .P_CMD_BUF_DEEPTH       ( P_CMD_BUF_DEEPTH_DLM      ),
 
-    .P_RSP_BUFF_ENABLE      ( 1'b0                   ),
-    .P_RSP_BUFF_CUT_READY   ( 1'b0                   ),
-    .P_RSP_BUFF_BYPASS      ( 1'b0                   )
+    .P_RSP_CUT_VALID        ( P_RSP_CUT_VALID_DLM       ),
+    .P_RSP_CUT_READY        ( P_RSP_CUT_READY_DLM       ),
+    .P_RSP_BUF_DEEPTH       ( P_RSP_BUF_DEEPTH_DLM      ),
+
+    .P_OTS_COUNT            ( P_OTS_COUNT_DLM           )
 )
 u_dlm_bus_mux
 (
@@ -974,16 +1042,17 @@ lnrv_icb_mux#
 (
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
-    .P_ICB_COUNT            ( LP_SYS_ICB_COUNT          ),
-    .P_OTS_COUNT            ( 1                         ),
+    .P_ICB_COUNT            ( LP_ICB_COUNT_SYS          ),
 
-    .P_CMD_BUFF_ENABLE      ( 1'b1                    ),
-    .P_CMD_BUFF_CUT_READY   ( 1'b0                   ),
-    .P_CMD_BUFF_BYPASS      ( 1'b0                   ),
+    .P_CMD_CUT_VALID        ( P_CMD_CUT_VALID_SYS       ),
+    .P_CMD_CUT_READY        ( P_CMD_CUT_READY_SYS       ),
+    .P_CMD_BUF_DEEPTH       ( P_CMD_BUF_DEEPTH_SYS      ),
 
-    .P_RSP_BUFF_ENABLE      ( 1'b0                   ),
-    .P_RSP_BUFF_CUT_READY   ( 1'b0                   ),
-    .P_RSP_BUFF_BYPASS      ( 1'b0                   )
+    .P_RSP_CUT_VALID        ( P_RSP_CUT_VALID_SYS       ),
+    .P_RSP_CUT_READY        ( P_RSP_CUT_READY_SYS       ),
+    .P_RSP_BUF_DEEPTH       ( P_RSP_BUF_DEEPTH_SYS      ),
+
+    .P_OTS_COUNT            ( P_OTS_COUNT_SYS           )
 )
 u_sys_bus_mux
 (

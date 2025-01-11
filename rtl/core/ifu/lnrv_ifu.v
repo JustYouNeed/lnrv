@@ -356,15 +356,14 @@ assign      ifu_buf_push_data = {
 assign      ifu_buf_push_hsked = ifu_buf_push_vld & ifu_buf_push_rdy;
 
 // 指令缓存
-lnrv_gnrl_buffer#
+lnrv_gnrl_buf#
 (
     .P_DATA_WIDTH       ( LP_IFU_BUF_WIDTH          ),
     .P_DEEPTH           ( 1                         ),
-    .P_CUT_VALID        ( 1'b0                   ),
-    .P_CUT_READY        ( 1'b0                   ),
-    .P_BYPASS           ( 1'b0                   ),
 
-    .P_MODE             ( 0                         )
+    .P_CUT_VALID        ( 1'b1                      ),
+    .P_CUT_READY        ( 1'b0                      ),
+    .P_FLUSH_DELAY      ( 1'b0                      )
 )
 u_ifu_buffer
 (

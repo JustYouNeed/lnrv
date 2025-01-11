@@ -218,12 +218,13 @@ assign      axi_xfr_buf_pop_hsked = axi_xfr_buf_pop_vld & axi_xfr_buf_pop_rdy;
 
 
 // 保存aw/ar通道的控制信息
-lnrv_gnrl_buffer#
+lnrv_gnrl_buf#
 (
     .P_DATA_WIDTH           ( LP_AXI_XFR_BUF_WIDTH      ),
     .P_DEEPTH               ( 1                         ),
-    .P_CUT_READY            ( 1'b1                    ),
-    .P_BYPASS               ( 1'b0                   )
+    .P_CUT_VALID            ( 1'b1                      ),
+    .P_CUT_READY            ( 1'b1                      ),
+    .P_FLUSH_DELAY          ( 1'b0                      )
 )
 u_axi_xfr_buf
 (
@@ -280,23 +281,28 @@ assign      icb_rsp_rdy_m = axi_write_xfr_vld ? 1'b1 :
                             axi_rready;
 
 // 在icb上插入一个buf
-lnrv_icb_buf#
+lnrv_icb_slice#
     (
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
 
-    .P_CMD_BUFF_ENABLE      ( 1'b1                      ),
-    .P_CMD_BUFF_CUT_READY   ( 1'b1                      ),
-    .P_CMD_BUFF_BYPASS      ( 1'b0                      ),
-    .P_CMD_OTS_COUNT        ( 1                         ),
+    .P_CMD_CUT_VALID        ( 1'b1                      ),
+    .P_CMD_CUT_READY        ( 1'b1                      ),
+    .P_CMD_BUF_DEEPTH       ( 1                         ),
 
-    .P_RSP_BUFF_ENABLE      ( 1'b1                      ),
-    .P_RSP_BUFF_CUT_READY   ( 1'b1                      ),
-    .P_RSP_BUFF_BYPASS      ( 1'b0                      ),
-    .P_RSP_OTS_COUNT        ( 1                         )
+    .P_RSP_CUT_VALID        ( 1'b1                      ),
+    .P_RSP_CUT_READY        ( 1'b1                      ),
+    .P_RSP_BUF_DEEPTH       ( 1                         ),
+
+    .P_OTS_COUNT            ( 0                         ),
+    .P_OTS_CTRL_ENABLE      ( 1'b0                      ),
+    .P_FLUSH_ENABLE         ( 1'b0                      )
 )
 u_lnrv_icb_buf
 (
+    .flush_req              ( 1'b0                      ),
+    .flush_ack              (                           ),
+
     .icb_cmd_vld_m          ( icb_cmd_vld_m             ),
     .icb_cmd_rdy_m          ( icb_cmd_rdy_m             ),
     .icb_cmd_write_m        ( icb_cmd_write_m           ),

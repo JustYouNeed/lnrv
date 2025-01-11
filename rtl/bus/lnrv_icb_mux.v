@@ -4,16 +4,15 @@ module  lnrv_icb_mux#
     parameter                                       P_DATA_WIDTH            = 32,
     parameter                                       P_ICB_COUNT             = 4,
 
-    // 是否在slave端口插入buff，以优化时序，但是会带来额外的latency
-    parameter                                       P_CMD_BUFF_ENABLE       = 1'b1,
-    parameter                                       P_CMD_BUFF_CUT_READY    = 1'b1,
-    parameter                                       P_CMD_BUFF_BYPASS       = 1'b0,
-    parameter                                       P_CMD_OTS_COUNT         = 1,
+    parameter                                       P_CMD_CUT_VALID         = 1'b1,
+    parameter                                       P_CMD_CUT_READY         = 1'b1,
+    parameter                                       P_CMD_BUF_DEEPTH        = 1,
 
-    parameter                                       P_RSP_BUFF_ENABLE       = 1'b1,
-    parameter                                       P_RSP_BUFF_CUT_READY    = 1'b1,
-    parameter                                       P_RSP_BUFF_BYPASS       = 1'b0,
-    parameter                                       P_RSP_OTS_COUNT         = 1
+    parameter                                       P_RSP_CUT_VALID         = 1'b1,
+    parameter                                       P_RSP_CUT_READY         = 1'b1,
+    parameter                                       P_RSP_BUF_DEEPTH        = 1,
+
+    parameter                                       P_OTS_COUNT             = 1
 )
 (
     input                                           clk,
@@ -47,7 +46,8 @@ module  lnrv_icb_mux#
     input[P_DATA_WIDTH - 1 : 0]                     icb_rsp_rdata_s,
     input                                           icb_rsp_err_s
 );
-localparam                                          LP_DISP_BUF_DATA_WIDTH = P_ICB_COUNT;
+localparam                                          LP_DISP_BUF_DATA_WIDTH  = P_ICB_COUNT;
+localparam                                          LP_DISP_BUF_DEEPTH      = P_OTS_COUNT;
 
 // 分发信息fifo
 wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]                disp_buf_push_data;
@@ -152,75 +152,83 @@ assign      disp_buf_pop_rdy    = icb_rsp_hsked_m;
 assign      icb_rsp_grant       = {P_ICB_COUNT{disp_buf_pop_vld}} & disp_buf_pop_data;
 
 // 将分发信息保存下来，用于rsp通道
-lnrv_gnrl_buffer#
+lnrv_gnrl_buf#
 (
-    .P_DATA_WIDTH                   ( LP_DISP_BUF_DATA_WIDTH    ),
-    .P_DEEPTH                       ( P_CMD_OTS_COUNT           ),
-    .P_CUT_READY                    ( 1'b0                      ),
-    .P_BYPASS                       ( 1'b0                      )
+    .P_DATA_WIDTH           ( LP_DISP_BUF_DATA_WIDTH    ),
+    .P_DEEPTH               ( LP_DISP_BUF_DEEPTH        ),
+
+    .P_CUT_VALID            ( 1'b0                      ),
+    .P_CUT_READY            ( 1'b1                      ),
+    .P_FLUSH_DELAY          ( 1'b0                      )
 )
 u_icb_disp_buf
 (
-    .clk                            ( clk                       ),
-    .reset_n                        ( reset_n                   ),
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   ),
 
-    .flush_req                      ( 1'b0                      ),
-    .flush_ack                      (                           ),
+    .flush_req              ( 1'b0                      ),
+    .flush_ack              (                           ),
 
-    .push_vld                       ( disp_buf_push_vld         ),
-    .push_rdy                       ( disp_buf_push_rdy         ),
-    .push_data                      ( disp_buf_push_data        ),
+    .push_vld               ( disp_buf_push_vld         ),
+    .push_rdy               ( disp_buf_push_rdy         ),
+    .push_data              ( disp_buf_push_data        ),
 
-    .pop_vld                        ( disp_buf_pop_vld          ),
-    .pop_rdy                        ( disp_buf_pop_rdy          ),
-    .pop_data                       ( disp_buf_pop_data         )
+    .pop_vld                ( disp_buf_pop_vld          ),
+    .pop_rdy                ( disp_buf_pop_rdy          ),
+    .pop_data               ( disp_buf_pop_data         )
 );
 
 
 // 插入buff
-lnrv_icb_buf#
+lnrv_icb_slice#
 (
-    .P_ADDR_WIDTH                   ( P_ADDR_WIDTH              ),
-    .P_DATA_WIDTH                   ( P_DATA_WIDTH              ),
+    .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
+    .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
 
-    .P_CMD_BUFF_ENABLE              ( P_CMD_BUFF_ENABLE         ),
-    .P_CMD_BUFF_CUT_READY           ( P_CMD_BUFF_CUT_READY      ),
-    .P_CMD_BUFF_BYPASS              ( P_CMD_BUFF_BYPASS         ),
-    .P_CMD_OTS_COUNT                ( P_CMD_OTS_COUNT           ),
+    .P_CMD_CUT_VALID        ( P_CMD_CUT_VALID           ),
+    .P_CMD_CUT_READY        ( P_CMD_CUT_READY           ),
+    .P_CMD_BUF_DEEPTH       ( P_CMD_BUF_DEEPTH          ),
 
-    .P_RSP_BUFF_ENABLE              ( P_RSP_BUFF_ENABLE         ),
-    .P_RSP_BUFF_CUT_READY           ( P_RSP_BUFF_CUT_READY      ),
-    .P_RSP_BUFF_BYPASS              ( P_RSP_BUFF_BYPASS         ),
-    .P_RSP_OTS_COUNT                ( P_RSP_OTS_COUNT           )
+    .P_RSP_CUT_VALID        ( P_RSP_CUT_VALID           ),
+    .P_RSP_CUT_READY        ( P_RSP_CUT_READY           ),
+    .P_RSP_BUF_DEEPTH       ( P_RSP_BUF_DEEPTH          ),
+
+    // 不使用icb buf带的ots控制功能
+    .P_OTS_COUNT            ( 1                         ),
+    .P_OTS_CTRL_ENABLE      ( 1'b0                      ),
+    .P_FLUSH_ENABLE         ( 1'b0                      )
 )
 u_lnrv_icb_buf
 (
-    .icb_cmd_vld_m                  ( icb_cmd_vld_m             ),
-    .icb_cmd_rdy_m                  ( icb_cmd_rdy_m             ),
-    .icb_cmd_write_m                ( icb_cmd_write_m           ),
-    .icb_cmd_addr_m                 ( icb_cmd_addr_m            ),
-    .icb_cmd_wdata_m                ( icb_cmd_wdata_m           ),
-    .icb_cmd_wstrb_m                ( icb_cmd_wstrb_m           ),
-    .icb_cmd_size_m                 ( icb_cmd_size_m            ),
-    .icb_rsp_vld_m                  ( icb_rsp_vld_m             ),
-    .icb_rsp_rdy_m                  ( icb_rsp_rdy_m             ),
-    .icb_rsp_rdata_m                ( icb_rsp_rdata_m           ),
-    .icb_rsp_err_m                  ( icb_rsp_err_m             ),
+    .flush_req              ( 1'b0                      ),
+    .flush_ack              (                           ),
 
-    .icb_cmd_vld_s                  ( icb_cmd_vld_s             ),
-    .icb_cmd_rdy_s                  ( icb_cmd_rdy_s             ),
-    .icb_cmd_write_s                ( icb_cmd_write_s           ),
-    .icb_cmd_addr_s                 ( icb_cmd_addr_s            ),
-    .icb_cmd_wdata_s                ( icb_cmd_wdata_s           ),
-    .icb_cmd_wstrb_s                ( icb_cmd_wstrb_s           ),
-    .icb_cmd_size_s                 ( icb_cmd_size_s            ),
-    .icb_rsp_vld_s                  ( icb_rsp_vld_s             ),
-    .icb_rsp_rdy_s                  ( icb_rsp_rdy_s             ),
-    .icb_rsp_rdata_s                ( icb_rsp_rdata_s           ),
-    .icb_rsp_err_s                  ( icb_rsp_err_s             ),
+    .icb_cmd_vld_m          ( icb_cmd_vld_m             ),
+    .icb_cmd_rdy_m          ( icb_cmd_rdy_m             ),
+    .icb_cmd_write_m        ( icb_cmd_write_m           ),
+    .icb_cmd_addr_m         ( icb_cmd_addr_m            ),
+    .icb_cmd_wdata_m        ( icb_cmd_wdata_m           ),
+    .icb_cmd_wstrb_m        ( icb_cmd_wstrb_m           ),
+    .icb_cmd_size_m         ( icb_cmd_size_m            ),
+    .icb_rsp_vld_m          ( icb_rsp_vld_m             ),
+    .icb_rsp_rdy_m          ( icb_rsp_rdy_m             ),
+    .icb_rsp_rdata_m        ( icb_rsp_rdata_m           ),
+    .icb_rsp_err_m          ( icb_rsp_err_m             ),
 
-    .clk                            ( clk                       ),
-    .reset_n                        ( reset_n                   )
+    .icb_cmd_vld_s          ( icb_cmd_vld_s             ),
+    .icb_cmd_rdy_s          ( icb_cmd_rdy_s             ),
+    .icb_cmd_write_s        ( icb_cmd_write_s           ),
+    .icb_cmd_addr_s         ( icb_cmd_addr_s            ),
+    .icb_cmd_wdata_s        ( icb_cmd_wdata_s           ),
+    .icb_cmd_wstrb_s        ( icb_cmd_wstrb_s           ),
+    .icb_cmd_size_s         ( icb_cmd_size_s            ),
+    .icb_rsp_vld_s          ( icb_rsp_vld_s             ),
+    .icb_rsp_rdy_s          ( icb_rsp_rdy_s             ),
+    .icb_rsp_rdata_s        ( icb_rsp_rdata_s           ),
+    .icb_rsp_err_s          ( icb_rsp_err_s             ),
+
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   )
 );
 
 // 选出一个rsp_rdy
