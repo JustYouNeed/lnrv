@@ -6,8 +6,6 @@ module  lnrv_ucore#
 )
 (
     input[31 : 0]                           reset_vector,
-    input[31 : 0]                           reset_mtvec,
-
     input                                   firmware_loading,
 
     // 中断信号
@@ -25,7 +23,6 @@ module  lnrv_ucore#
     output                                  d_mode,
 
     output                                  dcsr_stoptime,
-    output                                  dcsr_stopcount,
 
     // 取指总线
     output                                  icb_cmd_vld_ifu,
@@ -213,7 +210,6 @@ u_lnrv_ifu
     .ifu_active                 ( ifu_active                ),
 
     .firmware_loading           ( firmware_loading          ),
-
     .reset_vector               ( reset_vector              ),
 
     .pipe_flush_req_cmt         ( pipe_flush_req_cmt        ),
@@ -293,7 +289,6 @@ lnrv_idu u_lnrv_idu
     .idu_op_type                ( idu_op_type               ),
     .idu_rv32                   ( idu_rv32                  ),
     .idu_prdt_taken             ( idu_prdt_taken            ),
-
 
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   )
@@ -505,8 +500,6 @@ u_lnrv_gpr
 // control and status regter
 lnrv_csr u_lnrv_csr
 (
-    .reset_mtvec                ( reset_mtvec               ),
-
     .mepc                       ( mepc                      ),
     .mtvec                      ( mtvec                     ),
 
@@ -514,7 +507,6 @@ lnrv_csr u_lnrv_csr
     .dcsr_stepie                ( dcsr_stepie               ),
     .dcsr_ebreakm               ( dcsr_ebreakm              ),
     .dcsr_stoptime              ( dcsr_stoptime             ),
-    .dcsr_stopcount             ( dcsr_stopcount            ),
     .dpc                        ( dpc                       ),
     .d_mode                     ( d_mode                    ),
     .m_mode                     ( m_mode                    ),

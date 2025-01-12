@@ -1,8 +1,5 @@
 module lnrv_csr
 (
-    // 复位后的mtvec值
-    input[31 : 0]                   reset_mtvec,
-
     output[31 : 0]                  mepc,
     output[31 : 0]                  mtvec,
     output                          m_mode,
@@ -445,7 +442,7 @@ assign      mtvec_rld = wbck_MTVEC;
 assign      mtvec_d = wbck_wdata;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
-        mtvec_q <= reset_mtvec;
+        mtvec_q <= 32'd0;
     end else if(mtvec_rld) begin
         mtvec_q <= mtvec_d;
     end
@@ -606,18 +603,11 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 assign      {mcycleh_full, mcycle_full} = mcycle_q;
-
-
 assign      {minstreth_full, minstret_full} = 64'd0;
-
 assign      mvendorid_full = 32'd0;
-
 assign      marchid_full = 32'd0;
-
 assign      mimpid_full = 32'd0;
-
 assign      mhartid_full = 32'd0;
-
 assign      misa_full = 32'd0;
 
 // 只支持Machine Mode

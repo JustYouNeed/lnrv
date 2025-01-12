@@ -1,5 +1,5 @@
 `include    "lnrv_def.v"
-module  lnrv_cpu#
+module  lnrv_core#
 (
     parameter                               P_ILM_REGION_BASE = 32'h0000_0000,
     parameter                               P_ILM_ADDR_WIDTH = 17,
@@ -8,9 +8,10 @@ module  lnrv_cpu#
     parameter                               P_DLM_ADDR_WIDTH = 17
 )
 (
+    // 复位向量
     input[31 : 0]                           reset_vector,
-    input[31 : 0]                           reset_mtvec,
 
+    // 固件加载状态
     input                                   firmware_loading,
 
     input                                   irq_sft,
@@ -25,7 +26,6 @@ module  lnrv_cpu#
     output                                  d_mode,
 
     output                                  dcsr_stoptime,
-    output                                  dcsr_stopcount,
 
     output                                  icb_cmd_vld_sys,
     input                                   icb_cmd_rdy_sys,
@@ -151,6 +151,8 @@ localparam                      LP_ILM_REGION_END = P_ILM_REGION_BASE + LP_ILM_S
 localparam                      LP_DLM_SIZE = 2 ** P_DLM_ADDR_WIDTH;
 localparam                      LP_DLM_REGION_START = P_DLM_REGION_BASE;
 localparam                      LP_DLM_REGION_END = P_DLM_REGION_BASE + LP_DLM_SIZE;
+
+localparam                      LP_IFU_OTS_COUNT                = 3;
 
 localparam                      LP_CMD_CUT_VALID_IFU            = 1'b0;
 localparam                      LP_CMD_CUT_READY_IFU            = 1'b1;
@@ -279,10 +281,13 @@ wire                            icb_rsp_err_dlm;
 
 
 //
-lnrv_core u_lnrv_core
+lnrv_ucore#
+(
+    .P_IFU_OTS_COUNT        ( LP_IFU_OTS_COUNT          )
+)
+u_lnrv_ucore
 (
     .reset_vector           ( reset_vector              ),
-    .reset_mtvec            ( reset_mtvec               ),
     .firmware_loading       ( firmware_loading          ),
 
     .irq_sft                ( irq_sft                   ),
@@ -296,7 +301,6 @@ lnrv_core u_lnrv_core
     .d_mode                 ( d_mode                    ),
 
     .dcsr_stoptime          ( dcsr_stoptime             ),
-    .dcsr_stopcount         ( dcsr_stopcount            ),
 
     // ifu访存接口
     .icb_cmd_vld_ifu        ( icb_cmd_vld_ifu           ),
@@ -355,7 +359,7 @@ lnrv_biu#
     .P_CMD_BUF_DEEPTH_IFU   ( 0                         ),
     .P_RSP_CUT_VALID_IFU    ( 1'b1                      ),
     .P_RSP_CUT_READY_IFU    ( 1'b1                      ),
-    .P_RSP_BUF_DEEPTH_IFU   ( 4                         ),
+    .P_RSP_BUF_DEEPTH_IFU   ( LP_IFU_OTS_COUNT          ),
     .P_OTS_COUNT_IFU        ( 1                         ),
     .P_OTS_CTRL_ENABLE_IFU  ( 1'b0                      ),
 
