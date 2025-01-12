@@ -31,17 +31,17 @@ module lnrv_exu_lsu
     input[34 : 0]                       alu_res,
 
     // 系统总线
-    output                              icb_cmd_vld_lsu,
-    input                               icb_cmd_rdy_lsu,
-    output                              icb_cmd_write_lsu,
-    output[31 : 0]                      icb_cmd_addr_lsu,
-    output[31 : 0]                      icb_cmd_wdata_lsu,
-    output[3 : 0]                       icb_cmd_wstrb_lsu,
-    output[2 : 0]                       icb_cmd_size_lsu,
-    output                              icb_rsp_rdy_lsu,
-    input                               icb_rsp_vld_lsu,
-    input[31 : 0]                       icb_rsp_rdata_lsu,
-    input                               icb_rsp_err_lsu,
+    output                              icb_cmd_vld,
+    input                               icb_cmd_rdy,
+    output                              icb_cmd_write,
+    output[31 : 0]                      icb_cmd_addr,
+    output[31 : 0]                      icb_cmd_wdata,
+    output[3 : 0]                       icb_cmd_wstrb,
+    output[2 : 0]                       icb_cmd_size,
+    output                              icb_rsp_rdy,
+    input                               icb_rsp_vld,
+    input[31 : 0]                       icb_rsp_rdata,
+    input                               icb_rsp_err,
 
 
     input                               clk,
@@ -91,12 +91,12 @@ wire[31 : 0]                            store_word;
 
 wire                                    no_excp;
 
-wire                                    icb_cmd_hsked_lsu;
-wire                                    icb_rsp_hsked_lsu;
+wire                                    icb_cmd_hsked;
+wire                                    icb_rsp_hsked;
 
 
-assign      icb_cmd_hsked_lsu = icb_cmd_vld_lsu & icb_cmd_rdy_lsu;
-assign      icb_rsp_hsked_lsu = icb_rsp_vld_lsu & icb_rsp_rdy_lsu;
+assign       icb_cmd_hsked =  icb_cmd_vld &  icb_cmd_rdy;
+assign       icb_rsp_hsked =  icb_rsp_vld &  icb_rsp_rdy;
 
 
 assign      instr_is_load   = op_bus[`LSU_LOAD_LOC];
@@ -142,8 +142,8 @@ assign      addr_algn = (byte_access & addr_algn_byte) |
 assign      addr_misalgn = ~addr_algn;
 
 // 滞外交易
-assign      cmd_ots_set = icb_cmd_hsked_lsu;
-assign      cmd_ots_clr = icb_rsp_hsked_lsu;
+assign      cmd_ots_set =  icb_cmd_hsked;
+assign      cmd_ots_clr =  icb_rsp_hsked;
 assign      cmd_ots_rld = cmd_ots_set | cmd_ots_clr;
 assign      cmd_ots_d = cmd_ots_q ? cmd_ots_set : (~cmd_ots_clr);
 always@(posedge clk or negedge reset_n) begin
@@ -171,29 +171,29 @@ assign      byte_access_wstrb = 4'b0001 << alu_res[1 : 0];
 assign      half_access_wstrb = 4'b0011 << {alu_res[1], 1'b0};
 assign      word_access_wstrb = 4'b1111;
 
-assign      icb_cmd_vld_lsu     = addr_algn & op_vld & no_ots_cmd & alu_op_rdy;
-assign      icb_cmd_write_lsu   = instr_is_store;
-assign      icb_cmd_addr_lsu    = alu_res[0 +: 32];
-assign      icb_cmd_wdata_lsu   =   byte_access ? store_byte :
+assign       icb_cmd_vld     = addr_algn & op_vld & no_ots_cmd & alu_op_rdy;
+assign       icb_cmd_write   = instr_is_store;
+assign       icb_cmd_addr    = alu_res[0 +: 32];
+assign       icb_cmd_wdata   =   byte_access ? store_byte :
                                     half_access ? store_half :
                                     store_word;
 // 如果是读操作，wstrb设置为0
-assign      icb_cmd_wstrb_lsu   =   instr_is_load ? 4'b0000 :
+assign       icb_cmd_wstrb   =   instr_is_load ? 4'b0000 :
                                     byte_access ? byte_access_wstrb :
                                     half_access ? half_access_wstrb :
                                     4'b1111;
-assign      icb_cmd_size_lsu    = ls_size;
+assign       icb_cmd_size    = ls_size;
 
-assign      icb_rsp_rdy_lsu = cmt_rdy;
+assign       icb_rsp_rdy = cmt_rdy;
 
-assign      load_byte = (icb_cmd_addr_lsu[1 : 0] == 2'b00) ? icb_rsp_rdata_lsu[7 : 0] :
-                        (icb_cmd_addr_lsu[1 : 0] == 2'b01) ? icb_rsp_rdata_lsu[15 : 8] :
-                        (icb_cmd_addr_lsu[1 : 0] == 2'b10) ? icb_rsp_rdata_lsu[23 : 16] :
-                        icb_rsp_rdata_lsu[31 : 24];
-                        // (icb_cmd_addr_lsu[1 : 0] == 2'b00) ? icb_rsp_rdata_lsu[7 : 0] :
+assign      load_byte = ( icb_cmd_addr[1 : 0] == 2'b00) ?  icb_rsp_rdata[7 : 0] :
+                        ( icb_cmd_addr[1 : 0] == 2'b01) ?  icb_rsp_rdata[15 : 8] :
+                        ( icb_cmd_addr[1 : 0] == 2'b10) ?  icb_rsp_rdata[23 : 16] :
+                         icb_rsp_rdata[31 : 24];
+                        // ( icb_cmd_addr[1 : 0] == 2'b00) ?  icb_rsp_rdata[7 : 0] :
 
-assign      load_half = icb_cmd_addr_lsu[1] ? icb_rsp_rdata_lsu[31 : 16] :
-                        icb_rsp_rdata_lsu[15 : 0];
+assign      load_half =  icb_cmd_addr[1] ?  icb_rsp_rdata[31 : 16] :
+                         icb_rsp_rdata[15 : 0];
 
 assign      sext_byte   = {{24{load_byte[7]}}, load_byte};
 assign      uext_byte   = {{24{1'b0}}, load_byte};
@@ -209,20 +209,20 @@ assign      ext_half    = ls_uext ? uext_half : sext_half;
 // lsu交付
 // 1、如果当前发生了地址非对齐错误，则不会有访问操作发出，直接将该指令交付，产生异常
 // 2、如果正常发出了访问操作，但是有错误，则产生总线错误异常
-assign      cmt_vld             = addr_misalgn ? op_vld : icb_rsp_vld_lsu;
+assign      cmt_vld             = addr_misalgn ? op_vld :  icb_rsp_vld;
 assign      cmt_excp_misalgn    = addr_misalgn;
-assign      cmt_excp_buserr     = icb_rsp_err_lsu;
+assign      cmt_excp_buserr     =  icb_rsp_err;
 assign      cmt_ld              = instr_is_load;
 assign      cmt_st              = instr_is_store;
-assign      cmt_addr            = icb_cmd_addr_lsu;
+assign      cmt_addr            =  icb_cmd_addr;
 
 
-assign      no_excp = ~(addr_misalgn | icb_rsp_err_lsu);
+assign      no_excp = ~(addr_misalgn |  icb_rsp_err);
 
 assign      gpr_wen = instr_is_load & no_excp & cmt_rdy;
 assign      gpr_wdata = byte_access ? ext_byte :
                         half_access ? ext_half :
-                        icb_rsp_rdata_lsu;
+                         icb_rsp_rdata;
 
 assign      op_rdy = cmt_rdy;
 

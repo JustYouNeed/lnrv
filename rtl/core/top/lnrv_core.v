@@ -1,594 +1,685 @@
-`include	"lnrv_def.v"
-module  lnrv_core
+`include    "lnrv_def.v"
+module  lnrv_cpu#
+(
+    parameter                               P_ILM_REGION_BASE = 32'h0000_0000,
+    parameter                               P_ILM_ADDR_WIDTH = 17,
+
+    parameter                               P_DLM_REGION_BASE = 32'h0002_0000,
+    parameter                               P_DLM_ADDR_WIDTH = 17
+)
 (
     input[31 : 0]                           reset_vector,
     input[31 : 0]                           reset_mtvec,
 
     input                                   firmware_loading,
 
-    // 中断信号
     input                                   irq_sft,
-    input                                   irq_ext,
     input                                   irq_tmr,
+    input                                   irq_ext,
 
     input                                   dbg_halt,
     input                                   irq_dbg,
 
-    // wfi模式指示信号，为高时表示处于wfi模式中
+    //
     output                                  wfi_mode,
-
-    // debug mode指示信号
     output                                  d_mode,
 
     output                                  dcsr_stoptime,
     output                                  dcsr_stopcount,
 
-    // 取指总线
-    output                                  icb_cmd_vld_ifu,
-    input                                   icb_cmd_rdy_ifu,
-    output                                  icb_cmd_write_ifu,
-    output[31 : 0]                          icb_cmd_addr_ifu,
-    output[31 : 0]                          icb_cmd_wdata_ifu,
-    output[3 : 0]                           icb_cmd_wstrb_ifu,
-    output[2 : 0]                           icb_cmd_size_ifu,
-    input                                   icb_rsp_vld_ifu,
-    output                                  icb_rsp_rdy_ifu,
-    input[31 : 0]                           icb_rsp_rdata_ifu,
-    input                                   icb_rsp_err_ifu,
+    output                                  icb_cmd_vld_sys,
+    input                                   icb_cmd_rdy_sys,
+    output                                  icb_cmd_write_sys,
+    output[31 : 0]                          icb_cmd_addr_sys,
+    output[31 : 0]                          icb_cmd_wdata_sys,
+    output[3 : 0]                           icb_cmd_wstrb_sys,
+    output[2 : 0]                           icb_cmd_size_sys,
+    input                                   icb_rsp_vld_sys,
+    output                                  icb_rsp_rdy_sys,
+    input[31 : 0]                           icb_rsp_rdata_sys,
+    input                                   icb_rsp_err_sys,
 
-    // 系统访存总线
-    output                                  icb_cmd_vld_lsu,
-    input                                   icb_cmd_rdy_lsu,
-    output                                  icb_cmd_write_lsu,
-    output[31 : 0]                          icb_cmd_addr_lsu,
-    output[31 : 0]                          icb_cmd_wdata_lsu,
-    output[3 : 0]                           icb_cmd_wstrb_lsu,
-    output[2 : 0]                           icb_cmd_size_lsu,
-    input                                   icb_rsp_vld_lsu,
-    output                                  icb_rsp_rdy_lsu,
-    input[31 : 0]                           icb_rsp_rdata_lsu,
-    input                                   icb_rsp_err_lsu,
+    // // 系统总线
+    // output                                  sys_awvalid,
+    // input                                   sys_awready,
+    // output                                  sys_awlock,
+    // output[31 : 0]                          sys_awaddr,
+    // output[3 : 0]                           sys_awid,
+    // output[7 : 0]                           sys_awlen,
+    // output[2 : 0]                           sys_awsize,
+    // output[1 : 0]                           sys_awburst,
+    // output[3 : 0]                           sys_awcache,
+    // output[2 : 0]                           sys_awprot,
 
-    //
-    input                                   ifu_clk,
-    output                                  ifu_active,
+    // output                                  sys_wvalid,
+    // input                                   sys_wready,
+    // output[31 : 0]                          sys_wdata,
+    // output[3 : 0]                           sys_wstrb,
+    // output                                  sys_wlast,
 
-    input                                   idu_clk,
-    output                                  idu_active,
+    // output                                  sys_bready,
+    // input                                   sys_bvalid,
+    // input[1 : 0]                            sys_bresp,
+    // input[3 : 0]                            sys_bid,
 
-    input                                   exu_clk,
-    input                                   exu_active,
+    // output                                  sys_arvalid,
+    // input                                   sys_arready,
+    // output                                  sys_arlock,
+    // output[31 : 0]                          sys_araddr,
+    // output[3 : 0]                           sys_arid,
+    // output[7 : 0]                           sys_arlen,
+    // output[2 : 0]                           sys_arsize,
+    // output[1 : 0]                           sys_arburst,
+    // output[3 : 0]                           sys_arcache,
+    // output[2 : 0]                           sys_arprot,
+
+    // output                                  sys_rready,
+    // input                                   sys_rvalid,
+    // input[31 : 0]                           sys_rdata,
+    // input[1 : 0]                            sys_rresp,
+    // input                                   sys_rlast,
+    // input[3 : 0]                            sys_rid,
+
+    // Slave Port
+    input                                   slv_awvalid,
+    output                                  slv_awready,
+    input                                   slv_awlock,
+    input[31 : 0]                           slv_awaddr,
+    input[3 : 0]                            slv_awid,
+    input[7 : 0]                            slv_awlen,
+    input[2 : 0]                            slv_awsize,
+    input[1 : 0]                            slv_awburst,
+    input[3 : 0]                            slv_awcache,
+    input[2 : 0]                            slv_awprot,
+
+    input                                   slv_wvalid,
+    output                                  slv_wready,
+    input[31 : 0]                           slv_wdata,
+    input[3 : 0]                            slv_wstrb,
+    input                                   slv_wlast,
+
+    input                                   slv_bready,
+    output                                  slv_bvalid,
+    output[1 : 0]                           slv_bresp,
+    output[3 : 0]                           slv_bid,
+
+    input                                   slv_arvalid,
+    output                                  slv_arready,
+    input                                   slv_arlock,
+    input[31 : 0]                           slv_araddr,
+    input[3 : 0]                            slv_arid,
+    input[7 : 0]                            slv_arlen,
+    input[2 : 0]                            slv_arsize,
+    input[1 : 0]                            slv_arburst,
+    input[3 : 0]                            slv_arcache,
+    input[2 : 0]                            slv_arprot,
+
+    input                                   slv_rready,
+    output                                  slv_rvalid,
+    output[31 : 0]                          slv_rdata,
+    output[1 : 0]                           slv_rresp,
+    output                                  slv_rlast,
+    output[3 : 0]                           slv_rid,
+
+    // ilm接口
+    output                                  ilm_clk,
+    output                                  ilm_cs,
+    output                                  ilm_we,
+    output[3 : 0]                           ilm_wem,
+    output[P_ILM_ADDR_WIDTH - 1 : 0]        ilm_addr,
+    output[31 : 0]                          ilm_wdata,
+    input[31 : 0]                           ilm_rdata,
+
+    // dlm接口
+    output                                  dlm_clk,
+    output                                  dlm_cs,
+    output                                  dlm_we,
+    output[3 : 0]                           dlm_wem,
+    output[P_DLM_ADDR_WIDTH - 1 : 0]        dlm_addr,
+    output[31 : 0]                          dlm_wdata,
+    input[31 : 0]                           dlm_rdata,
+
 
     input                                   clk,
     input                                   reset_n
 );
 
-wire                                    pipe_flush_req_cmt;
-wire                                    pipe_flush_ack_cmt;
-wire                                    pipe_flush_ack_cmt_ifu;
-wire                                    pipe_flush_ack_cmt_idu;
-wire[31 : 0]                            pipe_flush_pc_op1_cmt;
-wire[31 : 0]                            pipe_flush_pc_op2_cmt;
+localparam                      LP_ILM_SIZE = 2 ** P_ILM_ADDR_WIDTH;
+localparam                      LP_ILM_REGION_START = P_ILM_REGION_BASE;
+localparam                      LP_ILM_REGION_END = P_ILM_REGION_BASE + LP_ILM_SIZE;
 
-wire                                    pipe_flush_req_bpu;
-wire                                    pipe_flush_ack_bpu;
-wire[31 : 0]                            pipe_flush_pc_op1_bpu;
-wire[31 : 0]                            pipe_flush_pc_op2_bpu;
+localparam                      LP_DLM_SIZE = 2 ** P_DLM_ADDR_WIDTH;
+localparam                      LP_DLM_REGION_START = P_DLM_REGION_BASE;
+localparam                      LP_DLM_REGION_END = P_DLM_REGION_BASE + LP_DLM_SIZE;
 
-wire                                    ifu_vld;
-wire                                    ifu_rdy;
-wire[`CPU_ADDR_WIDTH - 1 : 0]           ifu_pc;
-wire[`CPU_DATA_WIDTH - 1 : 0]           ifu_ir;
-wire                                    ifu_excp_misalgn;
-wire                                    ifu_excp_buserr;
+localparam                      LP_CMD_CUT_VALID_IFU            = 1'b0;
+localparam                      LP_CMD_CUT_READY_IFU            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_IFU           = 1;
+localparam                      LP_RSP_CUT_VALID_IFU            = 1'b1;
+localparam                      LP_RSP_CUT_READY_IFU            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_IFU           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_IFU          = 0;
 
-wire                                    idu_vld;
-wire                                    idu_rdy;
-wire                                    idu_excp_ilglir;
-wire                                    idu_excp_misalgn;
-wire                                    idu_excp_buserr;
-wire[31 : 0]                            idu_ir;
-wire[31 : 0]                            idu_pc;
-wire[31 : 0]                            idu_imm;
-wire[4 : 0]                             idu_rs1;
-wire[4 : 0]                             idu_rs2;
-wire[4 : 0]                             idu_rd;
-wire[11 : 0]                            idu_csr;
-wire[`DEC_OP_BUS_WIDTH - 1 : 0]         idu_op_bus;
-wire[`DEC_OP_TYPE_WIDTH - 1 : 0]        idu_op_type;
-wire                                    idu_rv32;
+localparam                      LP_CMD_CUT_VALID_EXU            = 1'b1;
+localparam                      LP_CMD_CUT_READY_EXU            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_EXU           = 1;
+localparam                      LP_RSP_CUT_VALID_EXU            = 1'b1;
+localparam                      LP_RSP_CUT_READY_EXU            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_EXU           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_EXU          = 0;
 
-wire                                    pipe_halt_req;
-wire                                    pipe_halt_ack;
-wire                                    pipe_halt_ack_ifu;
-wire                                    pipe_halt_ack_idu;
+localparam                      LP_CMD_CUT_VALID_SLV            = 1'b1;
+localparam                      LP_CMD_CUT_READY_SLV            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_SLV           = 1;
+localparam                      LP_RSP_CUT_VALID_SLV            = 1'b1;
+localparam                      LP_RSP_CUT_READY_SLV            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_SLV           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_SLV          = 0;
 
-wire                                    cmt_vld;
-wire                                    cmt_rdy;
-wire                                    cmt_brch_dret;
-wire                                    cmt_brch_mret;
-wire                                    cmt_brch_fence;
-wire                                    cmt_brch_jal;
-wire                                    cmt_brch_jalr;
-wire                                    cmt_brch_bjp;
-wire                                    cmt_csr_idx_err;
-wire                                    cmt_csr;
-wire                                    cmt_rglr;
-wire                                    cmt_ifu_excp_buserr;
-wire                                    cmt_ifu_excp_misalgn;
-wire                                    cmt_idu_excp_ilglir;
-wire                                    cmt_sys_ebreak;
-wire                                    cmt_sys_ecall;
-wire                                    cmt_sys_wfi;
-wire                                    cmt_lsu_ld;
-wire                                    cmt_lsu_st;
-wire                                    cmt_lsu_excp_misalgn;
-wire                                    cmt_lsu_excp_buserr;
-wire[31 : 0]                            cmt_lsu_addr;
+localparam                      LP_CMD_CUT_VALID_ILM            = 1'b1;
+localparam                      LP_CMD_CUT_READY_ILM            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_ILM           = 1;
+localparam                      LP_RSP_CUT_VALID_ILM            = 1'b1;
+localparam                      LP_RSP_CUT_READY_ILM            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_ILM           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_ILM          = 0;
 
-wire                                    cmted_dret;
-wire                                    cmted_mret;
-wire                                    irq_taken;
-wire                                    excp_taken;
-wire                                    dbg_taken;
+localparam                      LP_CMD_CUT_VALID_DLM            = 1'b1;
+localparam                      LP_CMD_CUT_READY_DLM            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_DLM           = 1;
+localparam                      LP_RSP_CUT_VALID_DLM            = 1'b1;
+localparam                      LP_RSP_CUT_READY_DLM            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_DLM           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_DLM          = 0;
 
-wire                                    mepc_wen;
-wire[31 : 0]                            mepc_wdata;
-
-wire                                    mcause_wen;
-wire[31 : 0]                            mcause_wdata;
-
-wire                                    mtval_wen;
-wire[31 : 0]                            mtval_wdata;
-
-wire                                    dpc_wen;
-wire[31 : 0]                            dpc_wdata;
-
-wire                                    dcause_wen;
-wire[2 : 0]                             dcause_wdata;
-
-wire                                    csr_idx_err;
-
-wire                                    m_mode;
-
-wire[31 : 0]                            rs1_rdata;
-wire[31 : 0]                            rs2_rdata;
-wire                                    gpr_wbck_vld;
-wire                                    gpr_wbck_rdy;
-wire[4 : 0]                             gpr_wbck_idx;
-wire[31 : 0]                            gpr_wbck_wdata;
-
-wire[31 : 0]                            csr_rdata;
-wire                                    csr_wbck_vld;
-wire                                    csr_wbck_rdy;
-wire[11 : 0]                            csr_wbck_idx;
-wire[31 : 0]                            csr_wbck_wdata;
-
-wire                                    dcsr_ebreakm;
-wire                                    dcsr_stepie;
-wire                                    dcsr_step;
-
-wire                                    dec_ir_jal;
-wire                                    dec_ir_jalr;
-wire                                    dec_ir_fence;
-wire                                    dec_ir_bxx;
-wire[31 : 0]                            dec_imm_bxx;
-wire[31 : 0]                            dec_imm_jal;
-wire[31 : 0]                            dec_imm_jalr;
-wire                                    dec_rs1_x1;
-
-wire                                    bpu_prdt_res;
-wire[31 : 0]                            gpr_x1;
-
-wire[31 : 0]                            mepc;
-wire[31 : 0]                            dpc;
-wire[31 : 0]                            mtvec;
-wire                                    mie_msie;
-wire                                    mie_mtie;
-wire                                    mie_meie;
-wire                                    mstatus_mie;
+localparam                      LP_CMD_CUT_VALID_SYS            = 1'b1;
+localparam                      LP_CMD_CUT_READY_SYS            = 1'b1;
+localparam                      LP_CMD_BUF_DEEPTH_SYS           = 1;
+localparam                      LP_RSP_CUT_VALID_SYS            = 1'b1;
+localparam                      LP_RSP_CUT_READY_SYS            = 1'b1;
+localparam                      LP_RSP_BUF_DEEPTH_SYS           = 1;
+localparam                      LP_OTS_CTRL_ENABLE_SYS          = 0;
 
 
-assign      pipe_flush_ack_cmt = pipe_flush_ack_cmt_ifu & pipe_flush_ack_cmt_idu;
+wire                            icb_cmd_vld_ifu;
+wire                            icb_cmd_rdy_ifu;
+wire                            icb_cmd_write_ifu;
+wire[31 : 0]                    icb_cmd_addr_ifu;
+wire[31 : 0]                    icb_cmd_wdata_ifu;
+wire[3 : 0]                     icb_cmd_wstrb_ifu;
+wire[2 : 0]                     icb_cmd_size_ifu;
+wire                            icb_rsp_vld_ifu;
+wire                            icb_rsp_rdy_ifu;
+wire[31 : 0]                    icb_rsp_rdata_ifu;
+wire                            icb_rsp_err_ifu;
 
-assign      pipe_halt_ack = pipe_halt_ack_ifu & pipe_halt_ack_idu;
 
-// 取指模块
-lnrv_ifu u_lnrv_ifu
+wire                            icb_cmd_vld_exu;
+wire                            icb_cmd_rdy_exu;
+wire                            icb_cmd_write_exu;
+wire[31 : 0]                    icb_cmd_addr_exu;
+wire[31 : 0]                    icb_cmd_wdata_exu;
+wire[3 : 0]                     icb_cmd_wstrb_exu;
+wire[2 : 0]                     icb_cmd_size_exu;
+wire                            icb_rsp_vld_exu;
+wire                            icb_rsp_rdy_exu;
+wire[31 : 0]                    icb_rsp_rdata_exu;
+wire                            icb_rsp_err_exu;
+
+
+wire                            icb_cmd_vld_slv;
+wire                            icb_cmd_rdy_slv;
+wire                            icb_cmd_write_slv;
+wire[31 : 0]                    icb_cmd_addr_slv;
+wire[31 : 0]                    icb_cmd_wdata_slv;
+wire[3 : 0]                     icb_cmd_wstrb_slv;
+wire[2  : 0]                    icb_cmd_size_slv;
+wire                            icb_rsp_vld_slv;
+wire                            icb_rsp_rdy_slv;
+wire[31 : 0]                    icb_rsp_rdata_slv;
+wire                            icb_rsp_err_slv;
+
+wire                            icb_cmd_vld_ilm;
+wire                            icb_cmd_rdy_ilm;
+wire                            icb_cmd_write_ilm;
+wire[31 : 0]                    icb_cmd_addr_ilm;
+wire[31 : 0]                    icb_cmd_wdata_ilm;
+wire[3 : 0]                     icb_cmd_wstrb_ilm;
+wire[2 : 0]                     icb_cmd_size_ilm;
+wire                            icb_rsp_vld_ilm;
+wire                            icb_rsp_rdy_ilm;
+wire[31 : 0]                    icb_rsp_rdata_ilm;
+wire                            icb_rsp_err_ilm;
+
+wire                            icb_cmd_vld_dlm;
+wire                            icb_cmd_rdy_dlm;
+wire                            icb_cmd_write_dlm;
+wire[31 : 0]                    icb_cmd_addr_dlm;
+wire[31 : 0]                    icb_cmd_wdata_dlm;
+wire[3 : 0]                     icb_cmd_wstrb_dlm;
+wire[2 : 0]                     icb_cmd_size_dlm;
+wire                            icb_rsp_vld_dlm;
+wire                            icb_rsp_rdy_dlm;
+wire[31 : 0]                    icb_rsp_rdata_dlm;
+wire                            icb_rsp_err_dlm;
+
+
+// wire                            icb_cmd_vld_sys;
+// wire                            icb_cmd_rdy_sys;
+// wire                            icb_cmd_write_sys;
+// wire[31 : 0]                    icb_cmd_addr_sys;
+// wire[31 : 0]                    icb_cmd_wdata_sys;
+// wire[3 : 0]                     icb_cmd_wstrb_sys;
+// wire[2 : 0]                     icb_cmd_size_sys;
+// wire                            icb_rsp_vld_sys;
+// wire                            icb_rsp_rdy_sys;
+// wire[31 : 0]                    icb_rsp_rdata_sys;
+// wire                            icb_rsp_err_sys;
+
+
+
+//
+lnrv_core u_lnrv_core
 (
-    .clk                        ( clk                       ),
-    .reset_n                    ( reset_n                   ),
+    .reset_vector           ( reset_vector              ),
+    .reset_mtvec            ( reset_mtvec               ),
+    .firmware_loading       ( firmware_loading          ),
 
-    .ifu_active                 ( ifu_active                ),
+    .irq_sft                ( irq_sft                   ),
+    .irq_ext                ( irq_ext                   ),
+    .irq_tmr                ( irq_tmr                   ),
 
-    .firmware_loading           ( firmware_loading          ),
+    .dbg_halt               ( dbg_halt                  ),
+    .irq_dbg                ( irq_dbg                   ),
 
-    .reset_vector               ( reset_vector              ),
+    .wfi_mode               ( wfi_mode                  ),
+    .d_mode                 ( d_mode                    ),
 
-    .pipe_flush_req_cmt         ( pipe_flush_req_cmt        ),
-    .pipe_flush_ack_cmt         ( pipe_flush_ack_cmt_ifu    ),
-    .pipe_flush_pc_op1_cmt      ( pipe_flush_pc_op1_cmt     ),
-    .pipe_flush_pc_op2_cmt      ( pipe_flush_pc_op2_cmt     ),
+    .dcsr_stoptime          ( dcsr_stoptime             ),
+    .dcsr_stopcount         ( dcsr_stopcount            ),
 
-    .pipe_flush_req_bpu         ( pipe_flush_req_bpu        ),
-    .pipe_flush_ack_bpu         ( pipe_flush_ack_bpu        ),
-    .pipe_flush_pc_op1_bpu      ( pipe_flush_pc_op1_bpu     ),
-    .pipe_flush_pc_op2_bpu      ( pipe_flush_pc_op2_bpu     ),
+    // ifu访存接口
+    .icb_cmd_vld_ifu        ( icb_cmd_vld_ifu           ),
+    .icb_cmd_rdy_ifu        ( icb_cmd_rdy_ifu           ),
+    .icb_cmd_write_ifu      ( icb_cmd_write_ifu         ),
+    .icb_cmd_addr_ifu       ( icb_cmd_addr_ifu          ),
+    .icb_cmd_wdata_ifu      ( icb_cmd_wdata_ifu         ),
+    .icb_cmd_wstrb_ifu      ( icb_cmd_wstrb_ifu         ),
+    .icb_cmd_size_ifu       ( icb_cmd_size_ifu          ),
+    .icb_rsp_vld_ifu        ( icb_rsp_vld_ifu           ),
+    .icb_rsp_rdy_ifu        ( icb_rsp_rdy_ifu           ),
+    .icb_rsp_rdata_ifu      ( icb_rsp_rdata_ifu         ),
+    .icb_rsp_err_ifu        ( icb_rsp_err_ifu           ),
 
-    .pipe_halt_req              ( pipe_halt_req             ),
-    .pipe_halt_ack              ( pipe_halt_ack_ifu         ),
+    // exu访存接口
+    .icb_cmd_vld_lsu        ( icb_cmd_vld_exu           ),
+    .icb_cmd_rdy_lsu        ( icb_cmd_rdy_exu           ),
+    .icb_cmd_write_lsu      ( icb_cmd_write_exu         ),
+    .icb_cmd_addr_lsu       ( icb_cmd_addr_exu          ),
+    .icb_cmd_wdata_lsu      ( icb_cmd_wdata_exu         ),
+    .icb_cmd_wstrb_lsu      ( icb_cmd_wstrb_exu         ),
+    .icb_cmd_size_lsu       ( icb_cmd_size_exu          ),
+    .icb_rsp_vld_lsu        ( icb_rsp_vld_exu           ),
+    .icb_rsp_rdy_lsu        ( icb_rsp_rdy_exu           ),
+    .icb_rsp_rdata_lsu      ( icb_rsp_rdata_exu         ),
+    .icb_rsp_err_lsu        ( icb_rsp_err_exu           ),
 
-    .ifu_vld                    ( ifu_vld                   ),
-    .ifu_rdy                    ( ifu_rdy                   ),
-    .ifu_pc                     ( ifu_pc                    ),
-    .ifu_ir                     ( ifu_ir                    ),
-    .ifu_excp_misalgn           ( ifu_excp_misalgn          ),
-    .ifu_excp_buserr            ( ifu_excp_buserr           ),
+    .ifu_clk                ( clk                       ),
+    .ifu_active             ( ifu_active                ),
 
-    .icb_cmd_vld_ifu            ( icb_cmd_vld_ifu           ),
-    .icb_cmd_rdy_ifu            ( icb_cmd_rdy_ifu           ),
-    .icb_cmd_write_ifu          ( icb_cmd_write_ifu         ),
-    .icb_cmd_addr_ifu           ( icb_cmd_addr_ifu          ),
-    .icb_cmd_wdata_ifu          ( icb_cmd_wdata_ifu         ),
-    .icb_cmd_wstrb_ifu          ( icb_cmd_wstrb_ifu         ),
-    .icb_cmd_size_ifu           ( icb_cmd_size_ifu          ),
-    .icb_rsp_vld_ifu            ( icb_rsp_vld_ifu           ),
-    .icb_rsp_rdy_ifu            ( icb_rsp_rdy_ifu           ),
-    .icb_rsp_rdata_ifu          ( icb_rsp_rdata_ifu         ),
-    .icb_rsp_err_ifu            ( icb_rsp_err_ifu           )
+    .idu_clk                ( clk                       ),
+    .idu_active             ( idu_active                ),
+
+    .exu_clk                ( clk                       ),
+    .exu_active             ( exu_active                ),
+
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   )
 );
 
-// 译码模块
-lnrv_idu u_lnrv_idu
+// 总线矩阵
+lnrv_biu#
 (
-    .idu_active                 ( idu_active                ),
+    .P_ILM_REGION_START     ( LP_ILM_REGION_START       ),
+    .P_ILM_REGION_END       ( LP_ILM_REGION_END         ),
 
-    .pipe_halt_req              ( pipe_halt_req             ),
-    .pipe_halt_ack              ( pipe_halt_ack_idu         ),
+    .P_DLM_REGION_START     ( LP_DLM_REGION_START       ),
+    .P_DLM_REGION_END       ( LP_DLM_REGION_END         ),
 
-    .ifu_vld                    ( ifu_vld                   ),
-    .ifu_rdy                    ( ifu_rdy                   ),
-    .ifu_ir                     ( ifu_ir                    ),
-    .ifu_pc                     ( ifu_pc                    ),
-    .ifu_excp_misalgn           ( ifu_excp_misalgn          ),
-    .ifu_excp_buserr            ( ifu_excp_buserr           ),
+    .P_ADDR_WIDTH           ( 32                        ),
+    .P_DATA_WIDTH           ( 32                        ),
 
-    .pipe_flush_req_cmt         ( pipe_flush_req_cmt        ),
-    .pipe_flush_ack_cmt         ( pipe_flush_ack_cmt_idu    ),
+    // IFU接口配置参数
+    .P_CMD_CUT_VALID_IFU    ( 1'b1                      ),
+    .P_CMD_CUT_READY_IFU    ( 1'b1                      ),
+    .P_CMD_BUF_DEEPTH_IFU   ( 0                         ),
+    .P_RSP_CUT_VALID_IFU    ( 1'b1                      ),
+    .P_RSP_CUT_READY_IFU    ( 1'b1                      ),
+    .P_RSP_BUF_DEEPTH_IFU   ( 4                         ),
+    .P_OTS_COUNT_IFU        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_IFU  ( 1'b0                      ),
 
-    .d_mode                     ( d_mode                    ),
+    // EXU接口配置参数
+    .P_CMD_CUT_VALID_EXU    ( 1'b0                      ),
+    .P_CMD_CUT_READY_EXU    ( 1'b1                      ),
+    .P_CMD_BUF_DEEPTH_EXU   ( 1                         ),
+    .P_RSP_CUT_VALID_EXU    ( 1'b0                      ),
+    .P_RSP_CUT_READY_EXU    ( 1'b1                      ),
+    .P_RSP_BUF_DEEPTH_EXU   ( 1                         ),
+    .P_OTS_COUNT_EXU        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_EXU  ( 1'b0                      ),
 
-    .gpr_x1                     ( gpr_x1                    ),
+    // SLV接口配置参数
+    .P_CMD_CUT_VALID_SLV    ( LP_CMD_CUT_VALID_SLV      ),
+    .P_CMD_CUT_READY_SLV    ( LP_CMD_CUT_READY_SLV      ),
+    .P_CMD_BUF_DEEPTH_SLV   ( LP_CMD_BUF_DEEPTH_SLV     ),
+    .P_RSP_CUT_VALID_SLV    ( LP_RSP_CUT_VALID_SLV      ),
+    .P_RSP_CUT_READY_SLV    ( LP_RSP_CUT_READY_SLV      ),
+    .P_RSP_BUF_DEEPTH_SLV   ( LP_RSP_BUF_DEEPTH_SLV     ),
+    .P_OTS_COUNT_SLV        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_SLV  ( LP_OTS_CTRL_ENABLE_SLV    ),
 
-    .pipe_flush_req_bpu         ( pipe_flush_req_bpu        ),
-    .pipe_flush_ack_bpu         ( pipe_flush_ack_bpu        ),
-    .pipe_flush_pc_op1_bpu      ( pipe_flush_pc_op1_bpu     ),
-    .pipe_flush_pc_op2_bpu      ( pipe_flush_pc_op2_bpu     ),
+    // ILM接口配置参数
+    .P_CMD_CUT_VALID_ILM    ( 1'b0                      ),
+    .P_CMD_CUT_READY_ILM    ( 1'b0                      ),
+    .P_CMD_BUF_DEEPTH_ILM   ( 0                         ),
+    .P_RSP_CUT_VALID_ILM    ( 1'b0                      ),
+    .P_RSP_CUT_READY_ILM    ( 1'b0                      ),
+    .P_RSP_BUF_DEEPTH_ILM   ( 1'b0                      ),
+    .P_OTS_COUNT_ILM        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_ILM  ( LP_OTS_CTRL_ENABLE_ILM    ),
 
+    // DLM接口配置参数
+    .P_CMD_CUT_VALID_DLM    ( LP_CMD_CUT_VALID_DLM      ),
+    .P_CMD_CUT_READY_DLM    ( LP_CMD_CUT_READY_DLM      ),
+    .P_CMD_BUF_DEEPTH_DLM   ( LP_CMD_BUF_DEEPTH_DLM     ),
+    .P_RSP_CUT_VALID_DLM    ( LP_RSP_CUT_VALID_DLM      ),
+    .P_RSP_CUT_READY_DLM    ( LP_RSP_CUT_READY_DLM      ),
+    .P_RSP_BUF_DEEPTH_DLM   ( LP_RSP_BUF_DEEPTH_DLM     ),
+    .P_OTS_COUNT_DLM        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_DLM  ( LP_OTS_CTRL_ENABLE_DLM    ),
 
-    // .dec_ir_jal                 ( dec_ir_jal                ),
-    // .dec_ir_jalr                ( dec_ir_jalr               ),
-    // .dec_ir_fence               ( dec_ir_fence              ),
-    // .dec_ir_bxx                 ( dec_ir_bxx                ),
-    // .dec_imm_bxx                ( dec_imm_bxx               ),
-    // .dec_imm_jal                ( dec_imm_jal               ),
-    // .dec_imm_jalr               ( dec_imm_jalr              ),
-    // .dec_rs1_x1                 ( dec_rs1_x1                ),
+    // SYS接口配置参数
+    .P_CMD_CUT_VALID_SYS    ( LP_CMD_CUT_VALID_SYS      ),
+    .P_CMD_CUT_READY_SYS    ( LP_CMD_CUT_READY_SYS      ),
+    .P_CMD_BUF_DEEPTH_SYS   ( LP_CMD_BUF_DEEPTH_SYS     ),
+    .P_RSP_CUT_VALID_SYS    ( LP_RSP_CUT_VALID_SYS      ),
+    .P_RSP_CUT_READY_SYS    ( LP_RSP_CUT_READY_SYS      ),
+    .P_RSP_BUF_DEEPTH_SYS   ( LP_RSP_BUF_DEEPTH_SYS     ),
+    .P_OTS_COUNT_SYS        ( 1                         ),
+    .P_OTS_CTRL_ENABLE_SYS  ( LP_OTS_CTRL_ENABLE_SYS    )
+)
+u_lnrv_biu
+(
+    .icb_cmd_vld_ifu        ( icb_cmd_vld_ifu           ),
+    .icb_cmd_rdy_ifu        ( icb_cmd_rdy_ifu           ),
+    .icb_cmd_write_ifu      ( icb_cmd_write_ifu         ),
+    .icb_cmd_addr_ifu       ( icb_cmd_addr_ifu          ),
+    .icb_cmd_wdata_ifu      ( icb_cmd_wdata_ifu         ),
+    .icb_cmd_wstrb_ifu      ( icb_cmd_wstrb_ifu         ),
+    .icb_cmd_size_ifu       ( icb_cmd_size_ifu          ),
+    .icb_rsp_vld_ifu        ( icb_rsp_vld_ifu           ),
+    .icb_rsp_rdy_ifu        ( icb_rsp_rdy_ifu           ),
+    .icb_rsp_rdata_ifu      ( icb_rsp_rdata_ifu         ),
+    .icb_rsp_err_ifu        ( icb_rsp_err_ifu           ),
 
-    .idu_excp_ilglir            ( idu_excp_ilglir           ),
-    .idu_excp_misalgn           ( idu_excp_misalgn          ),
-    .idu_excp_buserr            ( idu_excp_buserr           ),
+    .icb_cmd_vld_exu        ( icb_cmd_vld_exu           ),
+    .icb_cmd_rdy_exu        ( icb_cmd_rdy_exu           ),
+    .icb_cmd_write_exu      ( icb_cmd_write_exu         ),
+    .icb_cmd_addr_exu       ( icb_cmd_addr_exu          ),
+    .icb_cmd_wdata_exu      ( icb_cmd_wdata_exu         ),
+    .icb_cmd_wstrb_exu      ( icb_cmd_wstrb_exu         ),
+    .icb_cmd_size_exu       ( icb_cmd_size_exu          ),
+    .icb_rsp_vld_exu        ( icb_rsp_vld_exu           ),
+    .icb_rsp_rdy_exu        ( icb_rsp_rdy_exu           ),
+    .icb_rsp_rdata_exu      ( icb_rsp_rdata_exu         ),
+    .icb_rsp_err_exu        ( icb_rsp_err_exu           ),
 
-    .idu_vld                    ( idu_vld                   ),
-    .idu_rdy                    ( idu_rdy                   ),
-    .idu_ir                     ( idu_ir                    ),
-    .idu_pc                     ( idu_pc                    ),
-    .idu_imm                    ( idu_imm                   ),
-    .idu_rs1                    ( idu_rs1                   ),
-    .idu_rs2                    ( idu_rs2                   ),
-    .idu_csr                    ( idu_csr                   ),
-    .idu_rd                     ( idu_rd                    ),
-    .idu_op_bus                 ( idu_op_bus                ),
-    .idu_op_type                ( idu_op_type               ),
-    .idu_rv32                   ( idu_rv32                  ),
-    .idu_prdt_taken             ( idu_prdt_taken            ),
+    .icb_cmd_vld_slv        ( icb_cmd_vld_slv           ),
+    .icb_cmd_rdy_slv        ( icb_cmd_rdy_slv           ),
+    .icb_cmd_write_slv      ( icb_cmd_write_slv         ),
+    .icb_cmd_addr_slv       ( icb_cmd_addr_slv          ),
+    .icb_cmd_wdata_slv      ( icb_cmd_wdata_slv         ),
+    .icb_cmd_wstrb_slv      ( icb_cmd_wstrb_slv         ),
+    .icb_cmd_size_slv       ( icb_cmd_size_slv          ),
+    .icb_rsp_vld_slv        ( icb_rsp_vld_slv           ),
+    .icb_rsp_rdy_slv        ( icb_rsp_rdy_slv           ),
+    .icb_rsp_rdata_slv      ( icb_rsp_rdata_slv         ),
+    .icb_rsp_err_slv        ( icb_rsp_err_slv           ),
 
+    .icb_cmd_vld_ilm        ( icb_cmd_vld_ilm           ),
+    .icb_cmd_rdy_ilm        ( icb_cmd_rdy_ilm           ),
+    .icb_cmd_write_ilm      ( icb_cmd_write_ilm         ),
+    .icb_cmd_addr_ilm       ( icb_cmd_addr_ilm          ),
+    .icb_cmd_wdata_ilm      ( icb_cmd_wdata_ilm         ),
+    .icb_cmd_wstrb_ilm      ( icb_cmd_wstrb_ilm         ),
+    .icb_cmd_size_ilm       ( icb_cmd_size_ilm          ),
+    .icb_rsp_vld_ilm        ( icb_rsp_vld_ilm           ),
+    .icb_rsp_rdy_ilm        ( icb_rsp_rdy_ilm           ),
+    .icb_rsp_rdata_ilm      ( icb_rsp_rdata_ilm         ),
+    .icb_rsp_err_ilm        ( icb_rsp_err_ilm           ),
 
-    .clk                        ( clk                       ),
-    .reset_n                    ( reset_n                   )
+    .icb_cmd_vld_dlm        ( icb_cmd_vld_dlm           ),
+    .icb_cmd_rdy_dlm        ( icb_cmd_rdy_dlm           ),
+    .icb_cmd_write_dlm      ( icb_cmd_write_dlm         ),
+    .icb_cmd_addr_dlm       ( icb_cmd_addr_dlm          ),
+    .icb_cmd_wdata_dlm      ( icb_cmd_wdata_dlm         ),
+    .icb_cmd_wstrb_dlm      ( icb_cmd_wstrb_dlm         ),
+    .icb_cmd_size_dlm       ( icb_cmd_size_dlm          ),
+    .icb_rsp_vld_dlm        ( icb_rsp_vld_dlm           ),
+    .icb_rsp_rdy_dlm        ( icb_rsp_rdy_dlm           ),
+    .icb_rsp_rdata_dlm      ( icb_rsp_rdata_dlm         ),
+    .icb_rsp_err_dlm        ( icb_rsp_err_dlm           ),
+
+    .icb_cmd_vld_sys        ( icb_cmd_vld_sys           ),
+    .icb_cmd_rdy_sys        ( icb_cmd_rdy_sys           ),
+    .icb_cmd_write_sys      ( icb_cmd_write_sys         ),
+    .icb_cmd_addr_sys       ( icb_cmd_addr_sys          ),
+    .icb_cmd_wdata_sys      ( icb_cmd_wdata_sys         ),
+    .icb_cmd_wstrb_sys      ( icb_cmd_wstrb_sys         ),
+    .icb_cmd_size_sys       ( icb_cmd_size_sys          ),
+    .icb_rsp_vld_sys        ( icb_rsp_vld_sys           ),
+    .icb_rsp_rdy_sys        ( icb_rsp_rdy_sys           ),
+    .icb_rsp_rdata_sys      ( icb_rsp_rdata_sys         ),
+    .icb_rsp_err_sys        ( icb_rsp_err_sys           ),
+
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   )
 );
 
-// // 分支预测模块
-// lnrv_bpu u_lnrv_bpu
+// ilm
+lnrv_icb2sram#
+(
+    .P_ICB_ADDR_WIDTH       ( 32                        ),
+    .P_RAM_ADDR_WIDTH       ( P_ILM_ADDR_WIDTH          ),
+    .P_DATA_WIDTH           ( 32                        )
+)
+u_ilm_ctrl
+(
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   ),
+
+    .icb_cmd_vld            ( icb_cmd_vld_ilm           ),
+    .icb_cmd_rdy            ( icb_cmd_rdy_ilm           ),
+    .icb_cmd_write          ( icb_cmd_write_ilm         ),
+    .icb_cmd_addr           ( icb_cmd_addr_ilm          ),
+    .icb_cmd_wdata          ( icb_cmd_wdata_ilm         ),
+    .icb_cmd_wstrb          ( icb_cmd_wstrb_ilm         ),
+    .icb_cmd_size           ( icb_cmd_size_ilm          ),
+    .icb_rsp_rdy            ( icb_rsp_rdy_ilm           ),
+    .icb_rsp_vld            ( icb_rsp_vld_ilm           ),
+    .icb_rsp_rdata          ( icb_rsp_rdata_ilm         ),
+    .icb_rsp_err            ( icb_rsp_err_ilm           ),
+
+    .ram_cs                 ( ilm_cs                    ),
+    .ram_we                 ( ilm_we                    ),
+    .ram_addr               ( ilm_addr                  ),
+    .ram_wdata              ( ilm_wdata                 ),
+    .ram_wem                ( ilm_wem                   ),
+    .ram_rdata              ( ilm_rdata                 ),
+    .ram_clk                (                           )
+);
+
+// dlm
+lnrv_icb2sram#
+(
+    .P_ICB_ADDR_WIDTH       ( 32                        ),
+    .P_RAM_ADDR_WIDTH       ( P_ILM_ADDR_WIDTH          ),
+    .P_DATA_WIDTH           ( 32                        )
+)
+u_dlm_ctrl
+(
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   ),
+
+    .icb_cmd_vld            ( icb_cmd_vld_dlm           ),
+    .icb_cmd_rdy            ( icb_cmd_rdy_dlm           ),
+    .icb_cmd_write          ( icb_cmd_write_dlm         ),
+    .icb_cmd_addr           ( icb_cmd_addr_dlm          ),
+    .icb_cmd_wdata          ( icb_cmd_wdata_dlm         ),
+    .icb_cmd_wstrb          ( icb_cmd_wstrb_dlm         ),
+    .icb_cmd_size           ( icb_cmd_size_dlm          ),
+    .icb_rsp_rdy            ( icb_rsp_rdy_dlm           ),
+    .icb_rsp_vld            ( icb_rsp_vld_dlm           ),
+    .icb_rsp_rdata          ( icb_rsp_rdata_dlm         ),
+    .icb_rsp_err            ( icb_rsp_err_dlm           ),
+
+    .ram_cs                 ( dlm_cs                    ),
+    .ram_we                 ( dlm_we                    ),
+    .ram_addr               ( dlm_addr                  ),
+    .ram_wdata              ( dlm_wdata                 ),
+    .ram_wem                ( dlm_wem                   ),
+    .ram_rdata              ( dlm_rdata                 ),
+    .ram_clk                (                           )
+);
+
+
+// // 系统总线，axi4
+// lnrv_icb2axi#
 // (
-//     .ifu_vld                    ( ifu_vld                   ),
-//     .ifu_rdy                    ( ifu_rdy                   ),
-//     .ifu_pc                     ( ifu_pc                    ),
+//     .P_ADDR_WIDTH           ( 32                        ),
+//     .P_DATA_WIDTH           ( 32                        )
+// )
+// u_lnrv_icb2axi
+// (
+//     .icb_cmd_vld            ( icb_cmd_vld_sys           ),
+//     .icb_cmd_rdy            ( icb_cmd_rdy_sys           ),
+//     .icb_cmd_write          ( icb_cmd_write_sys         ),
+//     .icb_cmd_addr           ( icb_cmd_addr_sys          ),
+//     .icb_cmd_wdata          ( icb_cmd_wdata_sys         ),
+//     .icb_cmd_wstrb          ( icb_cmd_wstrb_sys         ),
+//     .icb_cmd_size           ( icb_cmd_size_sys          ),
+//     .icb_rsp_rdy            ( icb_rsp_rdy_sys           ),
+//     .icb_rsp_vld            ( icb_rsp_vld_sys           ),
+//     .icb_rsp_err            ( icb_rsp_err_sys           ),
+//     .icb_rsp_rdata          ( icb_rsp_rdata_sys         ),
 
-//     .idu_vld                    ( idu_vld                   ),
-//     .idu_rdy                    ( idu_rdy                   ),
-//     .idu_rd                     ( idu_rd                    ),
+//     .axi_awvalid            ( sys_awvalid               ),
+//     .axi_awready            ( sys_awready               ),
+//     .axi_awlock             ( sys_awlock                ),
+//     .axi_awaddr             ( sys_awaddr                ),
+//     .axi_awid               ( sys_awid                  ),
+//     .axi_awlen              ( sys_awlen                 ),
+//     .axi_awsize             ( sys_awsize                ),
+//     .axi_awburst            ( sys_awburst               ),
+//     .axi_awcache            ( sys_awcache               ),
+//     .axi_awprot             ( sys_awprot                ),
 
-//     .gpr_x1                     ( gpr_x1                    ),
+//     .axi_wvalid             ( sys_wvalid                ),
+//     .axi_wready             ( sys_wready                ),
+//     .axi_wdata              ( sys_wdata                 ),
+//     .axi_wstrb              ( sys_wstrb                 ),
+//     .axi_wlast              ( sys_wlast                 ),
 
-//     .dec_ir_jal                 ( dec_ir_jal                ),
-//     .dec_ir_jalr                ( dec_ir_jalr               ),
-//     .dec_ir_fence               ( dec_ir_fence              ),
-//     .dec_ir_bxx                 ( dec_ir_bxx                ),
-//     .dec_imm_bxx                ( dec_imm_bxx               ),
-//     .dec_imm_jal                ( dec_imm_jal               ),
-//     .dec_imm_jalr               ( dec_imm_jalr              ),
-//     .dec_rs1_x1                 ( dec_rs1_x1                ),
+//     .axi_bready             ( sys_bready                ),
+//     .axi_bvalid             ( sys_bvalid                ),
+//     .axi_bresp              ( sys_bresp                 ),
+//     .axi_bid                ( sys_bid                   ),
 
-//     .pipe_flush_req             ( pipe_flush_req_bpu        ),
-//     .pipe_flush_ack             ( pipe_flush_ack_bpu        ),
-//     .pipe_flush_pc_op1          ( pipe_flush_pc_op1_bpu     ),
-//     .pipe_flush_pc_op2          ( pipe_flush_pc_op2_bpu     ),
+//     .axi_arvalid            ( sys_arvalid               ),
+//     .axi_arready            ( sys_arready               ),
+//     .axi_arlock             ( sys_arlock                ),
+//     .axi_araddr             ( sys_araddr                ),
+//     .axi_arid               ( sys_arid                  ),
+//     .axi_arlen              ( sys_arlen                 ),
+//     .axi_arsize             ( sys_arsize                ),
+//     .axi_arburst            ( sys_arburst               ),
+//     .axi_arcache            ( sys_arcache               ),
+//     .axi_arprot             ( sys_arprot                ),
 
-//     .bpu_prdt_res               ( bpu_prdt_res              ),
+//     .axi_rready             ( sys_rready                ),
+//     .axi_rvalid             ( sys_rvalid                ),
+//     .axi_rdata              ( sys_rdata                 ),
+//     .axi_rresp              ( sys_rresp                 ),
+//     .axi_rlast              ( sys_rlast                 ),
+//     .axi_rid                ( sys_rid                   ),
 
-//     .clk                        ( clk                       ),
-//     .reset_n                    ( reset_n                   )
+//     .clk                    ( clk                       ),
+//     .reset_n                ( reset_n                   )
 // );
 
 
-// 指令执行模块
-lnrv_exu u_lnrv_exu
+lnrv_axi2icb#
 (
-    .exu_active                 ( exu_active                ),
-
-    // 译码模块输入
-    .idu_vld                    ( idu_vld                   ),
-    .idu_rdy                    ( idu_rdy                   ),
-    .idu_op_bus                 ( idu_op_bus                ),
-    .idu_op_type                ( idu_op_type               ),
-    .idu_imm                    ( idu_imm                   ),
-    .idu_pc                     ( idu_pc                    ),
-    .idu_ir                     ( idu_ir                    ),
-    .idu_rd                     ( idu_rd                    ),
-    .idu_excp_ilglir            ( idu_excp_ilglir           ),
-    .idu_excp_misalgn           ( idu_excp_misalgn          ),
-    .idu_excp_buserr            ( idu_excp_buserr           ),
-    .idu_rv32                   ( idu_rv32                  ),
-    .idu_prdt_taken             ( idu_prdt_taken            ),
-
-    // 寄存器读接口
-    .rs1_rdata                  ( rs1_rdata                 ),
-    .rs2_rdata                  ( rs2_rdata                 ),
-    .csr_rdata                  ( csr_rdata                 ),
-    .csr_idx_err                ( csr_idx_err               ),
-
-    // 交付接口
-    .cmt_vld                    ( cmt_vld                   ),
-    .cmt_rdy                    ( cmt_rdy                   ),
-    .cmt_rv32_ir                ( cmt_rv32_ir               ),
-    .cmt_brch_dret              ( cmt_brch_dret             ),
-    .cmt_brch_mret              ( cmt_brch_mret             ),
-    .cmt_brch_fence             ( cmt_brch_fence            ),
-    .cmt_brch_bjp               ( cmt_brch_bjp              ),
-    .cmt_brch_jal               ( cmt_brch_jal              ),
-    .cmt_brch_jalr              ( cmt_brch_jalr             ),
-    .cmt_prdt_taken             ( cmt_prdt_taken            ),
-
-    .cmt_idu_excp_ilglir        ( cmt_idu_excp_ilglir       ),
-    .cmt_ifu_excp_buserr        ( cmt_ifu_excp_buserr       ),
-    .cmt_ifu_excp_misalgn       ( cmt_ifu_excp_misalgn      ),
-
-    .cmt_csr_idx_err            ( cmt_csr_idx_err           ),
-    .cmt_csr                    ( cmt_csr                   ),
-
-    .cmt_rglr                   ( cmt_rglr                  ),
-    .cmt_sys_ebreak             ( cmt_sys_ebreak            ),
-    .cmt_sys_ecall              ( cmt_sys_ecall             ),
-    .cmt_sys_wfi                ( cmt_sys_wfi               ),
-
-    .cmt_lsu_ld                 ( cmt_lsu_ld                ),
-    .cmt_lsu_st                 ( cmt_lsu_st                ),
-    .cmt_lsu_excp_misalgn       ( cmt_lsu_excp_misalgn      ),
-    .cmt_lsu_excp_buserr        ( cmt_lsu_excp_buserr       ),
-    .cmt_lsu_addr               ( cmt_lsu_addr              ),
-
-    // 通用寄存器写回接口
-    .gpr_wbck_vld               ( gpr_wbck_vld              ),
-    .gpr_wbck_rdy               ( gpr_wbck_rdy              ),
-    .gpr_wbck_idx               ( gpr_wbck_idx              ),
-    .gpr_wbck_wdata             ( gpr_wbck_wdata            ),
-
-    // CSR寄存器写回接口
-    .csr_wbck_vld               ( csr_wbck_vld              ),
-    .csr_wbck_rdy               ( csr_wbck_rdy              ),
-    .csr_wbck_wdata             ( csr_wbck_wdata            ),
-
-    // 访存接口
-    .icb_cmd_vld_lsu            ( icb_cmd_vld_lsu           ),
-    .icb_cmd_rdy_lsu            ( icb_cmd_rdy_lsu           ),
-    .icb_cmd_write_lsu          ( icb_cmd_write_lsu         ),
-    .icb_cmd_addr_lsu           ( icb_cmd_addr_lsu          ),
-    .icb_cmd_wdata_lsu          ( icb_cmd_wdata_lsu         ),
-    .icb_cmd_wstrb_lsu          ( icb_cmd_wstrb_lsu         ),
-    .icb_cmd_size_lsu           ( icb_cmd_size_lsu          ),
-    .icb_rsp_vld_lsu            ( icb_rsp_vld_lsu           ),
-    .icb_rsp_rdy_lsu            ( icb_rsp_rdy_lsu           ),
-    .icb_rsp_rdata_lsu          ( icb_rsp_rdata_lsu         ),
-    .icb_rsp_err_lsu            ( icb_rsp_err_lsu           ),
-
-    .clk                        ( clk                       ),
-    .reset_n                    ( reset_n                   )
-);
-
-lnrv_cmt u_lnrv_cmt
-(
-    .ifu_vld                    ( ifu_vld                   ),
-    .ifu_pc                     ( ifu_pc                    ),
-
-    .idu_vld                    ( idu_vld                   ),
-    .idu_pc                     ( idu_pc                    ),
-    .idu_ir                     ( idu_ir                    ),
-    .idu_imm                    ( idu_imm                   ),
-
-    .cmt_vld                    ( cmt_vld                   ),
-    .cmt_rdy                    ( cmt_rdy                   ),
-    .cmt_rv32_ir                ( cmt_rv32_ir               ),
-    .cmt_idu_excp_ilglir        ( cmt_idu_excp_ilglir       ),
-    .cmt_ifu_excp_buserr        ( cmt_ifu_excp_buserr       ),
-    .cmt_ifu_excp_misalgn       ( cmt_ifu_excp_misalgn      ),
-    .cmt_brch_dret              ( cmt_brch_dret             ),
-    .cmt_brch_mret              ( cmt_brch_mret             ),
-    .cmt_brch_jal               ( cmt_brch_jal              ),
-    .cmt_brch_jalr              ( cmt_brch_jalr             ),
-    .cmt_brch_fence             ( cmt_brch_fence            ),
-    .cmt_brch_bjp               ( cmt_brch_bjp              ),
-    .cmt_prdt_taken             ( cmt_prdt_taken            ),
-    .cmt_rglr                   ( cmt_rglr                  ),
-    .cmt_csr                    ( cmt_csr                   ),
-    .cmt_csr_idx_err            ( cmt_csr_idx_err           ),
-    .cmt_sys_ebreak             ( cmt_sys_ebreak            ),
-    .cmt_sys_ecall              ( cmt_sys_ecall             ),
-    .cmt_sys_wfi                ( cmt_sys_wfi               ),
-    .cmt_lsu_ld                 ( cmt_lsu_ld                ),
-    .cmt_lsu_st                 ( cmt_lsu_st                ),
-    .cmt_lsu_excp_misalgn       ( cmt_lsu_excp_misalgn      ),
-    .cmt_lsu_excp_buserr        ( cmt_lsu_excp_buserr       ),
-    .cmt_lsu_addr               ( cmt_lsu_addr              ),
-
-    .irq_sft                    ( irq_sft                   ),
-    .irq_ext                    ( irq_ext                   ),
-    .irq_tmr                    ( irq_tmr                   ),
-
-    .mie_meie                   ( mie_meie                  ),
-    .mie_mtie                   ( mie_mtie                  ),
-    .mie_msie                   ( mie_msie                  ),
-    .mstatus_mie                ( mstatus_mie               ),
-
-    .dpc                        ( dpc                       ),
-    .mepc                       ( mepc                      ),
-    .mtvec                      ( mtvec                     ),
-    .rs1_rdata                  ( rs1_rdata                 ),
-
-    .d_mode                     ( d_mode                    ),
-    .m_mode                     ( m_mode                    ),
-    .wfi_mode                   ( wfi_mode                  ),
-
-    .irq_taken                  ( irq_taken                 ),
-    .dbg_taken                  ( dbg_taken                 ),
-    .excp_taken                 ( excp_taken                ),
-
-    .irq_dbg                    ( irq_dbg                   ),
-    .dbg_halt                   ( dbg_halt                  ),
-    .dbg_step                   ( 1'b0                      ),
-    .dbg_trig                   ( 1'b0                      ),
-
-    .dcsr_ebreakm               ( dcsr_ebreakm              ),
-    .dcsr_step                  ( dcsr_step                 ),
-    .dcsr_stepie                ( dcsr_stepie               ),
-
-    .mepc_wen                   ( mepc_wen                  ),
-    .mepc_wdata                 ( mepc_wdata                ),
-
-    .mcause_wen                 ( mcause_wen                ),
-    .mcause_wdata               ( mcause_wdata              ),
-
-    .mtval_wen                  ( mtval_wen                 ),
-    .mtval_wdata                ( mtval_wdata               ),
-
-    .dpc_wen                    ( dpc_wen                   ),
-    .dpc_wdata                  ( dpc_wdata                 ),
-
-    .dcause_wen                 ( dcause_wen                ),
-    .dcause_wdata               ( dcause_wdata              ),
-
-    .pipe_flush_req             ( pipe_flush_req_cmt        ),
-    .pipe_flush_ack             ( pipe_flush_ack_cmt        ),
-    .pipe_flush_pc_op1          ( pipe_flush_pc_op1_cmt     ),
-    .pipe_flush_pc_op2          ( pipe_flush_pc_op2_cmt     ),
-
-    .pipe_halt_req              ( pipe_halt_req             ),
-    .pipe_halt_ack              ( pipe_halt_ack             ),
-
-    .cmted_mret                 ( cmted_mret                ),
-    .cmted_dret                 ( cmted_dret                ),
-
-    .clk                        ( clk                       ),
-    .reset_n                    ( reset_n                   )
-);
-
-
-// 通用寄存器组
-lnrv_gpr#(
-    .P_ADDR_WIDTH               ( 5                         )
+    .P_ADDR_WIDTH           ( 32                        ),
+    .P_DATA_WIDTH           ( 32                        )
 )
-u_lnrv_gpr
+u_lnrv_axi2icb
 (
-    .rs1_idx                    ( idu_rs1                   ),
-    .rs1_rdata                  ( rs1_rdata                 ),
-    .rs2_idx                    ( idu_rs2                   ),
-    .rs2_rdata                  ( rs2_rdata                 ),
+    .icb_cmd_vld            ( icb_cmd_vld_slv           ),
+    .icb_cmd_rdy            ( icb_cmd_rdy_slv           ),
+    .icb_cmd_write          ( icb_cmd_write_slv         ),
+    .icb_cmd_addr           ( icb_cmd_addr_slv          ),
+    .icb_cmd_wdata          ( icb_cmd_wdata_slv         ),
+    .icb_cmd_wstrb          ( icb_cmd_wstrb_slv         ),
+    .icb_cmd_size           ( icb_cmd_size_slv          ),
+    .icb_rsp_rdy            ( icb_rsp_rdy_slv           ),
+    .icb_rsp_vld            ( icb_rsp_vld_slv           ),
+    .icb_rsp_err            ( icb_rsp_err_slv           ),
+    .icb_rsp_rdata          ( icb_rsp_rdata_slv         ),
 
-    .wr_vld                     ( gpr_wbck_vld              ),
-    .wr_rdy                     ( gpr_wbck_rdy              ),
-    .wr_idx                     ( gpr_wbck_idx              ),
-    .wr_data                    ( gpr_wbck_wdata            ),
+    .axi_awvalid            ( slv_awvalid               ),
+    .axi_awready            ( slv_awready               ),
+    .axi_awlock             ( slv_awlock                ),
+    .axi_awaddr             ( slv_awaddr                ),
+    .axi_awid               ( slv_awid                  ),
+    .axi_awlen              ( slv_awlen                 ),
+    .axi_awsize             ( slv_awsize                ),
+    .axi_awburst            ( slv_awburst               ),
+    .axi_awcache            ( slv_awcache               ),
+    .axi_awprot             ( slv_awprot                ),
 
-    .gpr_x1                     ( gpr_x1                    ),
+    .axi_wvalid             ( slv_wvalid                ),
+    .axi_wready             ( slv_wready                ),
+    .axi_wdata              ( slv_wdata                 ),
+    .axi_wstrb              ( slv_wstrb                 ),
+    .axi_wlast              ( slv_wlast                 ),
 
-    .clk                        ( clk                       ),
-    .reset_n                    ( reset_n                   )
-);
+    .axi_bready             ( slv_bready                ),
+    .axi_bvalid             ( slv_bvalid                ),
+    .axi_bresp              ( slv_bresp                 ),
+    .axi_bid                ( slv_bid                   ),
 
-// control and status regter
-lnrv_csr u_lnrv_csr
-(
-    .reset_mtvec                ( reset_mtvec               ),
+    .axi_arvalid            ( slv_arvalid               ),
+    .axi_arready            ( slv_arready               ),
+    .axi_arlock             ( slv_arlock                ),
+    .axi_araddr             ( slv_araddr                ),
+    .axi_arid               ( slv_arid                  ),
+    .axi_arlen              ( slv_arlen                 ),
+    .axi_arsize             ( slv_arsize                ),
+    .axi_arburst            ( slv_arburst               ),
+    .axi_arcache            ( slv_arcache               ),
+    .axi_arprot             ( slv_arprot                ),
 
-    .mepc                       ( mepc                      ),
-    .mtvec                      ( mtvec                     ),
+    .axi_rready             ( slv_rready                ),
+    .axi_rvalid             ( slv_rvalid                ),
+    .axi_rdata              ( slv_rdata                 ),
+    .axi_rresp              ( slv_rresp                 ),
+    .axi_rlast              ( slv_rlast                 ),
+    .axi_rid                ( slv_rid                   ),
 
-    .dcsr_step                  ( dcsr_step                 ),
-    .dcsr_stepie                ( dcsr_stepie               ),
-    .dcsr_ebreakm               ( dcsr_ebreakm              ),
-    .dcsr_stoptime              ( dcsr_stoptime             ),
-    .dcsr_stopcount             ( dcsr_stopcount            ),
-    .dpc                        ( dpc                       ),
-    .d_mode                     ( d_mode                    ),
-    .m_mode                     ( m_mode                    ),
-
-    .irq_sft                    ( irq_sft                   ),
-    .irq_tmr                    ( irq_tmr                   ),
-    .irq_ext                    ( irq_ext                   ),
-
-    .mie_msie                   ( mie_msie                  ),
-    .mie_mtie                   ( mie_mtie                  ),
-    .mie_meie                   ( mie_meie                  ),
-    .mstatus_mie                ( mstatus_mie               ),
-
-
-    .excp_taken                 ( excp_taken                ),
-    .irq_taken                  ( irq_taken                 ),
-    .dbg_taken                  ( dbg_taken                 ),
-    .cmted_mret                 ( cmted_mret                ),
-    .cmted_dret                 ( cmted_dret                ),
-
-    .mepc_wen                   ( mepc_wen                  ),
-    .mepc_wdata                 ( mepc_wdata                ),
-    .mcause_wen                 ( mcause_wen                ),
-    .mcause_wdata               ( mcause_wdata              ),
-    .mtval_wen                  ( mtval_wen                 ),
-    .mtval_wdata                ( mtval_wdata               ),
-    .dpc_wen                    ( dpc_wen                   ),
-    .dpc_wdata                  ( dpc_wdata                 ),
-    .dcause_wen                 ( dcause_wen                ),
-    .dcause_wdata               ( dcause_wdata              ),
-
-    .csr_idx_err                ( csr_idx_err               ),
-    .csr_idx                    ( idu_csr                   ),
-    .csr_rdata                  ( csr_rdata                 ),
-
-    .wbck_vld                   ( csr_wbck_vld              ),
-    .wbck_rdy                   ( csr_wbck_rdy              ),
-    .wbck_wdata                 ( csr_wbck_wdata            ),
-
-    .clk                        ( clk                       ),
-    .reset_n                    ( reset_n                   )
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   )
 );
 
 

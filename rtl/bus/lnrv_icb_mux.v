@@ -158,7 +158,7 @@ lnrv_gnrl_buf#
     .P_DEEPTH               ( LP_DISP_BUF_DEEPTH        ),
 
     .P_CUT_VALID            ( 1'b0                      ),
-    .P_CUT_READY            ( 1'b1                      ),
+    .P_CUT_READY            ( 1'b0                      ),
     .P_FLUSH_DELAY          ( 1'b0                      )
 )
 u_icb_disp_buf

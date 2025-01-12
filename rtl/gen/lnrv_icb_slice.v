@@ -60,7 +60,7 @@ localparam                              LP_CMD_WSTRB_WIDTH  = P_DATA_WIDTH/8;
 localparam                              LP_CMD_BUF_WIDTH    = P_ADDR_WIDTH + P_DATA_WIDTH + LP_CMD_WSTRB_WIDTH + 1 + 3;
 localparam                              LP_RSP_BUF_WIDTH    = P_DATA_WIDTH + 1;
 
-localparam                              LP_OTS_COUNT_WIDTH  = (P_CMD_BUF_DEEPTH == 0) ? 1 : $clog2(P_CMD_BUF_DEEPTH);
+localparam                              LP_OTS_CNT_WIDTH  = $clog2(P_OTS_COUNT) + 1;
 
 wire[LP_CMD_BUF_WIDTH - 1 : 0]          cmd_buf_push_data;
 wire                                    cmd_buf_push_vld;
@@ -80,105 +80,51 @@ wire                                    rsp_buf_pop_rdy;
 
 wire                                    icb_cmd_hsked_m;
 wire                                    icb_rsp_hsked_m;
-wire                                    icb_cmd_hsked_s;
-wire                                    icb_rsp_hsked_s;
-
-wire                                    icb_cmd_buf_flush_hsked;
-wire                                    icb_rsp_buf_flush_hsked;
 
 wire                                    cmd_buf_push_enable;
-wire                                    rsp_buf_push_enable;
 
 
 assign      icb_cmd_hsked_m = icb_cmd_vld_m & icb_cmd_rdy_m;
-assign      icb_rsp_hsked_s = icb_rsp_vld_m & icb_rsp_rdy_m;
+assign      icb_rsp_hsked_m = icb_rsp_vld_m & icb_rsp_rdy_m;
 
-assign      icb_cmd_hsked_m = icb_cmd_vld_s & icb_cmd_rdy_s;
-assign      icb_rsp_hsked_s = icb_rsp_vld_s & icb_rsp_rdy_s;
 
 generate
     if(P_OTS_CTRL_ENABLE) begin: OTS_CTRL_ENABLE
-        reg[LP_OTS_COUNT_WIDTH - 1 : 0]             ots_cnt_q;
+        reg[LP_OTS_CNT_WIDTH - 1 : 0]               ots_cnt_q;
         wire                                        ots_cnt_inc;
         wire                                        ots_cnt_dec;
         wire                                        ots_cnt_rld;
-        wire[LP_OTS_COUNT_WIDTH - 1 : 0]            ots_cnt_d;
+        wire[LP_OTS_CNT_WIDTH - 1 : 0]              ots_cnt_d;
 
-        wire[LP_OTS_COUNT_WIDTH - 1 : 0]            ots_cnt_add_1;
-        wire[LP_OTS_COUNT_WIDTH - 1 : 0]            ots_cnt_sub_1;
+        wire[LP_OTS_CNT_WIDTH - 1 : 0]              ots_cnt_add_1;
+        wire[LP_OTS_CNT_WIDTH - 1 : 0]              ots_cnt_sub_1;
 
         wire                                        ots_cnt_eq_max;
 
         assign      ots_cnt_add_1 = ots_cnt_q + 1'b1;
         assign      ots_cnt_sub_1 = ots_cnt_q - 1'b1;
 
-        assign      ots_cnt_inc = icb_cmd_hsked_s;
-        assign      ots_cnt_dec = icb_rsp_hsked_s;
-        assign      ots_cnt_rld = (ots_cnt_dec ^ ots_cnt_inc) | icb_cmd_buf_flush_hsked;
+        assign      ots_cnt_inc = icb_cmd_hsked_m;
+        assign      ots_cnt_dec = icb_rsp_hsked_m;
+        assign      ots_cnt_rld = ots_cnt_dec ^ ots_cnt_inc;
         assign      ots_cnt_d = ots_cnt_inc ? ots_cnt_add_1 : ots_cnt_sub_1;
         always@(posedge clk or negedge reset_n) begin
             if(reset_n == 1'b0) begin
-                ots_cnt_q <= {LP_OTS_COUNT_WIDTH{1'b0}};
+                ots_cnt_q <= {LP_OTS_CNT_WIDTH{1'b0}};
             end else if(ots_cnt_rld) begin
                 ots_cnt_q <= ots_cnt_d;
             end
         end
 
-        assign      ots_cnt_eq_max = (ots_cnt_q == P_CMD_BUF_DEEPTH);
-        // assign      flush_cnt_is_0 = ~(|flush_cnt_q);
+        assign      ots_cnt_eq_max = (ots_cnt_q == P_OTS_COUNT);
 
-        assign      cmd_buf_push_enable = (~ots_cnt_eq_max) | icb_rsp_hsked_s;
+        assign      cmd_buf_push_enable = (~ots_cnt_eq_max) | icb_rsp_hsked_m;
     end else begin: OTS_CTRL_DISABLE
         assign      cmd_buf_push_enable = 1'b1;
-        assign      rsp_buf_push_enable = 1'b1;
     end
 endgenerate
 
 
-generate
-    if(P_FLUSH_ENABLE) begin: FLUSH_ENABLE
-        // reg[LP_OTS_COUNT_WIDTH - 1 : 0]             flush_cnt_q;
-        // wire                                        flush_cnt_inc;
-        // wire                                        flush_cnt_dec;
-        // wire                                        flush_cnt_rld;
-        // wire[LP_OTS_COUNT_WIDTH - 1 : 0]            flush_cnt_d;
-
-        // wire[LP_OTS_COUNT_WIDTH - 1 : 0]            flush_cnt_sub_1;
-        // wire[LP_OTS_COUNT_WIDTH - 1 : 0]            flush_cnt_add_1;
-        // wire                                        flush_cnt_is_0;
-
-        // reg                                         rsp_buf_flush_req_q;
-        // wire                                        rsp_buf_flush_req_set;
-        // wire                                        rsp_buf_flush_req_clr;
-        // wire                                        rsp_buf_flush_req_rld;
-        // wire                                        rsp_buf_flush_req_d;
-
-        // reg                                         cmd_buf_flush_req_q;
-        // wire                                        cmd_buf_flush_req_set;
-        // wire                                        cmd_buf_flush_req_clr;
-        // wire                                        cmd_buf_flush_req_rld;
-        // wire                                        cmd_buf_flush_req_d;
-
-
-        // assign      flush_cnt_add_1 = flush_cnt_q + 1'b1;
-        // assign      flush_cnt_sub_1 = flush_cnt_q - 1'b1;
-
-        // assign      flush_cnt_inc = icb_cmd_hsked_s;
-        // assign      flush_cnt_dec = icb_rsp_hsked_s;
-        // assign      flush_cnt_rld = flush_cnt_inc | flush_cnt_dec;
-        // assign      flush_cnt_d = flush_cnt_init ? (icb_rsp_hsked_s ? flush_cnt_add_1 : ots_cnt_q) : flush_cnt_sub_1;
-        // always@(posedge clk or negedge reset_n) begin
-        //     if(reset_n == 1'b0)begin
-        //         flush_cnt_q <= {LP_OTS_COUNT_WIDTH{1'b0}};
-        //     end else if(flush_cnt_rld) begin
-        //         flush_cnt_q <= flush_cnt_d;
-        //     end
-        // end
-    end else begin: FLUSH_DISABLE
-        assign      cmd_buf_flush_req = 1'b0;
-        assign      rsp_buf_flush_req = 1'b0;
-    end
-endgenerate
 
 // command
 assign      icb_cmd_rdy_m = cmd_buf_push_rdy & cmd_buf_push_enable;
@@ -206,8 +152,8 @@ u_icb_cmd_buff
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   ),
 
-    .flush_req              ( cmd_buf_flush_req         ),
-    .flush_ack              ( cmd_buf_flush_ack         ),
+    .flush_req              ( 1'b0                      ),
+    .flush_ack              (                           ),
 
     .push_vld               ( cmd_buf_push_vld          ),
     .push_rdy               ( cmd_buf_push_rdy          ),
@@ -228,8 +174,8 @@ assign      icb_cmd_vld_s = cmd_buf_pop_vld;
 assign      cmd_buf_pop_rdy = icb_cmd_rdy_s;
 
 // response
-assign      icb_rsp_rdy_s = rsp_buf_push_rdy | (~rsp_buf_push_enable);
-assign      rsp_buf_push_vld = icb_rsp_vld_s & rsp_buf_push_enable;
+assign      icb_rsp_rdy_s = rsp_buf_push_rdy;
+assign      rsp_buf_push_vld = icb_rsp_vld_s;
 assign      rsp_buf_push_data = {
                                     icb_rsp_rdata_s,
                                     icb_rsp_err_s
@@ -250,8 +196,8 @@ u_icb_rsp_buff
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   ),
 
-    .flush_req              ( rsp_buf_flush_req         ),
-    .flush_ack              ( rsp_buf_flush_ack         ),
+    .flush_req              ( 1'b0                      ),
+    .flush_ack              (                           ),
 
     .push_vld               ( rsp_buf_push_vld          ),
     .push_rdy               ( rsp_buf_push_rdy          ),
