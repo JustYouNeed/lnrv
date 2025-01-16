@@ -73,6 +73,8 @@ wire                                    alu_op_add_from_mul;
 wire                                    alu_op_sub_from_mul;
 wire[32 : 0]                            alu_in1_from_mul;
 wire[32 : 0]                            alu_in2_from_mul;
+wire                                    alu_in1_is_unsigned_from_mul;
+wire                                    alu_in2_is_unsigned_from_mul;
 
 wire                                    sbuf_hi_rld_from_mul;
 wire[32 : 0]                            sbuf_hi_d_from_mul;
@@ -106,12 +108,12 @@ wire                                    mul_calc_done;
 // ===========================================================================
 //  除法相关信号定义
 // ===========================================================================
-wire                                    div_rs1_sign;
-wire                                    div_rs2_sign;
+wire                                    dividend_sign;
+wire                                    divisor_sign;
 wire[31 : 0]                            rs1_data_comp;
 wire[31 : 0]                            rs2_data_comp;
 wire[31 : 0]                            quotitent_comp;
-wire[31 : 0]                            alu_res_comp_for_div;
+wire[31 : 0]                            alu_res_comp;
 wire[31 : 0]                            divisor;
 wire[31 : 0]                            dividend;
 
@@ -121,21 +123,21 @@ wire                                    remainder_rld;
 wire[32 : 0]                            remainder_d;
 
 // 商
-wire[32 : 0]                            quotitent_q;
+wire[31 : 0]                            quotitent_q;
 wire                                    quotitent_rld;
-wire[32 : 0]                            quotitent_d;
+wire[31 : 0]                            quotitent_d;
 
 wire[32 : 0]                            alu_in1_from_div;
 wire[32 : 0]                            alu_in2_from_fiv;
 wire                                    alu_op_add_from_div;
 wire                                    alu_op_sub_from_div;
+wire                                    alu_in1_is_unsigned_from_div;
+wire                                    alu_in2_is_unsigned_from_div;
 
 wire                                    sbuf_hi_rld_from_div;
 wire[32 : 0]                            sbuf_hi_d_from_div;
 wire                                    sbuf_lo_rld_from_div;
 wire[32 : 0]                            sbuf_lo_d_from_div;
-
-wire                                    div_calc_done;
 
 // ===========================================================================
 //  需要统计执行的周期数，乘法计算需要16个周期，除法计算需要32+1个校正周期
@@ -286,7 +288,7 @@ assign      rs1_data_comp = ~rs1_rdata + 1'b1;
 assign      rs2_data_comp = ~rs2_rdata + 1'b1;
 
 assign      quotitent_comp = ~quotitent_q + 1'b1;
-assign      alu_res_comp_for_div = ~alu_res[31 : 0] + 1'b1;
+assign      alu_res_comp = ~alu_res[31 : 0] + 1'b1;
 
 // 如果是有符号数，需要使用补码
 assign      divisor = divisor_sign ? rs2_data_comp : rs2_rdata;
@@ -302,7 +304,7 @@ assign      remainder_rld = instr_is_div &
                             );
 assign      remainder_d =   cur_status_is_IDLE ? 33'd0 :
                             cur_status_is_CALC ? alu_res[32 : 0] :
-                            dividend_sign ? alu_res_comp_for_div :
+                            dividend_sign ? alu_res_comp :
                             alu_res[32 : 0];
 
 assign      sbuf_hi_rld_from_div = remainder_rld;
@@ -311,8 +313,8 @@ assign      sbuf_hi_d_from_div = {33{instr_is_div}} & remainder_d;
 // 商只会用到sbuf_lo的低32比特
 assign      quotitent_q = sbuf_lo_q[31 : 0];
 assign      quotitent_rld = remainder_rld;
-assign      quotitent_d =   cur_status_is_IDLE ? {1'b0, dividend} :
-                            cur_status_is_CALC ? {1'b0, quotitent_q[31 : 0], ~alu_res[32]} :
+assign      quotitent_d =   cur_status_is_IDLE ? dividend :
+                            cur_status_is_CALC ? {quotitent_q[30 : 0], ~alu_res[32]} :
                             (dividend_sign ^ divisor_sign) ? quotitent_comp :
                             quotitent_q[31 : 0];
 
@@ -336,10 +338,6 @@ assign      alu_op_add_from_div = remainder_q[32] & instr_is_div;
 assign      alu_op_sub_from_div = (~remainder_q[32]) & instr_is_div;
 assign      alu_in1_is_unsigned_from_div = 1'b0 & instr_is_div;
 assign      alu_in2_is_unsigned_from_div = 1'b0 & instr_is_div;
-
-// 除法计算需要32个周期
-// assign      div_calc_done = &{calc_cycle_q[5 : 0], instr_is_div};
-
 
 // ===========================================================================
 //  共享buffer
