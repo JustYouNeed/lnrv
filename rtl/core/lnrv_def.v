@@ -190,11 +190,10 @@
 // 整数乘除法指令
 `define     MDV_DIV_LOC                         0
 `define     MDV_MUL_LOC                         1
-`define     MDV_REM_LOC                         2
-`define     MDV_OP1_UNSIGNED_LOC                3
-`define     MDV_OP2_UNSIGNED_LOC                4
-`define     MDV_RES_HIGH_LOC                    5
-`define     MDV_OP_BUS_WIDTH                    6
+`define     MDV_OP1_SIGNED_LOC                  2
+`define     MDV_OP2_SIGNED_LOC                  3
+`define     MDV_RES_HIGH_LOC                    4
+`define     MDV_OP_BUS_WIDTH                    5
 
 // alu模块操作总线
 `define     ALU_IN1_IS_UNSIGED                  0 +: 1

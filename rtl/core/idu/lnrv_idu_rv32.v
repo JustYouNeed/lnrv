@@ -53,6 +53,12 @@ wire                                funct3_is_100;
 wire                                funct3_is_101;
 wire                                funct3_is_110;
 wire                                funct3_is_111;
+wire                                funct3_bit_2_is_1;
+wire                                funct3_bit_2_is_0;
+wire                                funct3_bit_1_is_1;
+wire                                funct3_bit_1_is_0;
+wire                                funct3_bit_0_is_1;
+wire                                funct3_bit_0_is_0;
 
 wire[6 : 0]                         funct7;
 wire                                funct7_is_0000000;
@@ -192,7 +198,10 @@ wire[`CSR_OP_BUS_WIDTH - 1 : 0]     op_bus_csr;
 wire[`MDV_OP_BUS_WIDTH - 1 : 0]     op_bus_mdv;
 wire[`DEC_OP_BUS_WIDTH : 0]         dec_op_bus_mux;
 
-wire                                instr_one_of_rv32m;
+wire                                instr_one_of_rv32_mul;
+wire                                instr_one_of_rv32_div;
+wire                                instr_one_of_rv32_mdv;
+
 wire                                instr_one_of_load;
 wire                                instr_one_of_store;
 
@@ -223,6 +232,12 @@ assign      opcode_is_0000000   = (opcode == 7'b0000000);
 assign      opcode_is_1111111   = (opcode == 7'b1111111);
 
 assign      funct3              = `GET_INSTR_FUNCT3(ir);
+assign      funct3_bit_0_is_1   = funct3[0];
+assign      funct3_bit_0_is_0   = ~funct3_bit_0_is_1;
+assign      funct3_bit_1_is_1   = funct3[1];
+assign      funct3_bit_1_is_0   = ~funct3_bit_1_is_1;
+assign      funct3_bit_2_is_1   = funct3[2];
+assign      funct3_bit_2_is_0   = ~funct3_bit_2_is_1;
 assign      funct3_is_000       = (funct3 == 3'b000);
 assign      funct3_is_001       = (funct3 == 3'b001);
 assign      funct3_is_010       = (funct3 == 3'b010);
@@ -256,7 +271,10 @@ assign      instr_b_type =   opcode_is_1100011;
 assign      instr_s_type =   opcode_is_0100011;
 assign      instr_r_type =   opcode_is_0110011;
 
-assign      instr_one_of_rv32m = funct7_is_0000001 & opcode_is_0110011;
+// 乘法和除法译码公共部分
+assign      instr_one_of_rv32_mdv = funct7_is_0000001 & opcode_is_0110011;
+assign      instr_one_of_rv32_mul = instr_one_of_rv32_mdv & funct3_bit_2_is_0;
+assign      instr_one_of_rv32_div = instr_one_of_rv32_mdv & funct3_bit_2_is_1;
 assign      instr_one_of_load = opcode_is_0000011;
 assign      instr_one_of_store = opcode_is_0100011;
 
@@ -921,7 +939,7 @@ assign      instr_wfi = funct7_is_0001000 & funct3_is_000 & opcode_is_1110011;
     |        0000001        |     rs2     |     rs1     |   100   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_div = instr_one_of_rv32m & funct3_is_100;
+assign      instr_div = instr_one_of_rv32_div & funct3_bit_1_is_0 & funct3_bit_0_is_0;
 
 /*
     divu    rd, rs1, rs2                            x[rd] = x[rs1] / x[rs2]
@@ -933,7 +951,7 @@ assign      instr_div = instr_one_of_rv32m & funct3_is_100;
     |        0000001        |     rs2     |     rs1     |   101   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_divu = instr_one_of_rv32m & funct3_is_101;
+assign      instr_divu = instr_one_of_rv32_div & funct3_bit_1_is_0 & funct3_bit_0_is_1;
 
 /*
     mul     rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2]
@@ -945,7 +963,7 @@ assign      instr_divu = instr_one_of_rv32m & funct3_is_101;
     |        0000001        |     rs2     |     rs1     |   000   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_mul = instr_one_of_rv32m & funct3_is_000;
+assign      instr_mul = instr_one_of_rv32_mul & funct3_bit_1_is_0 & funct3_bit_0_is_0;
 
 /*
     mulh    rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2] >> 32
@@ -957,7 +975,7 @@ assign      instr_mul = instr_one_of_rv32m & funct3_is_000;
     |        0000001        |     rs2     |     rs1     |   001   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_mulh = instr_one_of_rv32m & funct3_is_001;
+assign      instr_mulh = instr_one_of_rv32_mul & funct3_bit_1_is_0 & funct3_bit_0_is_1;
 
 /*
     mulhsu  rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2] >> XLEN
@@ -970,7 +988,7 @@ assign      instr_mulh = instr_one_of_rv32m & funct3_is_001;
     |        0000001        |     rs2     |     rs1     |   010   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_mulhsu = instr_one_of_rv32m & funct3_is_010;
+assign      instr_mulhsu = instr_one_of_rv32_mul & funct3_bit_1_is_1 & funct3_bit_0_is_0;
 
 /*
     mulhu   rd, rs1, rs2                            x[rd] = x[rs1] * x[rs2] >> XLEN
@@ -979,10 +997,10 @@ assign      instr_mulhsu = instr_one_of_rv32m & funct3_is_010;
     +--------------------------------------------------------------------------------------------------+
     |31                   25|24         20|19         15|14     12|11         7|6                     0|
     +-----------------------+-------------+-------------+---------+------------+-----------------------+
-    |        0000001        |     rs2     |     rs1     |   001   |     rd     |        0110011        |
+    |        0000001        |     rs2     |     rs1     |   011   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_mulhu = instr_one_of_rv32m & funct3_is_011;
+assign      instr_mulhu = instr_one_of_rv32_mul & funct3_bit_1_is_1 & funct3_bit_0_is_1;
 
 /*
     rem    rd, rs1, rs2                             x[rd] = x[rs1] % x[rs2]
@@ -994,7 +1012,7 @@ assign      instr_mulhu = instr_one_of_rv32m & funct3_is_011;
     |        0000001        |     rs2     |     rs1     |   110   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_rem = instr_one_of_rv32m & funct3_is_110;
+assign      instr_rem = instr_one_of_rv32_div & funct3_bit_1_is_1 & funct3_bit_0_is_0;
 
 /*
     rem    rd, rs1, rs2                             x[rd] = x[rs1] % x[rs2]
@@ -1006,7 +1024,7 @@ assign      instr_rem = instr_one_of_rv32m & funct3_is_110;
     |        0000001        |     rs2     |     rs1     |   111   |     rd     |        0110011        |
     +--------------------------------------------------------------------------------------------------+
 */
-assign      instr_remu = instr_one_of_rv32m & funct3_is_111;
+assign      instr_remu = instr_one_of_rv32_div & funct3_bit_1_is_1 & funct3_bit_0_is_1;
 
 
 /* 将指令分为以下几类
@@ -1087,12 +1105,11 @@ assign      op_bus_sys[`SYS_ECALL_LOC]      = instr_ecall;
 // ===========================================================================
 //                                      整数乘除指令
 // ===========================================================================
-assign      op_bus_mdv[`MDV_DIV_LOC]            = instr_div | instr_divu;
-assign      op_bus_mdv[`MDV_MUL_LOC]            = instr_mul | instr_mulh | instr_mulhsu | instr_mulhu;
-assign      op_bus_mdv[`MDV_REM_LOC]            = instr_rem | instr_remu;
-assign      op_bus_mdv[`MDV_OP1_UNSIGNED_LOC]   = instr_divu | instr_mulhu | instr_remu;
-assign      op_bus_mdv[`MDV_OP2_UNSIGNED_LOC]   = instr_divu | instr_mulhsu | instr_mulhu | instr_remu;
-assign      op_bus_mdv[`MDV_RES_HIGH_LOC]       = instr_mulh | instr_mulhsu | instr_mulhu;
+assign      op_bus_mdv[`MDV_DIV_LOC]            = instr_one_of_rv32_div;
+assign      op_bus_mdv[`MDV_MUL_LOC]            = instr_one_of_rv32_mul;
+assign      op_bus_mdv[`MDV_OP1_SIGNED_LOC]     = op_bus_mdv[`MDV_OP2_SIGNED_LOC] | instr_mulhsu;
+assign      op_bus_mdv[`MDV_OP2_SIGNED_LOC]     = instr_div | instr_rem | instr_mul | instr_mulh;
+assign      op_bus_mdv[`MDV_RES_HIGH_LOC]       = instr_mulh | instr_mulhsu | instr_mulhu | instr_rem | instr_remu;
 
 // ===========================================================================
 //                                      原子指令
@@ -1124,7 +1141,7 @@ assign      op_bus_csr_sel = opcode_is_1110011 & (~funct3_is_000);
 
 assign      op_bus_sys_sel = instr_wfi | instr_ebreak | instr_ecall;
 
-assign      op_bus_mdv_sel = instr_one_of_rv32m;
+assign      op_bus_mdv_sel = instr_one_of_rv32_mdv;
 
 assign      amo_op_bus_sel = 1'b0;
 
