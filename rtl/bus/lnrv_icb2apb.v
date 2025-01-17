@@ -66,6 +66,7 @@ wire                                    apb_hsked;
 assign      apb_hsked = psel & penable & pready;
 
 // 插入buff
+
 lnrv_icb_slice#
 (
     .P_ADDR_WIDTH                   ( P_ADDR_WIDTH              ),
@@ -141,8 +142,9 @@ assign      icb_rsp_err_bufed   = pslverr;
 // 可以接收response才发送apb操作
 assign      psel        = icb_cmd_vld_bufed & icb_rsp_rdy_bufed;
 assign      penable     = penable_q;
-assign      paddr       = icb_cmd_addr;
-assign      pwrite      = icb_cmd_write;
-assign      pwdata      = icb_cmd_wdata;
+assign      paddr       = icb_cmd_addr_bufed;
+assign      pwrite      = icb_cmd_write_bufed;
+assign      pwdata      = icb_cmd_wdata_bufed;
+assign      pstrb       = icb_cmd_wstrb_bufed;
 
 endmodule

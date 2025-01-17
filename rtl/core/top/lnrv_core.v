@@ -1,11 +1,19 @@
 `include    "lnrv_def.v"
 module  lnrv_core#
 (
-    parameter                               P_ILM_REGION_BASE = 32'h0000_0000,
-    parameter                               P_ILM_ADDR_WIDTH = 17,
+    // ILM地址
+    parameter                               P_ILM_REGION_BASE   = 32'h0000_0000,
+    parameter                               P_ILM_ADDR_WIDTH    = 17,
 
-    parameter                               P_DLM_REGION_BASE = 32'h0002_0000,
-    parameter                               P_DLM_ADDR_WIDTH = 17
+    // DLM地址
+    parameter                               P_DLM_REGION_BASE   = 32'h0002_0000,
+    parameter                               P_DLM_ADDR_WIDTH    = 17,
+
+    // 内部私有外设的基地址
+    parameter                               P_IREGION_BASE      = 32'h1000_0000,
+
+    // 中断个数
+    parameter                               P_IRQ_COUNT         = 32
 )
 (
     // 复位向量
@@ -14,9 +22,7 @@ module  lnrv_core#
     // 固件加载状态
     input                                   firmware_loading,
 
-    input                                   irq_sft,
-    input                                   irq_tmr,
-    input                                   irq_ext,
+    input[P_IRQ_COUNT - 1 : 0]              irq_src,
 
     input                                   dbg_halt,
     input                                   irq_dbg,
@@ -24,8 +30,6 @@ module  lnrv_core#
     //
     output                                  wfi_mode,
     output                                  d_mode,
-
-    output                                  dcsr_stoptime,
 
     output                                  icb_cmd_vld_sys,
     input                                   icb_cmd_rdy_sys,
@@ -144,13 +148,21 @@ module  lnrv_core#
     input                                   reset_n
 );
 
-localparam                      LP_ILM_SIZE = 2 ** P_ILM_ADDR_WIDTH;
-localparam                      LP_ILM_REGION_START = P_ILM_REGION_BASE;
-localparam                      LP_ILM_REGION_END = P_ILM_REGION_BASE + LP_ILM_SIZE;
+localparam                      LP_ILM_REGION_SIZE              = 2 ** P_ILM_ADDR_WIDTH;
+localparam                      LP_ILM_REGION_START             = P_ILM_REGION_BASE;
+localparam                      LP_ILM_REGION_END               = P_ILM_REGION_BASE + LP_ILM_REGION_SIZE;
 
-localparam                      LP_DLM_SIZE = 2 ** P_DLM_ADDR_WIDTH;
-localparam                      LP_DLM_REGION_START = P_DLM_REGION_BASE;
-localparam                      LP_DLM_REGION_END = P_DLM_REGION_BASE + LP_DLM_SIZE;
+localparam                      LP_DLM_REGION_SIZE              = 2 ** P_DLM_ADDR_WIDTH;
+localparam                      LP_DLM_REGION_START             = P_DLM_REGION_BASE;
+localparam                      LP_DLM_REGION_END               = P_DLM_REGION_BASE + LP_DLM_REGION_SIZE;
+
+localparam                      LP_CLMT_REGION_SIZE             = 16'h1_0000;
+localparam                      LP_CLMT_REGION_START            = P_IREGION_BASE;
+localparam                      LP_CLMT_REGION_END              = LP_CLMT_REGION_START + LP_CLMT_REGION_SIZE;
+
+localparam                      LP_CLIC_REGION_SIZE             = 16'h1_0000;
+localparam                      LP_CLIC_REGION_START            = LP_CLMT_REGION_END;
+localparam                      LP_CLIC_REGION_END              = LP_CLMT_REGION_START + LP_CLMT_REGION_SIZE;
 
 localparam                      LP_IFU_OTS_COUNT                = 3;
 
@@ -202,6 +214,14 @@ localparam                      LP_RSP_CUT_READY_SYS            = 1'b1;
 localparam                      LP_RSP_BUF_DEEPTH_SYS           = 1;
 localparam                      LP_OTS_CTRL_ENABLE_SYS          = 0;
 
+wire                            irq_sft;
+wire                            irq_tmr;
+wire                            dcsr_stoptime;
+
+wire                            clic_irq_req;
+wire                            clic_irq_ack;
+wire[9 : 0]                     clic_irq_id;
+wire                            clic_irq_mode;
 
 wire                            icb_cmd_vld_ifu;
 wire                            icb_cmd_rdy_ifu;
@@ -265,6 +285,30 @@ wire                            icb_rsp_rdy_dlm;
 wire[31 : 0]                    icb_rsp_rdata_dlm;
 wire                            icb_rsp_err_dlm;
 
+wire                            icb_cmd_vld_clmt;
+wire                            icb_cmd_rdy_clmt;
+wire                            icb_cmd_write_clmt;
+wire[31 : 0]                    icb_cmd_addr_clmt;
+wire[31 : 0]                    icb_cmd_wdata_clmt;
+wire[3 : 0]                     icb_cmd_wstrb_clmt;
+wire[2 : 0]                     icb_cmd_size_clmt;
+wire                            icb_rsp_vld_clmt;
+wire                            icb_rsp_rdy_clmt;
+wire[31 : 0]                    icb_rsp_rdata_clmt;
+wire                            icb_rsp_err_clmt;
+
+wire                            icb_cmd_vld_clic;
+wire                            icb_cmd_rdy_clic;
+wire                            icb_cmd_write_clic;
+wire[31 : 0]                    icb_cmd_addr_clic;
+wire[31 : 0]                    icb_cmd_wdata_clic;
+wire[3 : 0]                     icb_cmd_wstrb_clic;
+wire[2 : 0]                     icb_cmd_size_clic;
+wire                            icb_rsp_vld_clic;
+wire                            icb_rsp_rdy_clic;
+wire[31 : 0]                    icb_rsp_rdata_clic;
+wire                            icb_rsp_err_clic;
+
 
 // wire                            icb_cmd_vld_sys;
 // wire                            icb_cmd_rdy_sys;
@@ -293,6 +337,11 @@ u_lnrv_ucore
     .irq_sft                ( irq_sft                   ),
     .irq_ext                ( irq_ext                   ),
     .irq_tmr                ( irq_tmr                   ),
+
+    .clic_irq_req           ( clic_irq_req              ),
+    .clic_irq_ack           ( clic_irq_ack              ),
+    .clic_irq_id            ( clic_irq_id               ),
+    .clic_irq_mode          ( clic_irq_mode             ),
 
     .dbg_halt               ( dbg_halt                  ),
     .irq_dbg                ( irq_dbg                   ),
@@ -475,6 +524,30 @@ u_lnrv_biu
     .icb_rsp_rdata_dlm      ( icb_rsp_rdata_dlm         ),
     .icb_rsp_err_dlm        ( icb_rsp_err_dlm           ),
 
+    .icb_cmd_vld_clic       ( icb_cmd_vld_clic          ),
+    .icb_cmd_rdy_clic       ( icb_cmd_rdy_clic          ),
+    .icb_cmd_write_clic     ( icb_cmd_write_clic        ),
+    .icb_cmd_addr_clic      ( icb_cmd_addr_clic         ),
+    .icb_cmd_wdata_clic     ( icb_cmd_wdata_clic        ),
+    .icb_cmd_wstrb_clic     ( icb_cmd_wstrb_clic        ),
+    .icb_cmd_size_clic      ( icb_cmd_size_clic         ),
+    .icb_rsp_vld_clic       ( icb_rsp_vld_clic          ),
+    .icb_rsp_rdy_clic       ( icb_rsp_rdy_clic          ),
+    .icb_rsp_rdata_clic     ( icb_rsp_rdata_clic        ),
+    .icb_rsp_err_clic       ( icb_rsp_err_clic          ),
+
+    .icb_cmd_vld_clmt       ( icb_cmd_vld_clmt          ),
+    .icb_cmd_rdy_clmt       ( icb_cmd_rdy_clmt          ),
+    .icb_cmd_write_clmt     ( icb_cmd_write_clmt        ),
+    .icb_cmd_addr_clmt      ( icb_cmd_addr_clmt         ),
+    .icb_cmd_wdata_clmt     ( icb_cmd_wdata_clmt        ),
+    .icb_cmd_wstrb_clmt     ( icb_cmd_wstrb_clmt        ),
+    .icb_cmd_size_clmt      ( icb_cmd_size_clmt         ),
+    .icb_rsp_vld_clmt       ( icb_rsp_vld_clmt          ),
+    .icb_rsp_rdy_clmt       ( icb_rsp_rdy_clmt          ),
+    .icb_rsp_rdata_clmt     ( icb_rsp_rdata_clmt        ),
+    .icb_rsp_err_clmt       ( icb_rsp_err_clmt          ),
+
     .icb_cmd_vld_sys        ( icb_cmd_vld_sys           ),
     .icb_cmd_rdy_sys        ( icb_cmd_rdy_sys           ),
     .icb_cmd_write_sys      ( icb_cmd_write_sys         ),
@@ -556,6 +629,67 @@ u_dlm_ctrl
     .ram_rdata              ( dlm_rdata                 ),
     .ram_clk                (                           )
 );
+
+
+// 定时器
+lnrv_clmt u_lnrv_clmt
+(
+    .irq_tmr                ( irq_tmr                   ),
+    .irq_sft                ( irq_sft                   ),
+
+    .dcsr_stoptime          ( dcsr_stoptime             ),
+
+    .icb_cmd_vld            ( icb_cmd_vld_clmt          ),
+    .icb_cmd_rdy            ( icb_cmd_rdy_clmt          ),
+    .icb_cmd_write          ( icb_cmd_write_clmt        ),
+    .icb_cmd_addr           ( icb_cmd_addr_clmt         ),
+    .icb_cmd_wdata          ( icb_cmd_wdata_clmt        ),
+    .icb_cmd_wstrb          ( icb_cmd_wstrb_clmt        ),
+    .icb_cmd_size           ( icb_cmd_size_clmt         ),
+    .icb_rsp_rdy            ( icb_rsp_rdy_clmt          ),
+    .icb_rsp_vld            ( icb_rsp_vld_clmt          ),
+    .icb_rsp_rdata          ( icb_rsp_rdata_clmt        ),
+    .icb_rsp_err            ( icb_rsp_err_clmt          ),
+
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   ),
+
+    .tclk                   ( tclk                      ),
+    .treset_n               ( treset_n                  )
+);
+
+// 中断控制器
+lnrv_clic#
+(
+    .P_IRQ_COUNT            ( P_IRQ_COUNT               )
+)
+u_lnrv_clic
+(
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   ),
+
+    .icb_cmd_vld            ( icb_cmd_vld_clic          ),
+    .icb_cmd_rdy            ( icb_cmd_rdy_clic          ),
+    .icb_cmd_write          ( icb_cmd_write_clic        ),
+    .icb_cmd_addr           ( icb_cmd_addr_clic         ),
+    .icb_cmd_wdata          ( icb_cmd_wdata_clic        ),
+    .icb_cmd_wstrb          ( icb_cmd_wstrb_clic        ),
+    .icb_cmd_size           ( icb_cmd_size_clic         ),
+    .icb_rsp_rdy            ( icb_rsp_rdy_clic          ),
+    .icb_rsp_vld            ( icb_rsp_vld_clic          ),
+    .icb_rsp_rdata          ( icb_rsp_rdata_clic        ),
+    .icb_rsp_err            ( icb_rsp_err_clic          ),
+
+    .irq_tmr                ( irq_tmr                   ),
+    .irq_sft                ( irq_sft                   ),
+    .irq_src                ( irq_src                   ),
+
+    .irq_req                ( clic_irq_req              ),
+    .irq_ack                ( clic_irq_ack              ),
+    .irq_mode               ( clic_irq_mode             ),
+    .irq_id                 ( clic_irq_id               )
+);
+
 
 
 // // 系统总线，axi4

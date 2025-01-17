@@ -13,6 +13,12 @@ module  lnrv_ucore#
     input                                   irq_ext,
     input                                   irq_tmr,
 
+    // clic接口
+    input                                   clic_irq_req,
+    output                                  clic_irq_ack,
+    input[9 : 0]                            clic_irq_id,
+    input                                   clic_irq_mode,
+
     input                                   dbg_halt,
     input                                   irq_dbg,
 

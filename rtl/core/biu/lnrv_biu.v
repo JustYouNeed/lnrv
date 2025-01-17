@@ -6,6 +6,12 @@ module lnrv_biu#
     parameter                               P_DLM_REGION_START      = 32'h0002_0000,
     parameter                               P_DLM_REGION_END        = 32'h0004_0000,
 
+    parameter                               P_CLMT_REGION_START     = 32'h1000_0000,
+    parameter                               P_CLMT_REGION_END       = 32'h1004_0000,
+
+    parameter                               P_CLIC_REGION_START     = 32'h1004_0000,
+    parameter                               P_CLIC_REGION_END       = 32'h1008_0000,
+
     parameter                               P_ADDR_WIDTH            = 32,
     parameter                               P_DATA_WIDTH            = 32,
 
@@ -58,6 +64,26 @@ module lnrv_biu#
     parameter                               P_RSP_BUF_DEEPTH_DLM    = 1,
     parameter                               P_OTS_COUNT_DLM         = 1,
     parameter                               P_OTS_CTRL_ENABLE_DLM   = 0,
+
+    // clmt接口配置参数
+    parameter                               P_CMD_CUT_VALID_CLMT    = 1'b1,
+    parameter                               P_CMD_CUT_READY_CLMT    = 1'b1,
+    parameter                               P_CMD_BUF_DEEPTH_CLMT   = 1,
+    parameter                               P_RSP_CUT_VALID_CLMT    = 1'b1,
+    parameter                               P_RSP_CUT_READY_CLMT    = 1'b1,
+    parameter                               P_RSP_BUF_DEEPTH_CLMT   = 1,
+    parameter                               P_OTS_COUNT_CLMT        = 1,
+    parameter                               P_OTS_CTRL_ENABLE_CLMT  = 0,
+
+    // clic接口配置参数
+    parameter                               P_CMD_CUT_VALID_CLIC    = 1'b1,
+    parameter                               P_CMD_CUT_READY_CLIC    = 1'b1,
+    parameter                               P_CMD_BUF_DEEPTH_CLIC   = 1,
+    parameter                               P_RSP_CUT_VALID_CLIC    = 1'b1,
+    parameter                               P_RSP_CUT_READY_CLIC    = 1'b1,
+    parameter                               P_RSP_BUF_DEEPTH_CLIC   = 1,
+    parameter                               P_OTS_COUNT_CLIC        = 1,
+    parameter                               P_OTS_CTRL_ENABLE_CLIC  = 0,
 
     // SYS接口配置参数
     parameter                               P_CMD_CUT_VALID_SYS     = 1'b1,
@@ -135,6 +161,32 @@ module lnrv_biu#
     input[P_DATA_WIDTH - 1 : 0]             icb_rsp_rdata_dlm,
     input                                   icb_rsp_err_dlm,
 
+    // to clic
+    output                                  icb_cmd_vld_clic,
+    input                                   icb_cmd_rdy_clic,
+    output                                  icb_cmd_write_clic,
+    output[P_ADDR_WIDTH - 1 : 0]            icb_cmd_addr_clic,
+    output[P_DATA_WIDTH - 1 : 0]            icb_cmd_wdata_clic,
+    output[(P_DATA_WIDTH/8) - 1 : 0]        icb_cmd_wstrb_clic,
+    output[2 : 0]                           icb_cmd_size_clic,
+    input                                   icb_rsp_vld_clic,
+    output                                  icb_rsp_rdy_clic,
+    input[P_DATA_WIDTH - 1 : 0]             icb_rsp_rdata_clic,
+    input                                   icb_rsp_err_clic,
+
+    // to clmt
+    output                                  icb_cmd_vld_clmt,
+    input                                   icb_cmd_rdy_clmt,
+    output                                  icb_cmd_write_clmt,
+    output[P_ADDR_WIDTH - 1 : 0]            icb_cmd_addr_clmt,
+    output[P_DATA_WIDTH - 1 : 0]            icb_cmd_wdata_clmt,
+    output[(P_DATA_WIDTH/8) - 1 : 0]        icb_cmd_wstrb_clmt,
+    output[2 : 0]                           icb_cmd_size_clmt,
+    input                                   icb_rsp_vld_clmt,
+    output                                  icb_rsp_rdy_clmt,
+    input[P_DATA_WIDTH - 1 : 0]             icb_rsp_rdata_clmt,
+    input                                   icb_rsp_err_clmt,
+
     // 连接到系统总线
     output                                  icb_cmd_vld_sys,
     input                                   icb_cmd_rdy_sys,
@@ -160,7 +212,7 @@ localparam                                  LP_SN_SIZE_WIDTH_IFU = LP_ICB_COUNT_
 localparam                                  LP_SN_WSTRB_WIDTH_IFU = LP_ICB_COUNT_IFU * (P_DATA_WIDTH/8);
 
 // exu模块可以访问ILM/DLM以及系统总线
-localparam                                  LP_ICB_COUNT_EXU = 3;
+localparam                                  LP_ICB_COUNT_EXU = 5;
 localparam                                  LP_SN_ADDR_WIDTH_EXU = LP_ICB_COUNT_EXU * P_ADDR_WIDTH;
 localparam                                  LP_SN_DATA_WIDTH_EXU = LP_ICB_COUNT_EXU * P_DATA_WIDTH;
 localparam                                  LP_SN_SIZE_WIDTH_EXU = LP_ICB_COUNT_EXU * 3;
@@ -341,6 +393,30 @@ wire                                        icb_rsp_vld_exu_dlm;
 wire                                        icb_rsp_rdy_exu_dlm;
 wire                                        icb_rsp_err_exu_dlm;
 wire[P_DATA_WIDTH - 1 : 0]                  icb_rsp_rdata_exu_dlm;
+
+wire                                        icb_cmd_vld_exu_clmt;
+wire                                        icb_cmd_rdy_exu_clmt;
+wire                                        icb_cmd_write_exu_clmt;
+wire[P_ADDR_WIDTH - 1 : 0]                  icb_cmd_addr_exu_clmt;
+wire[P_DATA_WIDTH - 1 : 0]                  icb_cmd_wdata_exu_clmt;
+wire[(P_DATA_WIDTH/8) - 1 : 0]              icb_cmd_wstrb_exu_clmt;
+wire[2 : 0]                                 icb_cmd_size_exu_clmt;
+wire                                        icb_rsp_vld_exu_clmt;
+wire                                        icb_rsp_rdy_exu_clmt;
+wire                                        icb_rsp_err_exu_clmt;
+wire[P_DATA_WIDTH - 1 : 0]                  icb_rsp_rdata_exu_clmt;
+
+wire                                        icb_cmd_vld_exu_clic;
+wire                                        icb_cmd_rdy_exu_clic;
+wire                                        icb_cmd_write_exu_clic;
+wire[P_ADDR_WIDTH - 1 : 0]                  icb_cmd_addr_exu_clic;
+wire[P_DATA_WIDTH - 1 : 0]                  icb_cmd_wdata_exu_clic;
+wire[(P_DATA_WIDTH/8) - 1 : 0]              icb_cmd_wstrb_exu_clic;
+wire[2 : 0]                                 icb_cmd_size_exu_clic;
+wire                                        icb_rsp_vld_exu_clic;
+wire                                        icb_rsp_rdy_exu_clic;
+wire                                        icb_rsp_err_exu_clic;
+wire[P_DATA_WIDTH - 1 : 0]                  icb_rsp_rdata_exu_clic;
 
 wire                                        icb_cmd_vld_exu_sys;
 wire                                        icb_cmd_rdy_exu_sys;
@@ -565,79 +641,105 @@ u_exu_bus_demux
 assign      {
                 icb_cmd_vld_exu_sys,
                 icb_cmd_vld_exu_ilm,
-                icb_cmd_vld_exu_dlm
+                icb_cmd_vld_exu_dlm,
+                icb_cmd_vld_exu_clmt,
+                icb_cmd_vld_exu_clic
             } = icb_cmd_vld_exu_sn;
 
 assign      icb_cmd_rdy_exu_sn =    {
                                         icb_cmd_rdy_exu_sys,
                                         icb_cmd_rdy_exu_ilm,
-                                        icb_cmd_rdy_exu_dlm
+                                        icb_cmd_rdy_exu_dlm,
+                                        icb_cmd_rdy_exu_clmt,
+                                        icb_cmd_rdy_exu_clic
                                     };
 
 assign      {
                 icb_cmd_write_exu_sys,
                 icb_cmd_write_exu_ilm,
-                icb_cmd_write_exu_dlm
+                icb_cmd_write_exu_dlm,
+                icb_cmd_write_exu_clmt,
+                icb_cmd_write_exu_clic
             } = icb_cmd_write_exu_sn;
 
 assign      {
                 icb_cmd_addr_exu_sys,
                 icb_cmd_addr_exu_ilm,
-                icb_cmd_addr_exu_dlm
+                icb_cmd_addr_exu_dlm,
+                icb_cmd_addr_exu_clmt,
+                icb_cmd_addr_exu_clic
             } = icb_cmd_addr_exu_sn;
 
 assign      {
                 icb_cmd_wdata_exu_sys,
                 icb_cmd_wdata_exu_ilm,
-                icb_cmd_wdata_exu_dlm
+                icb_cmd_wdata_exu_dlm,
+                icb_cmd_wdata_exu_clmt,
+                icb_cmd_wdata_exu_clic
             } = icb_cmd_wdata_exu_sn;
 
 assign      {
                 icb_cmd_wstrb_exu_sys,
                 icb_cmd_wstrb_exu_ilm,
-                icb_cmd_wstrb_exu_dlm
+                icb_cmd_wstrb_exu_dlm,
+                icb_cmd_wstrb_exu_clmt,
+                icb_cmd_wstrb_exu_clic
             } = icb_cmd_wstrb_exu_sn;
 
 assign      {
                 icb_cmd_size_exu_sys,
                 icb_cmd_size_exu_ilm,
-                icb_cmd_size_exu_dlm
+                icb_cmd_size_exu_dlm,
+                icb_cmd_size_exu_clmt,
+                icb_cmd_size_exu_clic
             } = icb_cmd_size_exu_sn;
 
 assign      icb_rsp_vld_exu_sn =    {
                                         icb_rsp_vld_exu_sys,
                                         icb_rsp_vld_exu_ilm,
-                                        icb_rsp_vld_exu_dlm
+                                        icb_rsp_vld_exu_dlm,
+                                        icb_rsp_vld_exu_clmt,
+                                        icb_rsp_vld_exu_clic
                                     };
 
 assign      {
                 icb_rsp_rdy_exu_sys,
                 icb_rsp_rdy_exu_ilm,
-                icb_rsp_rdy_exu_dlm
+                icb_rsp_rdy_exu_dlm,
+                icb_rsp_rdy_exu_clmt,
+                icb_rsp_rdy_exu_clic
             } = icb_rsp_rdy_exu_sn;
 
 assign      icb_rsp_rdata_exu_sn =  {
                                         icb_rsp_rdata_exu_sys,
                                         icb_rsp_rdata_exu_ilm,
-                                        icb_rsp_rdata_exu_dlm
+                                        icb_rsp_rdata_exu_dlm,
+                                        icb_rsp_rdata_exu_clmt,
+                                        icb_rsp_rdata_exu_clic
                                     };
 
 assign      icb_rsp_err_exu_sn =    {
                                         icb_rsp_err_exu_sys,
                                         icb_rsp_err_exu_ilm,
-                                        icb_rsp_err_exu_dlm
+                                        icb_rsp_err_exu_dlm,
+                                        icb_rsp_err_exu_clmt,
+                                        icb_rsp_err_exu_clic
                                     };
 
 assign      exu_sn_region_base =    {
                                         32'd0,
                                         P_ILM_REGION_START,
-                                        P_DLM_REGION_START
+                                        P_DLM_REGION_START,
+                                        P_CLMT_REGION_START,
+                                        P_CLIC_REGION_START
                                     };
 
 assign      exu_sn_region_end = {
                                     32'd0,
                                     P_ILM_REGION_END,
-                                    P_DLM_REGION_END
+                                    P_DLM_REGION_END,
+                                    P_CLMT_REGION_END,
+                                    P_CLIC_REGION_END
                                 };
 
 // slave port只能访问ilm\dlm
@@ -1083,5 +1185,110 @@ u_sys_bus_mux
     .icb_rsp_rdata_s        ( icb_rsp_rdata_sys         ),
     .icb_rsp_err_s          ( icb_rsp_err_sys           )
 );
+
+// 去往clmt的slice并不会真正启用
+lnrv_icb_slice#
+(
+    .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
+    .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
+
+    .P_CMD_CUT_VALID        ( P_CMD_CUT_VALID_CLMT      ),
+    .P_CMD_CUT_READY        ( P_CMD_CUT_READY_CLMT      ),
+    .P_CMD_BUF_DEEPTH       ( P_CMD_BUF_DEEPTH_CLMT     ),
+
+    .P_RSP_CUT_VALID        ( P_RSP_CUT_VALID_CLMT      ),
+    .P_RSP_CUT_READY        ( P_RSP_CUT_READY_CLMT      ),
+    .P_RSP_BUF_DEEPTH       ( P_RSP_BUF_DEEPTH_CLMT     ),
+
+    // 不使用icb buf带的ots控制功能
+    .P_OTS_COUNT            ( P_OTS_COUNT_CLMT          ),
+    .P_OTS_CTRL_ENABLE      ( 1'b1                      ),
+    .P_FLUSH_ENABLE         ( 1'b0                      )
+)
+u_lnrv_clmt_icb_buf
+(
+    .flush_req              ( 1'b0                      ),
+    .flush_ack              (                           ),
+
+    .icb_cmd_vld_m          ( icb_cmd_vld_exu_clmt      ),
+    .icb_cmd_rdy_m          ( icb_cmd_rdy_exu_clmt      ),
+    .icb_cmd_write_m        ( icb_cmd_write_exu_clmt    ),
+    .icb_cmd_addr_m         ( icb_cmd_addr_exu_clmt     ),
+    .icb_cmd_wdata_m        ( icb_cmd_wdata_exu_clmt    ),
+    .icb_cmd_wstrb_m        ( icb_cmd_wstrb_exu_clmt    ),
+    .icb_cmd_size_m         ( icb_cmd_size_exu_clmt     ),
+    .icb_rsp_vld_m          ( icb_rsp_vld_exu_clmt      ),
+    .icb_rsp_rdy_m          ( icb_rsp_rdy_exu_clmt      ),
+    .icb_rsp_rdata_m        ( icb_rsp_rdata_exu_clmt    ),
+    .icb_rsp_err_m          ( icb_rsp_err_exu_clmt      ),
+
+    .icb_cmd_vld_s          ( icb_cmd_vld_clmt          ),
+    .icb_cmd_rdy_s          ( icb_cmd_rdy_clmt          ),
+    .icb_cmd_write_s        ( icb_cmd_write_clmt        ),
+    .icb_cmd_addr_s         ( icb_cmd_addr_clmt         ),
+    .icb_cmd_wdata_s        ( icb_cmd_wdata_clmt        ),
+    .icb_cmd_wstrb_s        ( icb_cmd_wstrb_clmt        ),
+    .icb_cmd_size_s         ( icb_cmd_size_clmt         ),
+    .icb_rsp_vld_s          ( icb_rsp_vld_clmt          ),
+    .icb_rsp_rdy_s          ( icb_rsp_rdy_clmt          ),
+    .icb_rsp_rdata_s        ( icb_rsp_rdata_clmt        ),
+    .icb_rsp_err_s          ( icb_rsp_err_clmt          ),
+
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   )
+);
+
+// 去往clic的slice并不会真正启用
+lnrv_icb_slice#
+(
+    .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
+    .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
+
+    .P_CMD_CUT_VALID        ( P_CMD_CUT_VALID_CLIC      ),
+    .P_CMD_CUT_READY        ( P_CMD_CUT_READY_CLIC      ),
+    .P_CMD_BUF_DEEPTH       ( P_CMD_BUF_DEEPTH_CLIC     ),
+
+    .P_RSP_CUT_VALID        ( P_RSP_CUT_VALID_CLIC      ),
+    .P_RSP_CUT_READY        ( P_RSP_CUT_READY_CLIC      ),
+    .P_RSP_BUF_DEEPTH       ( P_RSP_BUF_DEEPTH_CLIC     ),
+
+    // 不使用icb buf带的ots控制功能
+    .P_OTS_COUNT            ( P_OTS_COUNT_CLIC          ),
+    .P_OTS_CTRL_ENABLE      ( 1'b1                      ),
+    .P_FLUSH_ENABLE         ( 1'b0                      )
+)
+u_lnrv_clic_icb_buf
+(
+    .flush_req              ( 1'b0                      ),
+    .flush_ack              (                           ),
+
+    .icb_cmd_vld_m          ( icb_cmd_vld_exu_clic      ),
+    .icb_cmd_rdy_m          ( icb_cmd_rdy_exu_clic      ),
+    .icb_cmd_write_m        ( icb_cmd_write_exu_clic    ),
+    .icb_cmd_addr_m         ( icb_cmd_addr_exu_clic     ),
+    .icb_cmd_wdata_m        ( icb_cmd_wdata_exu_clic    ),
+    .icb_cmd_wstrb_m        ( icb_cmd_wstrb_exu_clic    ),
+    .icb_cmd_size_m         ( icb_cmd_size_exu_clic     ),
+    .icb_rsp_vld_m          ( icb_rsp_vld_exu_clic      ),
+    .icb_rsp_rdy_m          ( icb_rsp_rdy_exu_clic      ),
+    .icb_rsp_rdata_m        ( icb_rsp_rdata_exu_clic    ),
+    .icb_rsp_err_m          ( icb_rsp_err_exu_clic      ),
+
+    .icb_cmd_vld_s          ( icb_cmd_vld_clic          ),
+    .icb_cmd_rdy_s          ( icb_cmd_rdy_clic          ),
+    .icb_cmd_write_s        ( icb_cmd_write_clic        ),
+    .icb_cmd_addr_s         ( icb_cmd_addr_clic         ),
+    .icb_cmd_wdata_s        ( icb_cmd_wdata_clic        ),
+    .icb_cmd_wstrb_s        ( icb_cmd_wstrb_clic        ),
+    .icb_cmd_size_s         ( icb_cmd_size_clic         ),
+    .icb_rsp_vld_s          ( icb_rsp_vld_clic          ),
+    .icb_rsp_rdy_s          ( icb_rsp_rdy_clic          ),
+    .icb_rsp_rdata_s        ( icb_rsp_rdata_clic        ),
+    .icb_rsp_err_s          ( icb_rsp_err_clic          ),
+
+    .clk                    ( clk                       ),
+    .reset_n                ( reset_n                   )
+);
+
 
 endmodule
