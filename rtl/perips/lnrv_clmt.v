@@ -157,15 +157,15 @@ u_lnrv_gnrl_dat_sync
 (
     .async_data         ( tclk_toggle_q         ),
 
-    .sync_clk           ( clk                  ),
-    .sync_rst_n         ( preset_n              ),
+    .sync_clk           ( clk                   ),
+    .sync_rst_n         ( reset_n               ),
     .sync_data          ( tmr_toggle            )
 );
 
 
 assign      tmr_toggle_dly_d = tmr_toggle;
-always@(posedge clk or negedge preset_n) begin
-    if(preset_n == 1'b0) begin
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
         tmr_toggle_dly_q <= 1'b0;
     end else begin
         tmr_toggle_dly_q <= tmr_toggle_dly_d;
@@ -183,8 +183,8 @@ assign      mtime_cnt_clr = mtime_mode_q & mtime_cnt_eq_mtime_cmp & mtime_count_
 assign      mtime_cnt_rld = mtime_cnt_inc | mtime_cnt_clr;
 assign      {mtime_cnt_hi_d, mtime_cnt_lo_d} =  mtime_cnt_clr ? 64'd0 :
                                                 {mtime_cnt_hi_q, mtime_cnt_lo_q} + 1'b1;
-always@(posedge clk or negedge preset_n) begin
-    if(preset_n == 1'b0) begin
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
         {mtime_cnt_hi_q, mtime_cnt_lo_q} <= 64'd0;
     end else if(mtime_cnt_rld) begin
         {mtime_cnt_hi_q, mtime_cnt_lo_q} <= {mtime_cnt_hi_d, mtime_cnt_lo_d};
@@ -196,8 +196,8 @@ assign      mtime_cnt = {mtime_cnt_hi_q, mtime_cnt_lo_q};
 // 比较值寄存器
 assign      mtime_cmp_hi_rld = icb_write_MTIME_CMP_HI;
 assign      mtime_cmp_hi_d = icb_cmd_wdata;
-always@(posedge clk or negedge preset_n) begin
-    if(preset_n == 1'b0) begin
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
         mtime_cmp_hi_q <= 32'd0;
     end else if(mtime_cmp_hi_rld) begin
         mtime_cmp_hi_q <= mtime_cmp_hi_d;
@@ -206,8 +206,8 @@ end
 
 assign      mtime_cmp_lo_rld = icb_write_MTIME_CMP_LO;
 assign      mtime_cmp_lo_d = icb_cmd_wdata;
-always@(posedge clk or negedge preset_n) begin
-    if(preset_n == 1'b0) begin
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
         mtime_cmp_lo_q <= 32'd0;
     end else if(mtime_cmp_lo_rld) begin
         mtime_cmp_lo_q <= mtime_cmp_lo_d;
@@ -219,8 +219,8 @@ assign      mtime_cmp = {mtime_cmp_hi_q, mtime_cmp_lo_q};
 // 使能寄存器
 assign      mtime_enable_rld = icb_write_MTIME_ENABLE;
 assign      mtime_enable_d = icb_cmd_wdata[0];
-always@(posedge clk or negedge preset_n) begin
-    if(preset_n == 1'b0) begin
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
         mtime_enable_q <= 1'b0;
     end else if(mtime_enable_rld) begin
         mtime_enable_q <= mtime_enable_d;
@@ -231,8 +231,8 @@ end
 // 模式寄存器
 assign      mtime_mode_rld = icb_write_MTIME_CTRL;
 assign      mtime_mode_d = icb_cmd_wdata[0];
-always@(posedge clk or negedge preset_n) begin
-    if(preset_n == 1'b0) begin
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
         mtime_mode_q <= 1'b0;
     end else if(mtime_mode_rld) begin
         mtime_mode_q <= mtime_mode_d;
@@ -242,8 +242,8 @@ end
 // 时钟源寄存器
 assign      mtime_clk_src_rld = icb_write_MTIME_CTRL;
 assign      mtime_clk_src_d = icb_cmd_wdata[4];
-always@(posedge clk or negedge preset_n) begin
-    if(preset_n == 1'b0) begin
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
         mtime_clk_src_q <= 1'b0;
     end else if(mtime_clk_src_rld) begin
         mtime_clk_src_q <= mtime_clk_src_d;
@@ -265,8 +265,8 @@ assign      mtime_tip_set = mtime_enable_q &
 assign      mtime_tip_clr = icb_write_MTIME_TIP & (~icb_cmd_wdata[0]);
 assign      mtime_tip_rld = mtime_tip_set | mtime_tip_clr;
 assign      mtime_tip_d = mtime_tip_set;
-always@(posedge clk or negedge preset_n) begin
-    if(preset_n == 1'b0) begin
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
         mtime_tip_q <= 1'b0;
     end else if(mtime_tip_rld) begin
         mtime_tip_q <= mtime_tip_d;
@@ -276,8 +276,8 @@ end
 // 软件中断
 assign      mtime_sip_rld = icb_write_MTIME_SIP;
 assign      mtime_sip_d = icb_cmd_wdata[0];
-always@(posedge clk or negedge preset_n) begin
-    if(preset_n == 1'b0) begin
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
         mtime_sip_q <= 1'b0;
     end else if(mtime_sip_rld) begin
         mtime_sip_q <= mtime_sip_d;
@@ -344,8 +344,8 @@ assign      rdata_d =   ({32{access_addr_is_MTIME_ENABLE}}  & mtime_enable_full)
                         ({32{access_addr_is_MTIME_CMP_LO}}  & mtime_cmp_lo_full) |
                         ({32{access_addr_is_MTIME_CMP_HI}}  & mtime_cmp_hi_full) |
                         32'd0;
-always@(posedge clk or negedge preset_n) begin
-    if(preset_n == 1'b0) begin
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
         rdata_q <= 32'd0;
     end else if(rdata_rld) begin
         rdata_q <= rdata_d;
@@ -366,8 +366,8 @@ end
 
 assign      slverr_rld = icb_cmd_hsked;
 assign      slverr_d = access_addr_illegal;
-always@(posedge clk or negedge preset_n) begin
-    if(preset_n == 1'b0) begin
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
         slverr_q <= 1'b0;
     end else if(slverr_rld) begin
         slverr_q <= slverr_d;

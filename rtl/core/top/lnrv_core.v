@@ -145,7 +145,10 @@ module  lnrv_core#
 
 
     input                                   clk,
-    input                                   reset_n
+    input                                   reset_n,
+
+    input                                   tclk,
+    input                                   treset_n
 );
 
 localparam                      LP_ILM_REGION_SIZE              = 2 ** P_ILM_ADDR_WIDTH;
@@ -335,7 +338,7 @@ u_lnrv_ucore
     .firmware_loading       ( firmware_loading          ),
 
     .irq_sft                ( irq_sft                   ),
-    .irq_ext                ( irq_ext                   ),
+    .irq_ext                ( 1'b0                      ),  // 所有外部中断均由clic接管，不走该接口
     .irq_tmr                ( irq_tmr                   ),
 
     .clic_irq_req           ( clic_irq_req              ),
