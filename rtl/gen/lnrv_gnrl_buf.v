@@ -94,6 +94,8 @@ generate
         always@(posedge clk or negedge reset_n) begin
             if(reset_n == 1'b0) begin
                 buf_q <= {P_DATA_WIDTH{1'b0}};
+            end else if(flush_req) begin
+                buf_q <= {P_DATA_WIDTH{1'b0}};
             end else if(buf_rld) begin
                 buf_q <=  buf_d;
             end
