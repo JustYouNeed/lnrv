@@ -232,7 +232,7 @@ endgenerate
 generate
     // 分离slave port
     for(i = 0; i < P_ICB_COUNT; i = i + 1) begin
-        assign      icb_cmd_vld_slv[i]      = slv_region_match[i] & icb_cmd_vld_bufed_m;
+        assign      icb_cmd_vld_slv[i]      = slv_region_match[i] & icb_cmd_vld_bufed_m & disp_buf_push_rdy;
         assign      icb_cmd_write_slv[i]    = slv_region_match[i] & icb_cmd_write_bufed_m;
         assign      icb_cmd_addr_slv[i]     = {P_ADDR_WIDTH{slv_region_match[i]}} & icb_cmd_addr_bufed_m;
         assign      icb_cmd_wdata_slv[i]    = {P_DATA_WIDTH{slv_region_match[i]}} & icb_cmd_wdata_bufed_m;
@@ -278,7 +278,7 @@ endgenerate
 
 
 // 如果没有匹配到任一地址区间，则立即回rdy
-assign      icb_cmd_rdy_bufed_m = no_region_match ? icb_cmd_vld_m : icb_cmd_rdy_mux_m;
+assign      icb_cmd_rdy_bufed_m = no_region_match ? icb_cmd_vld_m : icb_cmd_rdy_mux_m & disp_buf_push_rdy;
 
 assign      icb_rsp_vld_bufed_m = no_region_match_bufed ? disp_buf_pop_vld : icb_rsp_vld_mux_m;
 assign      icb_rsp_err_bufed_m = icb_rsp_err_mux_m | no_region_match_bufed;

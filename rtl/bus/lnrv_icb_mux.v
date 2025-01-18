@@ -118,7 +118,7 @@ generate
         assign      icb_cmd_wstrb_m_mux[i]  = {(P_DATA_WIDTH/8){icb_cmd_grant_mn[i]}} & icb_cmd_wstrb_mn[i * (P_DATA_WIDTH/8) +: (P_DATA_WIDTH/8)];
         assign      icb_cmd_size_m_mux[i]   = {3{icb_cmd_grant_mn[i]}} & icb_cmd_size_mn[i * 3 +: 3];
 
-        assign      icb_cmd_rdy_mn[i]       = icb_cmd_grant_mn[i] & icb_cmd_rdy_m;
+        assign      icb_cmd_rdy_mn[i]       = icb_cmd_grant_mn[i] & icb_cmd_rdy_m & disp_buf_push_rdy;
     end
 endgenerate
 
@@ -137,7 +137,8 @@ always@(*) begin
     end
 end
 
-assign      icb_cmd_vld_m   = |icb_cmd_vld_m_mux;
+// 需要在disp buffer就绪的时候才可以往下游发送命令
+assign      icb_cmd_vld_m   = (|icb_cmd_vld_m_mux) & disp_buf_push_rdy;
 assign      icb_cmd_write_m = |icb_cmd_write_m_mux;
 
 
