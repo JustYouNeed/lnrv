@@ -193,10 +193,16 @@ wire[31 : 0]                            gpr_x1;
 wire[31 : 0]                            mepc;
 wire[31 : 0]                            dpc;
 wire[31 : 0]                            mtvec;
+wire[31 : 0]                            mtvt;
 wire                                    mie_msie;
 wire                                    mie_mtie;
 wire                                    mie_meie;
 wire                                    mstatus_mie;
+
+wire                                    clic_irq_req;
+wire                                    clic_irq_ack;
+wire[7 : 0]                             clic_irq_id;
+wire                                    clic_irq_mode;
 
 
 assign      pipe_flush_ack_cmt = pipe_flush_ack_cmt_ifu & pipe_flush_ack_cmt_idu;
@@ -222,6 +228,7 @@ u_lnrv_ifu
     .pipe_flush_ack_cmt         ( pipe_flush_ack_cmt_ifu    ),
     .pipe_flush_pc_op1_cmt      ( pipe_flush_pc_op1_cmt     ),
     .pipe_flush_pc_op2_cmt      ( pipe_flush_pc_op2_cmt     ),
+    .vec_irq_taken              ( vec_irq_taken             ),
 
     .pipe_flush_req_bpu         ( pipe_flush_req_bpu        ),
     .pipe_flush_ack_bpu         ( pipe_flush_ack_bpu        ),
@@ -423,6 +430,11 @@ lnrv_cmt u_lnrv_cmt
     .irq_ext                    ( irq_ext                   ),
     .irq_tmr                    ( irq_tmr                   ),
 
+    .clic_irq_req               ( clic_irq_req              ),
+    .clic_irq_ack               ( clic_irq_ack              ),
+    .clic_irq_id                ( clic_irq_id               ),
+    .clic_irq_mode              ( clic_irq_mode             ),
+
     .mie_meie                   ( mie_meie                  ),
     .mie_mtie                   ( mie_mtie                  ),
     .mie_msie                   ( mie_msie                  ),
@@ -431,6 +443,7 @@ lnrv_cmt u_lnrv_cmt
     .dpc                        ( dpc                       ),
     .mepc                       ( mepc                      ),
     .mtvec                      ( mtvec                     ),
+    .mtvt                       ( mtvt                      ),
     .rs1_rdata                  ( rs1_rdata                 ),
 
     .d_mode                     ( d_mode                    ),
@@ -440,6 +453,7 @@ lnrv_cmt u_lnrv_cmt
     .irq_taken                  ( irq_taken                 ),
     .dbg_taken                  ( dbg_taken                 ),
     .excp_taken                 ( excp_taken                ),
+    .vec_irq_taken              ( vec_irq_taken             ),
 
     .irq_dbg                    ( irq_dbg                   ),
     .dbg_halt                   ( dbg_halt                  ),
@@ -508,6 +522,7 @@ lnrv_csr u_lnrv_csr
 (
     .mepc                       ( mepc                      ),
     .mtvec                      ( mtvec                     ),
+    .mtvt                       ( mtvt                      ),
 
     .dcsr_step                  ( dcsr_step                 ),
     .dcsr_stepie                ( dcsr_stepie               ),

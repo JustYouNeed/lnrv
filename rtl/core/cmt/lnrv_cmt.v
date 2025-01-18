@@ -39,6 +39,12 @@ module lnrv_cmt
     input                       irq_ext,            // 外部中断
     input                       irq_tmr,            // 定时器中断
 
+    // clic接口
+    input                       clic_irq_req,
+    output                      clic_irq_ack,
+    input[7 : 0]                clic_irq_id,
+    input                       clic_irq_mode,
+
     // 中断使能
     input                       mie_meie,
     input                       mie_mtie,
@@ -48,6 +54,7 @@ module lnrv_cmt
     input[31 : 0]               dpc,
     input[31 : 0]               mepc,
     input[31 : 0]               mtvec,
+    input[31 : 0]               mtvt,
     input[31 : 0]               rs1_rdata,
 
     // 调试模式
@@ -59,6 +66,7 @@ module lnrv_cmt
     output                      irq_taken,
     output                      dbg_taken,
     output                      excp_taken,
+    output                      vec_irq_taken,
 
     input                       irq_dbg,
     input                       dbg_halt,
@@ -149,6 +157,11 @@ lnrv_cmt_irq u_lnrv_cmt_irq
     .irq_ext                ( irq_ext                       ),
     .irq_tmr                ( irq_tmr                       ),
 
+    .clic_irq_req           ( clic_irq_req                  ),
+    .clic_irq_ack           ( clic_irq_ack                  ),
+    .clic_irq_id            ( clic_irq_id                   ),
+    .clic_irq_mode          ( clic_irq_mode                 ),
+
     .mie_meie               ( mie_meie                      ),
     .mie_mtie               ( mie_mtie                      ),
     .mie_msie               ( mie_msie                      ),
@@ -158,6 +171,7 @@ lnrv_cmt_irq u_lnrv_cmt_irq
 
     .irq_taken              ( irq_taken                     ),
     .irq_req_raw            ( irq_req_raw                   ),
+    .vec_irq_taken          ( vec_irq_taken_raw             ),
 
     .mepc_wdata             ( mepc_wdata_irq                ),
     .mcause_wdata           ( mcause_wdata_irq              ),
@@ -166,6 +180,7 @@ lnrv_cmt_irq u_lnrv_cmt_irq
     .dcsr_stepie            ( dcsr_stepie                   ),
 
     .mtvec                  ( mtvec                         ),
+    .mtvt                   ( mtvt                          ),
 
     .pipe_flush_req         ( pipe_flush_req_irq            ),
     .pipe_flush_ack         ( pipe_flush_ack_irq            ),
@@ -195,7 +210,7 @@ lnrv_cmt_excp u_lnrv_cmt_excp
     .cmt_lsu_addr           ( cmt_lsu_addr                  ),
     .cmt_sys_ebreak         ( cmt_sys_ebreak                ),
     .cmt_sys_ecall          ( cmt_sys_ecall                 ),
-    .cmt_csr_idx_err         ( cmt_csr_idx_err                ),
+    .cmt_csr_idx_err        ( cmt_csr_idx_err               ),
 
     .mepc_wdata             ( mepc_wdata_excp               ),
     .mcause_wdata           ( mcause_wdata_excp             ),
@@ -352,6 +367,10 @@ assign      pipe_flush_ack_excp =  pipe_flush_ack &
                                         )
                                     );
 
+assign      vec_irq_taken = vec_irq_taken_raw &
+                            (
+                                ~(pipe_flush_req_dbg | pipe_flush_req_brch)
+                            );
 
 // 有中断/异常发生时需要更新以下寄存器
 // 1、mepc

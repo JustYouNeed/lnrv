@@ -31,6 +31,9 @@ module	lnrv_ifu#
     input                               pipe_halt_req,
     output                              pipe_halt_ack,
 
+    // 有向量中断发生
+    input                               vec_irq_taken,
+
     // 输出至EXU模块
     output                              ifu_vld,
     input                               ifu_rdy,
@@ -110,6 +113,7 @@ wire                                    flush_ots_cnt_not_0;
 wire                                    flush_rsp_pending;
 wire                                    flush_rsp_not_pending;
 wire                                    flush_cmd_pending;
+wire                                    flush_cmd_not_pending;
 
 // 没有流水线暂停请求
 wire                                    no_pipe_halt_req;
@@ -141,6 +145,8 @@ wire                                    ifu_buf_pop_rdy;
 wire[LP_IFU_BUF_WIDTH - 1 : 0]          ifu_buf_pop_data;
 wire                                    ifu_buf_pop_hsked;
 
+wire                                    ifu_buf_flush_req;
+
 wire[31 : 0]                            ifu_push_ir;
 wire[31 : 0]                            ifu_push_pc;
 wire                                    ifu_pc_algn_half;
@@ -166,6 +172,17 @@ wire                                    flush_rsp_pend_clr;
 wire                                    flush_rsp_pend_rld;
 wire                                    flush_rsp_pend_d;
 
+reg                                     vec_irq_flush_pend_q;
+wire                                    vec_irq_flush_pend_set;
+wire                                    vec_irq_flush_pend_clr;
+wire                                    vec_irq_flush_pend_rld;
+wire                                    vec_irq_flush_pend_d;
+
+reg                                     vec_irq_wait_pc_q;
+wire                                    vec_irq_wait_pc_set;
+wire                                    vec_irq_wait_pc_clr;
+wire                                    vec_irq_wait_pc_rld;
+wire                                    vec_irq_wait_pc_d;
 
 // 接收所有的流水线冲刷请求，且应答是立即的
 assign      pipe_flush_req      = pipe_flush_req_cmt | pipe_flush_req_bpu;
@@ -210,15 +227,17 @@ end
 
 // 这里将指令地址分为两个操作数相加
 assign      fetch_addr_op1 =    pipe_flush_req ? pipe_flush_pc_op1 :
-                                flush_cmd_pend_q ? fetch_addr_q :     // 流水线冲刷请求并不一定能被立即处理
+                                (flush_cmd_pend_q) ? fetch_addr_q :     // 流水线冲刷请求并不一定能被立即处理
                                 reset_pend_q ? reset_vector :       // 复位时我们使用复位向量
+                                vec_irq_wait_pc_q ? icb_rsp_rdata :
                                 fetch_addr_q;
 
 assign      fetch_addr_op2 =    pipe_flush_req ? pipe_flush_pc_op2 :
-                                flush_cmd_pend_q ? 32'd0 :
+                                (flush_cmd_pend_q ) ? 32'd0 :
                                 reset_pend_q ? 32'd0 :
+                                vec_irq_wait_pc_q ? 32'd0 :
                                 32'd4;
-assign      fetch_addr_rld = icb_cmd_hsked | pipe_flush_hsked;
+assign      fetch_addr_rld = icb_cmd_hsked | pipe_flush_hsked | vec_irq_wait_pc_clr;
 assign      fetch_addr_d = fetch_addr_op1 + fetch_addr_op2;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
@@ -296,7 +315,8 @@ assign      flush_ots_cnt_is_0  = ~flush_ots_cnt_not_0;
 
 // 流水线冲刷请求是立即响应的，但是流水线冲刷并不能立即完成，因为有可能上一个取指请求还没有返回，
 // 如果当前不能立即冲刷流水线，就需要锁存流水线冲刷请求，直到新地址的取指请求发出，且被接收。
-assign      flush_cmd_pend_set  = pipe_flush_hsked;
+// 如果是向量中断冲刷请求，则在读取到中断函数入口后，也需要冲刷command
+assign      flush_cmd_pend_set  = pipe_flush_hsked | vec_irq_wait_pc_clr;
 assign      flush_cmd_pend_clr  = icb_cmd_hsked;
 assign      flush_cmd_pend_rld  = flush_cmd_pend_set ^ flush_cmd_pend_clr;
 assign      flush_cmd_pend_d    = flush_cmd_pend_set;
@@ -324,6 +344,7 @@ always@(posedge clk or negedge reset_n) begin
     end
 end
 
+// assign      icb_rsp_discard = pipe_flush_req | flush_rsp_pend_q | vec_irq_wait_pc_q;
 assign      flush_rsp_pending       = pipe_flush_req | flush_rsp_pend_q;
 assign      flush_rsp_not_pending   = ~flush_rsp_pending;
 
@@ -355,6 +376,20 @@ always@(posedge clk or negedge reset_n) begin
         leftover_buf_q <= 16'd0;
     end else if(leftover_buf_rld) begin
         leftover_buf_q <= leftover_buf_d;
+    end
+end
+
+// 如果是向量中断产生的冲刷请求，我们需要先获取读取中断向量表，获取中断函数入口
+assign      vec_irq_wait_pc_set = pipe_flush_req_cmt & pipe_flush_ack_cmt & vec_irq_taken;
+// 第一个有效的rsp，就是中断函数入口
+assign      vec_irq_wait_pc_clr = icb_rsp_hsked & flush_rsp_not_pending & vec_irq_wait_pc_q;
+assign      vec_irq_wait_pc_rld = vec_irq_wait_pc_set | vec_irq_wait_pc_clr;
+assign      vec_irq_wait_pc_d = vec_irq_wait_pc_set;
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
+        vec_irq_wait_pc_q <= 1'b0;
+    end else if(vec_irq_wait_pc_rld) begin
+        vec_irq_wait_pc_q <= vec_irq_wait_pc_d;
     end
 end
 
@@ -401,9 +436,10 @@ assign      ifu_buf_push_data = {
                                 };
 
 // 冲刷过程中的push都是无效的
-assign      ifu_buf_push_hsked  = ifu_buf_push_vld & ifu_buf_push_rdy & flush_rsp_not_pending;
+assign      ifu_buf_push_hsked  = ifu_buf_push_vld & ifu_buf_push_rdy & (~ifu_buf_flush_req);
 assign      ifu_buf_pop_hsked   = ifu_buf_pop_vld & ifu_buf_pop_rdy;
 
+assign      ifu_buf_flush_req = pipe_flush_req | flush_rsp_pend_q | vec_irq_wait_pc_q;
 
 // 指令缓存
 lnrv_gnrl_buf#
@@ -420,7 +456,7 @@ u_ifu_buffer
     .clk                ( clk                       ),
     .reset_n            ( reset_n                   ),
 
-    .flush_req          ( flush_rsp_pending         ),
+    .flush_req          ( ifu_buf_flush_req         ),
     .flush_ack          (                           ),
 
     .push_vld           ( ifu_buf_push_vld          ),
@@ -445,7 +481,11 @@ assign      ifu_buf_pop_rdy = ifu_rdy;
 //  a) 当前取指请求没有达到最大的Outstanding数
 //  b) 当前没有pipe_halt_req
 //  c) 固件已经加载完成
-assign      icb_cmd_vld     = cmd_ots_cnt_lt_max & no_pipe_halt_req & firmware_loaded;
+//  d) 当前没有在取向量中断的入口地址
+assign      icb_cmd_vld     =   cmd_ots_cnt_lt_max &
+                                no_pipe_halt_req &
+                                firmware_loaded &
+                                (flush_cmd_pend_q | (~vec_irq_wait_pc_q));
 // 我们取指地址总是4字节对齐，因此低2比特固定为0
 assign      icb_cmd_addr    = {fetch_addr_d[31 : 2], 2'b00};
 assign      icb_cmd_write   = 1'b0;

@@ -2,6 +2,7 @@ module lnrv_csr
 (
     output[31 : 0]                  mepc,
     output[31 : 0]                  mtvec,
+    output[31 : 0]                  mtvt,
     output                          m_mode,
 
     // debug csr
@@ -81,6 +82,7 @@ localparam[11 : 0]                  LP_MEDELEG_REG_ADDR = 12'h302;
 localparam[11 : 0]                  LP_MIDELEG_REG_ADDR = 12'h303;
 localparam[11 : 0]                  LP_MIE_REG_ADDR = 12'h304;
 localparam[11 : 0]                  LP_MTVEC_REG_ADDR = 12'h305;
+localparam[11 : 0]                  LP_MTVT_REG_ADDR = 12'h307;
 localparam[11 : 0]                  LP_MCOUNTEREN_REG_ADDR = 12'h306;
 
 
@@ -122,6 +124,7 @@ wire                                csr_idx_is_MEDELEG;
 wire                                csr_idx_is_MIDELEG;
 wire                                csr_idx_is_MIE;
 wire                                csr_idx_is_MTVEC;
+wire                                csr_idx_is_MTVT;
 wire                                csr_idx_is_MCOUNTEREN;
 wire                                csr_idx_is_MSCRATCH;
 wire                                csr_idx_is_MEPC;
@@ -151,6 +154,7 @@ wire                                wbck_MEDELEG;
 wire                                wbck_MIDELEG;
 wire                                wbck_MIE;
 wire                                wbck_MTVEC;
+wire                                wbck_MTVT;
 wire                                wbck_MCOUNTEREN;
 wire                                wbck_MSCRATCH;
 wire                                wbck_MEPC;
@@ -212,6 +216,12 @@ wire                                mtvec_rld;
 wire[31 : 0]                        mtvec_d;
 
 wire[31 : 0]                        mtvec_full;
+
+reg[31 : 0]                         mtvt_q;
+wire                                mtvt_rld;
+wire[31 : 0]                        mtvt_d;
+
+wire[31 : 0]                        mtvt_full;
 
 
 reg[31 : 0]                         mscratch_q;
@@ -332,6 +342,7 @@ assign      csr_idx_is_MEDELEG      = (csr_idx == LP_MEDELEG_REG_ADDR);
 assign      csr_idx_is_MIDELEG      = (csr_idx == LP_MIDELEG_REG_ADDR);
 assign      csr_idx_is_MIE          = (csr_idx == LP_MIE_REG_ADDR);
 assign      csr_idx_is_MTVEC        = (csr_idx == LP_MTVEC_REG_ADDR);
+assign      csr_idx_is_MTVEC        = (csr_idx == LP_MTVT_REG_ADDR);
 assign      csr_idx_is_MCOUNTEREN   = (csr_idx == LP_MCOUNTEREN_REG_ADDR);
 assign      csr_idx_is_MSCRATCH     = (csr_idx == LP_MSCRATCH_REG_ADDR);
 assign      csr_idx_is_MEPC         = (csr_idx == LP_MEPC_REG_ADDR);
@@ -362,6 +373,7 @@ assign      wbck_MEDELEG    = csr_idx_is_MEDELEG   & wbck_vld;
 assign      wbck_MIDELEG    = csr_idx_is_MIDELEG   & wbck_vld;
 assign      wbck_MIE        = csr_idx_is_MIE       & wbck_vld;
 assign      wbck_MTVEC      = csr_idx_is_MTVEC     & wbck_vld;
+assign      wbck_MTVT       = csr_idx_is_MTVT      & wbck_vld;
 assign      wbck_MSCRATCH   = csr_idx_is_MSCRATCH  & wbck_vld;
 assign      wbck_MEPC       = csr_idx_is_MEPC      & wbck_vld;
 assign      wbck_MCAUSE     = csr_idx_is_MCAUSE    & wbck_vld;
@@ -448,6 +460,18 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 assign      mtvec_full = mtvec_q;
+
+assign      mtvt_rld = wbck_MTVT;
+assign      mtvt_d = wbck_wdata;
+always@(posedge clk or negedge reset_n) begin
+    if(reset_n == 1'b0) begin
+        mtvt_q <= 32'd0;
+    end else if(mtvt_rld) begin
+        mtvt_q <= mtvt_d;
+    end
+end
+
+assign      mtvt_full = mtvt_q;
 
 // Machine Exception Program Counter
 assign      mepc_rld = wbck_MEPC | mepc_wen;
@@ -769,6 +793,7 @@ assign      csr_rdata =
                         ({32{csr_idx_is_MISA}}      & misa_full) |
                         ({32{csr_idx_is_MIE}}       & mie_full) |
                         ({32{csr_idx_is_MTVEC}}     & mtvec_full) |
+                        ({32{csr_idx_is_MTVT}}      & mtvt_full) |
                         ({32{csr_idx_is_MSCRATCH}}  & mscratch_full) |
                         ({32{csr_idx_is_MEPC}}      & mepc_full) |
                         ({32{csr_idx_is_MCAUSE}}    & mcause_full) |

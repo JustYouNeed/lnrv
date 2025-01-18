@@ -159,11 +159,11 @@ localparam                      LP_DLM_REGION_SIZE              = 2 ** P_DLM_ADD
 localparam                      LP_DLM_REGION_START             = P_DLM_REGION_BASE;
 localparam                      LP_DLM_REGION_END               = P_DLM_REGION_BASE + LP_DLM_REGION_SIZE;
 
-localparam                      LP_CLMT_REGION_SIZE             = 16'h1_0000;
+localparam                      LP_CLMT_REGION_SIZE             = 32'h1_0000;
 localparam                      LP_CLMT_REGION_START            = P_IREGION_BASE;
 localparam                      LP_CLMT_REGION_END              = LP_CLMT_REGION_START + LP_CLMT_REGION_SIZE;
 
-localparam                      LP_CLIC_REGION_SIZE             = 16'h1_0000;
+localparam                      LP_CLIC_REGION_SIZE             = 32'h1_0000;
 localparam                      LP_CLIC_REGION_START            = LP_CLMT_REGION_END;
 localparam                      LP_CLIC_REGION_END              = LP_CLMT_REGION_START + LP_CLMT_REGION_SIZE;
 
@@ -412,7 +412,7 @@ lnrv_biu#
     .P_RSP_CUT_VALID_IFU    ( 1'b1                      ),
     .P_RSP_CUT_READY_IFU    ( 1'b1                      ),
     .P_RSP_BUF_DEEPTH_IFU   ( LP_IFU_OTS_COUNT          ),
-    .P_OTS_COUNT_IFU        ( 1                         ),
+    .P_OTS_COUNT_IFU        ( LP_IFU_OTS_COUNT          ),
     .P_OTS_CTRL_ENABLE_IFU  ( 1'b0                      ),
 
     // EXU接口配置参数
@@ -645,7 +645,7 @@ lnrv_clmt u_lnrv_clmt
     .icb_cmd_vld            ( icb_cmd_vld_clmt          ),
     .icb_cmd_rdy            ( icb_cmd_rdy_clmt          ),
     .icb_cmd_write          ( icb_cmd_write_clmt        ),
-    .icb_cmd_addr           ( icb_cmd_addr_clmt         ),
+    .icb_cmd_addr           ( icb_cmd_addr_clmt[15 : 0] ),
     .icb_cmd_wdata          ( icb_cmd_wdata_clmt        ),
     .icb_cmd_wstrb          ( icb_cmd_wstrb_clmt        ),
     .icb_cmd_size           ( icb_cmd_size_clmt         ),
@@ -674,7 +674,7 @@ u_lnrv_clic
     .icb_cmd_vld            ( icb_cmd_vld_clic          ),
     .icb_cmd_rdy            ( icb_cmd_rdy_clic          ),
     .icb_cmd_write          ( icb_cmd_write_clic        ),
-    .icb_cmd_addr           ( icb_cmd_addr_clic         ),
+    .icb_cmd_addr           ( icb_cmd_addr_clic[15 : 0] ),
     .icb_cmd_wdata          ( icb_cmd_wdata_clic        ),
     .icb_cmd_wstrb          ( icb_cmd_wstrb_clic        ),
     .icb_cmd_size           ( icb_cmd_size_clic         ),
@@ -687,10 +687,10 @@ u_lnrv_clic
     .irq_sft                ( irq_sft                   ),
     .irq_src                ( irq_src                   ),
 
-    .irq_req                ( clic_irq_req              ),
-    .irq_ack                ( clic_irq_ack              ),
-    .irq_mode               ( clic_irq_mode             ),
-    .irq_id                 ( clic_irq_id               )
+    .clic_irq_req           ( clic_irq_req              ),
+    .clic_irq_ack           ( clic_irq_ack              ),
+    .clic_irq_mode          ( clic_irq_mode             ),
+    .clic_irq_id            ( clic_irq_id               )
 );
 
 
