@@ -9,7 +9,6 @@ module lnrv_csr
     output                          dcsr_stepie,
     output                          dcsr_ebreakm,
     output                          dcsr_stoptime,
-    output                          dcsr_stopcount,
     output[31 : 0]                  dpc,
     output                          d_mode,
 
@@ -592,7 +591,7 @@ end
 
 assign      mscratch_full = mscratch_q;
 
-assign      mcycle_rld = (~dcsr_stopcount);
+assign      mcycle_rld = (~dcsr_stopcount_q);
 assign      mcycle_d = mcycle_q + 1'b1;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
@@ -756,7 +755,6 @@ assign      dpc             = dpc_q;
 assign      dcsr_step       = dcsr_step_q;
 assign      dcsr_stepie     = dcsr_stepie_q;
 assign      dcsr_ebreakm    = dcsr_ebreakm_q;
-assign      dcsr_stopcount  = dcsr_stopcount_q;
 assign      dcsr_stoptime   = dcsr_stoptime_q;
 
 
