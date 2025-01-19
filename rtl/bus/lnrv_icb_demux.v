@@ -53,26 +53,26 @@ module lnrv_icb_demux#
 localparam                                  LP_DISP_BUF_DATA_WIDTH  = P_ICB_COUNT;
 localparam                                  LP_DISP_BUF_DEEPTH      = P_OTS_COUNT;
 
-wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]        disp_buf_push_data;
-wire                                        disp_buf_push_vld;
-wire                                        disp_buf_push_rdy;
+wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]        demux_buf_push_data;
+wire                                        demux_buf_push_vld;
+wire                                        demux_buf_push_rdy;
 
-wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]        disp_buf_pop_data;
-wire                                        disp_buf_pop_vld;
-wire                                        disp_buf_pop_rdy;
+wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]        demux_buf_pop_data;
+wire                                        demux_buf_pop_vld;
+wire                                        demux_buf_pop_rdy;
 
-wire                                        icb_cmd_vld_bufed_m;
-wire                                        icb_cmd_rdy_bufed_m;
-wire                                        icb_cmd_write_bufed_m;
-wire[P_ADDR_WIDTH - 1 : 0]                  icb_cmd_addr_bufed_m;
-wire[P_DATA_WIDTH - 1 : 0]                  icb_cmd_wdata_bufed_m;
-wire[(P_DATA_WIDTH/8) - 1 : 0]              icb_cmd_wstrb_bufed_m;
-wire[2 : 0]                                 icb_cmd_size_bufed_m;
+wire                                        icb_cmd_vld_m_bufed;
+wire                                        icb_cmd_rdy_m_bufed;
+wire                                        icb_cmd_write_m_bufed;
+wire[P_ADDR_WIDTH - 1 : 0]                  icb_cmd_addr_m_bufed;
+wire[P_DATA_WIDTH - 1 : 0]                  icb_cmd_wdata_m_bufed;
+wire[(P_DATA_WIDTH/8) - 1 : 0]              icb_cmd_wstrb_m_bufed;
+wire[2 : 0]                                 icb_cmd_size_m_bufed;
 
-wire                                        icb_rsp_vld_bufed_m;
-wire                                        icb_rsp_rdy_bufed_m;
-wire[P_DATA_WIDTH - 1 : 0]                  icb_rsp_rdata_bufed_m;
-wire                                        icb_rsp_err_bufed_m;
+wire                                        icb_rsp_vld_m_bufed;
+wire                                        icb_rsp_rdy_m_bufed;
+wire[P_DATA_WIDTH - 1 : 0]                  icb_rsp_rdata_m_bufed;
+wire                                        icb_rsp_err_m_bufed;
 
 
 wire[P_ICB_COUNT - 1 : 0]                   icb_cmd_vld_slv;
@@ -105,15 +105,15 @@ wire                                        icb_rsp_vld_mux_m;
 reg[P_DATA_WIDTH - 1 : 0]                   icb_rsp_rdata_mux_m;
 reg                                         icb_rsp_err_mux_m;
 
-wire                                        icb_cmd_hsked_m;
-wire                                        icb_rsp_hsked_m;
+wire                                        icb_cmd_m_bufed_hsked;
+wire                                        icb_rsp_m_bufed_hsked;
 
 genvar                                      i;
 integer                                     j;
 
 
-assign      icb_cmd_hsked_m = icb_cmd_vld_bufed_m & icb_cmd_rdy_bufed_m;
-assign      icb_rsp_hsked_m = icb_rsp_vld_bufed_m & icb_rsp_rdy_bufed_m;
+assign      icb_cmd_m_bufed_hsked = icb_cmd_vld_m_bufed & icb_cmd_rdy_m_bufed;
+assign      icb_rsp_m_bufed_hsked = icb_rsp_vld_m_bufed & icb_rsp_rdy_m_bufed;
 
 // 根据参数决定是否需要在输入端口插入一个buff
 lnrv_icb_slice#
@@ -150,31 +150,29 @@ u_lnrv_icb_buf
     .icb_rsp_rdata_m        ( icb_rsp_rdata_m           ),
     .icb_rsp_err_m          ( icb_rsp_err_m             ),
 
-    .icb_cmd_vld_s          ( icb_cmd_vld_bufed_m       ),
-    .icb_cmd_rdy_s          ( icb_cmd_rdy_bufed_m       ),
-    .icb_cmd_write_s        ( icb_cmd_write_bufed_m     ),
-    .icb_cmd_addr_s         ( icb_cmd_addr_bufed_m      ),
-    .icb_cmd_wdata_s        ( icb_cmd_wdata_bufed_m     ),
-    .icb_cmd_wstrb_s        ( icb_cmd_wstrb_bufed_m     ),
-    .icb_cmd_size_s         ( icb_cmd_size_bufed_m      ),
-    .icb_rsp_vld_s          ( icb_rsp_vld_bufed_m       ),
-    .icb_rsp_rdy_s          ( icb_rsp_rdy_bufed_m       ),
-    .icb_rsp_rdata_s        ( icb_rsp_rdata_bufed_m     ),
-    .icb_rsp_err_s          ( icb_rsp_err_bufed_m       ),
+    .icb_cmd_vld_s          ( icb_cmd_vld_m_bufed       ),
+    .icb_cmd_rdy_s          ( icb_cmd_rdy_m_bufed       ),
+    .icb_cmd_write_s        ( icb_cmd_write_m_bufed     ),
+    .icb_cmd_addr_s         ( icb_cmd_addr_m_bufed      ),
+    .icb_cmd_wdata_s        ( icb_cmd_wdata_m_bufed     ),
+    .icb_cmd_wstrb_s        ( icb_cmd_wstrb_m_bufed     ),
+    .icb_cmd_size_s         ( icb_cmd_size_m_bufed      ),
+    .icb_rsp_vld_s          ( icb_rsp_vld_m_bufed       ),
+    .icb_rsp_rdy_s          ( icb_rsp_rdy_m_bufed       ),
+    .icb_rsp_rdata_s        ( icb_rsp_rdata_m_bufed     ),
+    .icb_rsp_err_s          ( icb_rsp_err_m_bufed       ),
 
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   )
 );
 
-// 指令通道握手成功后，将当前选择的通道信息推入disp_fifo中
-assign      disp_buf_push_vld   = icb_cmd_hsked_m;
-assign      disp_buf_push_data  = slv_region_match;
-
-assign      no_region_match = ~(|slv_region_match);
+// 指令通道握手成功后，将当前选择的通道信息推入demux_fifo中
+assign      demux_buf_push_vld       = icb_cmd_m_bufed_hsked;
+assign      demux_buf_push_data      = slv_region_match;
 
 // 应答通道握手成功，表示已经完成一次通信，将保存的通道信息弹出
-assign      disp_buf_pop_rdy        = icb_rsp_hsked_m;
-assign      slv_region_match_bufed  = disp_buf_pop_data;
+assign      demux_buf_pop_rdy        = icb_rsp_m_bufed_hsked;
+assign      slv_region_match_bufed  = demux_buf_pop_data;
 assign      no_region_match_bufed   = ~(|slv_region_match_bufed);
 
 // 将分发信息保存下来，用于rsp通道
@@ -187,7 +185,7 @@ lnrv_gnrl_buf#
     .P_CUT_READY            ( 1'b1                      ),
     .P_FLUSH_DELAY          ( 1'b0                      )
 )
-u_icb_disp_buf
+u_icb_demux_buf
 (
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   ),
@@ -195,13 +193,13 @@ u_icb_disp_buf
     .flush_req              ( 1'b0                      ),
     .flush_ack              (                           ),
 
-    .push_vld               ( disp_buf_push_vld         ),
-    .push_rdy               ( disp_buf_push_rdy         ),
-    .push_data              ( disp_buf_push_data        ),
+    .push_vld               ( demux_buf_push_vld        ),
+    .push_rdy               ( demux_buf_push_rdy        ),
+    .push_data              ( demux_buf_push_data       ),
 
-    .pop_vld                ( disp_buf_pop_vld          ),
-    .pop_rdy                ( disp_buf_pop_rdy          ),
-    .pop_data               ( disp_buf_pop_data         )
+    .pop_vld                ( demux_buf_pop_vld         ),
+    .pop_rdy                ( demux_buf_pop_rdy         ),
+    .pop_data               ( demux_buf_pop_data        )
 );
 
  // 分离出各个地址区间的base和mask信息，进行匹配
@@ -210,8 +208,8 @@ generate
         assign      slv_region_start_addr[i]    = sn_region_base[i * P_ADDR_WIDTH +: P_ADDR_WIDTH];
         assign      slv_region_end_addr[i]      = sn_region_end[i * P_ADDR_WIDTH +: P_ADDR_WIDTH];
 
-        assign      addr_gte_start_addr[i]      = (icb_cmd_addr_bufed_m >= slv_region_start_addr[i]);
-        assign      addr_ls_end_addr[i]         = (icb_cmd_addr_bufed_m < slv_region_end_addr[i]);
+        assign      addr_gte_start_addr[i]      = (icb_cmd_addr_m_bufed >= slv_region_start_addr[i]);
+        assign      addr_ls_end_addr[i]         = (icb_cmd_addr_m_bufed < slv_region_end_addr[i]);
         assign      end_addr_is_zero[i]         = ~(|slv_region_end_addr[i]);
     end
 
@@ -232,15 +230,15 @@ endgenerate
 generate
     // 分离slave port
     for(i = 0; i < P_ICB_COUNT; i = i + 1) begin
-        assign      icb_cmd_vld_slv[i]      = slv_region_match[i] & icb_cmd_vld_bufed_m & disp_buf_push_rdy;
-        assign      icb_cmd_write_slv[i]    = slv_region_match[i] & icb_cmd_write_bufed_m;
-        assign      icb_cmd_addr_slv[i]     = {P_ADDR_WIDTH{slv_region_match[i]}} & icb_cmd_addr_bufed_m;
-        assign      icb_cmd_wdata_slv[i]    = {P_DATA_WIDTH{slv_region_match[i]}} & icb_cmd_wdata_bufed_m;
-        assign      icb_cmd_wstrb_slv[i]    = {(P_DATA_WIDTH/8){slv_region_match[i]}} & icb_cmd_wstrb_bufed_m;
-        assign      icb_cmd_size_slv[i]     = {3{slv_region_match[i]}} & icb_cmd_size_bufed_m;
+        assign      icb_cmd_vld_slv[i]      = slv_region_match[i] & icb_cmd_vld_m_bufed & demux_buf_push_rdy;
+        assign      icb_cmd_write_slv[i]    = slv_region_match[i] & icb_cmd_write_m_bufed;
+        assign      icb_cmd_addr_slv[i]     = {P_ADDR_WIDTH{slv_region_match[i]}} & icb_cmd_addr_m_bufed;
+        assign      icb_cmd_wdata_slv[i]    = {P_DATA_WIDTH{slv_region_match[i]}} & icb_cmd_wdata_m_bufed;
+        assign      icb_cmd_wstrb_slv[i]    = {(P_DATA_WIDTH/8){slv_region_match[i]}} & icb_cmd_wstrb_m_bufed;
+        assign      icb_cmd_size_slv[i]     = {3{slv_region_match[i]}} & icb_cmd_size_m_bufed;
         assign      icb_cmd_rdy_slv[i]      = slv_region_match[i] & icb_cmd_rdy_sn[i];
 
-        assign      icb_rsp_rdy_slv[i]      = slv_region_match_bufed[i] & icb_rsp_rdy_bufed_m;
+        assign      icb_rsp_rdy_slv[i]      = slv_region_match_bufed[i] & icb_rsp_rdy_m_bufed;
         assign      icb_rsp_vld_slv[i]      = slv_region_match_bufed[i] & icb_rsp_vld_sn[i];
         assign      icb_rsp_rdata_slv[i]    = {P_DATA_WIDTH{slv_region_match_bufed[i]}} & icb_rsp_rdata_sn[i * P_DATA_WIDTH +: P_DATA_WIDTH];
         assign      icb_rsp_err_slv[i]      = slv_region_match_bufed[i] & icb_rsp_err_sn[i];
@@ -276,13 +274,15 @@ generate
     end
 endgenerate
 
+// 没有匹配到任何区域
+assign      no_region_match     = ~(|slv_region_match);
 
 // 如果没有匹配到任一地址区间，则立即回rdy
-assign      icb_cmd_rdy_bufed_m = no_region_match ? icb_cmd_vld_m : icb_cmd_rdy_mux_m & disp_buf_push_rdy;
+assign      icb_cmd_rdy_m_bufed = no_region_match ? icb_cmd_vld_m : icb_cmd_rdy_mux_m & demux_buf_push_rdy;
 
-assign      icb_rsp_vld_bufed_m = no_region_match_bufed ? disp_buf_pop_vld : icb_rsp_vld_mux_m;
-assign      icb_rsp_err_bufed_m = icb_rsp_err_mux_m | no_region_match_bufed;
-assign      icb_rsp_rdata_bufed_m = icb_rsp_rdata_mux_m;
+assign      icb_rsp_vld_m_bufed = no_region_match_bufed ? demux_buf_pop_vld : icb_rsp_vld_mux_m;
+assign      icb_rsp_err_m_bufed = icb_rsp_err_mux_m | no_region_match_bufed;
+assign      icb_rsp_rdata_m_bufed = icb_rsp_rdata_mux_m;
 
 
 endmodule //lnrv_icb_demux
