@@ -24,7 +24,6 @@ module lnrv_csr
     output                          mie_meie,       // 机器模式外部中断使能
     output                          mstatus_mie,    // 机器模式全局中断使能
 
-
     input                           excp_taken,
     input                           irq_taken,
     input                           dbg_taken,
@@ -53,8 +52,6 @@ module lnrv_csr
 
     // 读写共用一个索引
     input[11 : 0]                   csr_idx,
-
-    // 读接口
     output[31 : 0]                  csr_rdata,
 
     // 写回接口
@@ -69,50 +66,50 @@ module lnrv_csr
 
 
 // Machine Information Registers Map
-localparam[11 : 0]                  LP_MVENDORID_REG_ADDR = 12'hf11;
-localparam[11 : 0]                  LP_MARCHID_REG_ADDR = 12'hf12;
-localparam[11 : 0]                  LP_MIMPID_REG_ADDR = 12'hf13;
-localparam[11 : 0]                  LP_MHARTID_REG_ADDR = 12'hf14;
+localparam[11 : 0]                  LP_MVENDORID_REG_ADDR   = 12'hf11;
+localparam[11 : 0]                  LP_MARCHID_REG_ADDR     = 12'hf12;
+localparam[11 : 0]                  LP_MIMPID_REG_ADDR      = 12'hf13;
+localparam[11 : 0]                  LP_MHARTID_REG_ADDR     = 12'hf14;
 
 
 // Machine Trap Setup Registers Map
-localparam[11 : 0]                  LP_MSTATUS_REG_ADDR = 12'h300;
-localparam[11 : 0]                  LP_MISA_REG_ADDR = 12'h301;
-localparam[11 : 0]                  LP_MEDELEG_REG_ADDR = 12'h302;
-localparam[11 : 0]                  LP_MIDELEG_REG_ADDR = 12'h303;
-localparam[11 : 0]                  LP_MIE_REG_ADDR = 12'h304;
-localparam[11 : 0]                  LP_MTVEC_REG_ADDR = 12'h305;
-localparam[11 : 0]                  LP_MTVT_REG_ADDR = 12'h307;
-localparam[11 : 0]                  LP_MCOUNTEREN_REG_ADDR = 12'h306;
+localparam[11 : 0]                  LP_MSTATUS_REG_ADDR     = 12'h300;
+localparam[11 : 0]                  LP_MISA_REG_ADDR        = 12'h301;
+localparam[11 : 0]                  LP_MEDELEG_REG_ADDR     = 12'h302;
+localparam[11 : 0]                  LP_MIDELEG_REG_ADDR     = 12'h303;
+localparam[11 : 0]                  LP_MIE_REG_ADDR         = 12'h304;
+localparam[11 : 0]                  LP_MTVEC_REG_ADDR       = 12'h305;
+localparam[11 : 0]                  LP_MTVT_REG_ADDR        = 12'h307;
+localparam[11 : 0]                  LP_MCOUNTEREN_REG_ADDR  = 12'h306;
 
 
 // Machine Trap Handing Registers Map
-localparam[11 : 0]                  LP_MSCRATCH_REG_ADDR = 12'h340;
-localparam[11 : 0]                  LP_MEPC_REG_ADDR = 12'h341;
-localparam[11 : 0]                  LP_MCAUSE_REG_ADDR = 12'h342;
-localparam[11 : 0]                  LP_MTVAL_REG_ADDR = 12'h343;
-localparam[11 : 0]                  LP_MIP_REG_ADDR = 12'h344;
+localparam[11 : 0]                  LP_MSCRATCH_REG_ADDR    = 12'h340;
+localparam[11 : 0]                  LP_MEPC_REG_ADDR        = 12'h341;
+localparam[11 : 0]                  LP_MCAUSE_REG_ADDR      = 12'h342;
+localparam[11 : 0]                  LP_MTVAL_REG_ADDR       = 12'h343;
+localparam[11 : 0]                  LP_MIP_REG_ADDR         = 12'h344;
 
 
 // Machine Counter/Timers
-localparam[11 : 0]                  LP_MCYCLE_REG_ADDR = 12'hb00;
-localparam[11 : 0]                  LP_MINSTRET_REG_ADDR = 12'hb02;
-localparam[11 : 0]                  LP_MCYCLEH_REG_ADDR = 12'hb80;
-localparam[11 : 0]                  LP_MINSTRETH_REG_ADDR = 12'hb82;
+localparam[11 : 0]                  LP_MCYCLE_REG_ADDR      = 12'hb00;
+localparam[11 : 0]                  LP_MINSTRET_REG_ADDR    = 12'hb02;
+localparam[11 : 0]                  LP_MCYCLEH_REG_ADDR     = 12'hb80;
+localparam[11 : 0]                  LP_MINSTRETH_REG_ADDR   = 12'hb82;
 
 
 // Debug/Trace Registers Map
-localparam[11 : 0]                  LP_TSELECT_REG_ADDR = 12'h7a0;
-localparam[11 : 0]                  LP_TDATA1_REG_ADDR = 12'h7a1;
-localparam[11 : 0]                  LP_TDATA2_REG_ADDR = 12'h7a2;
-localparam[11 : 0]                  LP_TDATA3_REG_ADDR = 12'h7a3;
+localparam[11 : 0]                  LP_TSELECT_REG_ADDR     = 12'h7a0;
+localparam[11 : 0]                  LP_TDATA1_REG_ADDR      = 12'h7a1;
+localparam[11 : 0]                  LP_TDATA2_REG_ADDR      = 12'h7a2;
+localparam[11 : 0]                  LP_TDATA3_REG_ADDR      = 12'h7a3;
 
 
 // Debug Mode Registers
-localparam[11 : 0]                  LP_DCSR_REG_ADDR = 12'h7b0;
-localparam[11 : 0]                  LP_DPC_REG_ADDR = 12'h7b1;
-localparam[11 : 0]                  LP_DSCRATCH0_REG_ADDR = 12'h7b2;
-localparam[11 : 0]                  LP_DSCRATCH1_REG_ADDR = 12'h7b3;
+localparam[11 : 0]                  LP_DCSR_REG_ADDR        = 12'h7b0;
+localparam[11 : 0]                  LP_DPC_REG_ADDR         = 12'h7b1;
+localparam[11 : 0]                  LP_DSCRATCH0_REG_ADDR   = 12'h7b2;
+localparam[11 : 0]                  LP_DSCRATCH1_REG_ADDR   = 12'h7b3;
 
 wire                                csr_idx_is_MVENDORID;
 wire                                csr_idx_is_MARCHID;
