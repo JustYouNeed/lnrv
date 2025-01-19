@@ -2,6 +2,8 @@ module lnrv_icb_slice#
 (
     parameter                           P_ADDR_WIDTH            = 32,
     parameter                           P_DATA_WIDTH            = 32,
+    parameter                           P_SIZE_WIDTH            = 3,
+    parameter                           P_LEN_WIDTH             = 4,
 
     parameter                           P_CMD_CUT_VALID         = 1'b1,
     parameter                           P_CMD_CUT_READY         = 1'b1,
@@ -34,9 +36,9 @@ module lnrv_icb_slice#
     input[P_ADDR_WIDTH - 1 : 0]         icb_cmd_addr_m,
     input[P_DATA_WIDTH - 1 : 0]         icb_cmd_wdata_m,
     input[(P_DATA_WIDTH/8) - 1 : 0]     icb_cmd_wstrb_m,
-    input[2 : 0]                        icb_cmd_size_m,
+    input[P_SIZE_WIDTH - 1 : 0]         icb_cmd_size_m,
     input[1 : 0]                        icb_cmd_burst_m,
-    input[3 : 0]                        icb_cmd_len_m,
+    input[P_LEN_WIDTH - 1 : 0]          icb_cmd_len_m,
     input[2 : 0]                        icb_cmd_prot_m,
     input[3 : 0]                        icb_cmd_cache_m,
     output                              icb_rsp_vld_m,
@@ -51,11 +53,11 @@ module lnrv_icb_slice#
     output[P_ADDR_WIDTH - 1 : 0]        icb_cmd_addr_s,
     output[P_DATA_WIDTH - 1 : 0]        icb_cmd_wdata_s,
     output[(P_DATA_WIDTH/8) - 1 : 0]    icb_cmd_wstrb_s,
-    output[2 : 0]                       icb_cmd_size_s,
+    output[P_SIZE_WIDTH - 1 : 0]        icb_cmd_size_s,
     output[1 : 0]                       icb_cmd_burst_s,
-    output[3 : 0]                       icb_cmd_len_s,
+    output[P_LEN_WIDTH - 1 : 0]         icb_cmd_len_s,
     output[2 : 0]                       icb_cmd_prot_s,
-    output[3 : 0]                       icb_cmd_cahce_s,
+    output[3 : 0]                       icb_cmd_cache_s,
     input                               icb_rsp_vld_s,
     output                              icb_rsp_rdy_s,
     input[P_DATA_WIDTH - 1 : 0]         icb_rsp_rdata_s,
@@ -65,7 +67,7 @@ module lnrv_icb_slice#
     input                               reset_n
 );
 localparam                              LP_CMD_WSTRB_WIDTH  = P_DATA_WIDTH/8;
-localparam                              LP_CMD_BUF_WIDTH    = P_ADDR_WIDTH + P_DATA_WIDTH + LP_CMD_WSTRB_WIDTH + 17;
+localparam                              LP_CMD_BUF_WIDTH    = P_ADDR_WIDTH + P_DATA_WIDTH + LP_CMD_WSTRB_WIDTH + 10 + P_SIZE_WIDTH + P_LEN_WIDTH;
 localparam                              LP_RSP_BUF_WIDTH    = P_DATA_WIDTH + 1;
 
 localparam                              LP_OTS_CNT_WIDTH  = $clog2(P_OTS_COUNT) + 1;

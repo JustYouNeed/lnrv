@@ -1,7 +1,9 @@
 module lnrv_axi2icb#
 (
-    parameter                           P_ADDR_WIDTH = 32,
-    parameter                           P_DATA_WIDTH = 32
+    parameter                           P_ADDR_WIDTH    = 32,
+    parameter                           P_DATA_WIDTH    = 32,
+    parameter                           P_SIZE_WIDTH    = 3,
+    parameter                           P_LEN_WIDTH     = 4
 )
 (
     // icb
@@ -11,7 +13,11 @@ module lnrv_axi2icb#
     output[P_ADDR_WIDTH - 1 : 0]        icb_cmd_addr,
     output[P_DATA_WIDTH - 1 : 0]        icb_cmd_wdata,
     output[(P_DATA_WIDTH/8) - 1 : 0]    icb_cmd_wstrb,
-    output[2 : 0]                       icb_cmd_size,
+    output[P_SIZE_WIDTH - 1 : 0]        icb_cmd_size,
+    output[1 : 0]                       icb_cmd_burst,
+    output[P_LEN_WIDTH - 1 : 0]         icb_cmd_len,
+    output[2 : 0]                       icb_cmd_prot,
+    output[3 : 0]                       icb_cmd_cache,
     output                              icb_rsp_rdy,
     input                               icb_rsp_vld,
     input                               icb_rsp_err,
@@ -130,7 +136,7 @@ wire                                    icb_cmd_write_m;
 wire[P_ADDR_WIDTH - 1 : 0]              icb_cmd_addr_m;
 wire[P_DATA_WIDTH - 1 : 0]              icb_cmd_wdata_m;
 wire[(P_DATA_WIDTH/8) - 1 : 0]          icb_cmd_wstrb_m;
-wire[2 : 0]                             icb_cmd_size_m;
+wire[P_SIZE_WIDTH - 1 : 0]                             icb_cmd_size_m;
 
 wire                                    icb_rsp_vld_m;
 wire                                    icb_rsp_rdy_m;

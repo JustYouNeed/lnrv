@@ -1,4 +1,8 @@
-module lnrv_clmt
+module lnrv_clmt#
+(
+    parameter                       P_SIZE_WIDTH = 3,
+    parameter                       P_LEN_WIDTH = 4
+)
 (
     input                           clk,
     input                           reset_n,
@@ -11,7 +15,7 @@ module lnrv_clmt
     output                          irq_tmr,
 
     // 软件中断
-    input                           irq_sft,
+    output                          irq_sft,
 
     // 在debug模式下停止定时器
     input                           dcsr_stoptime,
@@ -23,7 +27,11 @@ module lnrv_clmt
     input[15 : 0]                   icb_cmd_addr,
     input[31 : 0]                   icb_cmd_wdata,
     input[3 : 0]                    icb_cmd_wstrb,
-    input[2 : 0]                    icb_cmd_size,
+    input[P_SIZE_WIDTH - 1 : 0]     icb_cmd_size,
+    input[1 : 0]                    icb_cmd_burst,
+    input[P_LEN_WIDTH - 1 : 0]      icb_cmd_len,
+    input[2 : 0]                    icb_cmd_prot,
+    input[3 : 0]                    icb_cmd_cache,
     output                          icb_rsp_vld,
     input                           icb_rsp_rdy,
     output[31 : 0]                  icb_rsp_rdata,
@@ -137,6 +145,9 @@ wire                    mtime_count_enable;
 wire                    mtime_cnt_gt_mtime_cmp;
 wire                    mtime_cnt_eq_mtime_cmp;
 wire                    mtime_cnt_gte_mtime_cmp;
+
+wire                    unused;
+
 
 assign      tclk_toggle_d = ~tclk_toggle_q;
 always@(posedge tclk or negedge treset_n) begin
@@ -384,5 +395,14 @@ assign      icb_cmd_rdy = ~rsp_vld_q;
 assign      icb_rsp_vld = rsp_vld_q;
 assign      icb_rsp_rdata = rdata_q;
 assign      icb_rsp_err = slverr_q;
+
+// 这些信号不会使用
+assign      unused =    &{
+                            icb_cmd_size,
+                            icb_cmd_burst,
+                            icb_cmd_len,
+                            icb_cmd_prot,
+                            icb_cmd_cache
+                        };
 
 endmodule

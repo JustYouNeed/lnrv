@@ -1,8 +1,10 @@
 // core local interrupt controller
 module lnrv_clic#
 (
+    parameter                       P_SIZE_WIDTH    = 3,
+    parameter                       P_LEN_WIDTH     =4,
     // 中断个数，最大为248个
-    parameter                       P_IRQ_COUNT = 32
+    parameter                       P_IRQ_COUNT     = 32
 )
 (
     input                           clk,
@@ -15,7 +17,11 @@ module lnrv_clic#
     input[15 : 0]                   icb_cmd_addr,
     input[31 : 0]                   icb_cmd_wdata,
     input[3 : 0]                    icb_cmd_wstrb,
-    input[2 : 0]                    icb_cmd_size,
+    input[P_SIZE_WIDTH - 1 : 0]     icb_cmd_size,
+    input[1 : 0]                    icb_cmd_burst,
+    input[P_LEN_WIDTH - 1 : 0]      icb_cmd_len,
+    input[2 : 0]                    icb_cmd_prot,
+    input[3 : 0]                    icb_cmd_cache,
     output                          icb_rsp_vld,
     input                           icb_rsp_rdy,
     output[31 : 0]                  icb_rsp_rdata,
@@ -130,6 +136,8 @@ wire[7 : 0]                         clic_irq_id_d;
 reg                                 clic_irq_mode_q;
 wire                                clic_irq_mode_rld;
 wire                                clic_irq_mode_d;
+
+wire                                unused;
 
 genvar                              i;
 integer                             j;
@@ -478,5 +486,14 @@ assign      icb_rsp_rdata   = rdata_q;
 assign      icb_rsp_err     = 1'b0;
 
 assign      icb_cmd_rdy     = ~rsp_vld_q;
+
+// 这些信号不会使用
+assign      unused =    &{
+                            icb_cmd_size,
+                            icb_cmd_burst,
+                            icb_cmd_len,
+                            icb_cmd_prot,
+                            icb_cmd_cache
+                        };
 
 endmodule

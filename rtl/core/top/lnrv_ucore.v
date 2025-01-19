@@ -16,7 +16,7 @@ module  lnrv_ucore#
     // clic接口
     input                                   clic_irq_req,
     output                                  clic_irq_ack,
-    input[9 : 0]                            clic_irq_id,
+    input[7 : 0]                            clic_irq_id,
     input                                   clic_irq_mode,
 
     input                                   dbg_halt,
@@ -38,6 +38,10 @@ module  lnrv_ucore#
     output[31 : 0]                          icb_cmd_wdata_ifu,
     output[3 : 0]                           icb_cmd_wstrb_ifu,
     output[2 : 0]                           icb_cmd_size_ifu,
+    output[1 : 0]                           icb_cmd_burst_ifu,
+    output[3 : 0]                           icb_cmd_len_ifu,
+    output[2 : 0]                           icb_cmd_prot_ifu,
+    output[3 : 0]                           icb_cmd_cache_ifu,
     input                                   icb_rsp_vld_ifu,
     output                                  icb_rsp_rdy_ifu,
     input[31 : 0]                           icb_rsp_rdata_ifu,
@@ -51,6 +55,10 @@ module  lnrv_ucore#
     output[31 : 0]                          icb_cmd_wdata_lsu,
     output[3 : 0]                           icb_cmd_wstrb_lsu,
     output[2 : 0]                           icb_cmd_size_lsu,
+    output[1 : 0]                           icb_cmd_burst_lsu,
+    output[3 : 0]                           icb_cmd_len_lsu,
+    output[2 : 0]                           icb_cmd_prot_lsu,
+    output[3 : 0]                           icb_cmd_cache_lsu,
     input                                   icb_rsp_vld_lsu,
     output                                  icb_rsp_rdy_lsu,
     input[31 : 0]                           icb_rsp_rdata_lsu,
@@ -141,6 +149,7 @@ wire                                    cmted_mret;
 wire                                    irq_taken;
 wire                                    excp_taken;
 wire                                    dbg_taken;
+wire                                    vec_irq_taken;
 
 wire                                    mepc_wen;
 wire[31 : 0]                            mepc_wdata;
@@ -199,11 +208,6 @@ wire                                    mie_mtie;
 wire                                    mie_meie;
 wire                                    mstatus_mie;
 
-wire                                    clic_irq_req;
-wire                                    clic_irq_ack;
-wire[7 : 0]                             clic_irq_id;
-wire                                    clic_irq_mode;
-
 
 assign      pipe_flush_ack_cmt = pipe_flush_ack_cmt_ifu & pipe_flush_ack_cmt_idu;
 
@@ -252,6 +256,10 @@ u_lnrv_ifu
     .icb_cmd_wdata              ( icb_cmd_wdata_ifu         ),
     .icb_cmd_wstrb              ( icb_cmd_wstrb_ifu         ),
     .icb_cmd_size               ( icb_cmd_size_ifu          ),
+    .icb_cmd_burst              ( icb_cmd_burst_ifu         ),
+    .icb_cmd_len                ( icb_cmd_len_ifu           ),
+    .icb_cmd_prot               ( icb_cmd_prot_ifu          ),
+    .icb_cmd_cache              ( icb_cmd_cache_ifu         ),
     .icb_rsp_vld                ( icb_rsp_vld_ifu           ),
     .icb_rsp_rdy                ( icb_rsp_rdy_ifu           ),
     .icb_rsp_rdata              ( icb_rsp_rdata_ifu         ),
@@ -382,6 +390,10 @@ lnrv_exu u_lnrv_exu
     .icb_cmd_wdata              ( icb_cmd_wdata_lsu         ),
     .icb_cmd_wstrb              ( icb_cmd_wstrb_lsu         ),
     .icb_cmd_size               ( icb_cmd_size_lsu          ),
+    .icb_cmd_burst              ( icb_cmd_burst_lsu         ),
+    .icb_cmd_len                ( icb_cmd_len_lsu           ),
+    .icb_cmd_prot               ( icb_cmd_prot_lsu          ),
+    .icb_cmd_cache              ( icb_cmd_cache_lsu         ),
     .icb_rsp_vld                ( icb_rsp_vld_lsu           ),
     .icb_rsp_rdy                ( icb_rsp_rdy_lsu           ),
     .icb_rsp_rdata              ( icb_rsp_rdata_lsu         ),

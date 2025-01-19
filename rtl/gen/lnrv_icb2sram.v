@@ -1,9 +1,11 @@
 module lnrv_icb2sram#
 (
-    parameter                           P_ICB_ADDR_WIDTH = 32,
-    parameter                           P_RAM_ADDR_WIDTH = 17,
+    parameter                           P_ICB_ADDR_WIDTH    = 32,
+    parameter                           P_RAM_ADDR_WIDTH    = 17,
 
-    parameter                           P_DATA_WIDTH = 32
+    parameter                           P_DATA_WIDTH        = 32,
+    parameter                           P_SIZE_WIDTH        = 3,
+    parameter                           P_LEN_WIDTH         = 4
 )
 (
     input                               clk,
@@ -16,6 +18,11 @@ module lnrv_icb2sram#
     input[P_ICB_ADDR_WIDTH - 1 : 0]     icb_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]         icb_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]     icb_cmd_wstrb,
+    input[P_SIZE_WIDTH - 1 : 0]         icb_cmd_size,
+    input[1 : 0]                        icb_cmd_burst,
+    input[P_LEN_WIDTH - 1 : 0]          icb_cmd_len,
+    input[2 : 0]                        icb_cmd_prot,
+    input[3 : 0]                        icb_cmd_cache,
     input                               icb_rsp_rdy,
     output                              icb_rsp_vld,
     output[P_DATA_WIDTH - 1 : 0]        icb_rsp_rdata,
@@ -49,6 +56,8 @@ wire                                    rdata_vld_d;
 
 wire                                    icb_cmd_hsked;
 wire                                    icb_rsp_hsked;
+
+wire                                    unused;
 
 assign      icb_cmd_hsked = icb_cmd_vld & icb_cmd_rdy;
 assign      icb_rsp_hsked = icb_rsp_vld & icb_rsp_rdy;
@@ -98,5 +107,13 @@ assign      ram_addr        = icb_cmd_addr[LP_RAM_ADDR_LSB +: P_RAM_ADDR_WIDTH];
 assign      ram_wdata       = icb_cmd_wdata;
 assign      ram_clk         = clk;
 
+// 这些信号不会使用
+assign      unused =    &{
+                            icb_cmd_size,
+                            icb_cmd_burst,
+                            icb_cmd_len,
+                            icb_cmd_prot,
+                            icb_cmd_cache
+                        };
 
 endmodule

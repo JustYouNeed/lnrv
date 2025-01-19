@@ -38,6 +38,10 @@ module lnrv_exu_lsu
     output[31 : 0]                      icb_cmd_wdata,
     output[3 : 0]                       icb_cmd_wstrb,
     output[2 : 0]                       icb_cmd_size,
+    output[1 : 0]                       icb_cmd_burst,
+    output[3 : 0]                       icb_cmd_len,
+    output[2 : 0]                       icb_cmd_prot,
+    output[3 : 0]                       icb_cmd_cache,
     output                              icb_rsp_rdy,
     input                               icb_rsp_vld,
     input[31 : 0]                       icb_rsp_rdata,
@@ -171,20 +175,24 @@ assign      byte_access_wstrb = 4'b0001 << alu_res[1 : 0];
 assign      half_access_wstrb = 4'b0011 << {alu_res[1], 1'b0};
 assign      word_access_wstrb = 4'b1111;
 
-assign       icb_cmd_vld     = addr_algn & op_vld & no_ots_cmd & alu_op_rdy;
-assign       icb_cmd_write   = instr_is_store;
-assign       icb_cmd_addr    = alu_res[0 +: 32];
-assign       icb_cmd_wdata   =   byte_access ? store_byte :
+assign      icb_cmd_vld     = addr_algn & op_vld & no_ots_cmd & alu_op_rdy;
+assign      icb_cmd_write   = instr_is_store;
+assign      icb_cmd_addr    = alu_res[0 +: 32];
+assign      icb_cmd_wdata   =   byte_access ? store_byte :
                                     half_access ? store_half :
                                     store_word;
 // 如果是读操作，wstrb设置为0
-assign       icb_cmd_wstrb   =   instr_is_load ? 4'b0000 :
-                                    byte_access ? byte_access_wstrb :
-                                    half_access ? half_access_wstrb :
-                                    4'b1111;
-assign       icb_cmd_size    = ls_size;
+assign      icb_cmd_wstrb   =   instr_is_load ? 4'b0000 :
+                                byte_access ? byte_access_wstrb :
+                                half_access ? half_access_wstrb :
+                                4'b1111;
+assign      icb_cmd_size    = ls_size;
+assign      icb_cmd_burst   = 2'b01;
+assign      icb_cmd_len     = 4'b0000;
+assign      icb_cmd_prot    = 3'b001;
+assign      icb_cmd_cache   = 4'b0010;
 
-assign       icb_rsp_rdy = cmt_rdy;
+assign      icb_rsp_rdy = cmt_rdy;
 
 assign      load_byte = ( icb_cmd_addr[1 : 0] == 2'b00) ?  icb_rsp_rdata[7 : 0] :
                         ( icb_cmd_addr[1 : 0] == 2'b01) ?  icb_rsp_rdata[15 : 8] :

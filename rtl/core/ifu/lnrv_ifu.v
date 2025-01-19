@@ -50,6 +50,10 @@ module	lnrv_ifu#
     output[31 : 0]                      icb_cmd_wdata,
     output[3 : 0]                       icb_cmd_wstrb,
     output[2 : 0]                       icb_cmd_size,
+    output[1 : 0]                       icb_cmd_burst,
+    output[3 : 0]                       icb_cmd_len,
+    output[2 : 0]                       icb_cmd_prot,
+    output[3 : 0]                       icb_cmd_cache,
     input                               icb_rsp_vld,
     output                              icb_rsp_rdy,
     input[31 : 0]                       icb_rsp_rdata,
@@ -485,7 +489,10 @@ assign      icb_cmd_write   = 1'b0;
 assign      icb_cmd_wdata   = 32'd0;
 assign      icb_cmd_wstrb   = 4'd0;
 assign      icb_cmd_size    = 3'd2;
-
+assign      icb_cmd_burst   = 2'b01;
+assign      icb_cmd_len     = 4'd0;
+assign      icb_cmd_prot    = 3'b101;
+assign      icb_cmd_cache   = 4'b0010;
 // 如果当前有流水线冲刷请求，则可以接收新的指令，
 // 或者当前指令已经执行完成，也可以接收新的指令。
 assign      icb_rsp_rdy     = flush_rsp_pending | (ifu_buf_push_rdy & leftover_buf_empty);

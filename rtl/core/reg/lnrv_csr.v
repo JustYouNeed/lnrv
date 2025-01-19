@@ -766,6 +766,7 @@ assign      dscratch1_full = dscratch1_q;
 assign      d_mode        = |dcause_q;
 
 assign      mtvec           = mtvec_q;
+assign      mtvt            = mtvt_q;
 assign      mepc            = mepc_q;
 assign      mie_msie        = mie_msie_q;
 assign      mie_mtie        = mie_mtie_q;

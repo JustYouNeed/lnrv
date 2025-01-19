@@ -141,6 +141,7 @@ wire[31 : 0]                    pipe_flush_pc_op2_brch;
 
 wire                            irq_req_raw;
 wire                            dbg_req_raw;
+wire                            vec_irq_taken_raw;
 
 
 assign      exu_idle = cmt_vld | (~idu_vld);

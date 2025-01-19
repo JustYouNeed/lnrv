@@ -1,7 +1,9 @@
 module lnrv_icb2axi#
 (
-    parameter                           P_ADDR_WIDTH = 32,
-    parameter                           P_DATA_WIDTH = 32
+    parameter                           P_ADDR_WIDTH    = 32,
+    parameter                           P_DATA_WIDTH    = 32,
+    parameter                           P_SIZE_WIDTH    = 3,
+    parameter                           P_LEN_WIDTH     = 4
 )
 (
     input                               icb_cmd_vld,
@@ -10,8 +12,10 @@ module lnrv_icb2axi#
     input[P_ADDR_WIDTH - 1 : 0]         icb_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]         icb_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]     icb_cmd_wstrb,
-    input[2 : 0]                        icb_cmd_size,
+    input[P_SIZE_WIDTH - 1 : 0]         icb_cmd_size,
     input[2 : 0]                        icb_cmd_prot,
+    input[P_LEN_WIDTH - 1 : 0]          icb_cmd_len,
+    input[1 : 0]                        icb_cmd_burst,
     input[3 : 0]                        icb_cmd_cache,
     input                               icb_rsp_rdy,
     output                              icb_rsp_vld,
@@ -169,11 +173,11 @@ u_lnrv_icb_buf
 );
 
 
-assign      axi_aw_hsked = axi_awvalid & axi_awready;
-assign      axi_ar_hsked = axi_arvalid & axi_arready;
-assign      axi_w_hsked = axi_wvalid & axi_wready;
-assign      axi_b_hsked = axi_bvalid & axi_bready;
-assign      axi_r_hsked = axi_rvalid & axi_rready;
+assign      axi_aw_hsked    = axi_awvalid & axi_awready;
+assign      axi_ar_hsked    = axi_arvalid & axi_arready;
+assign      axi_w_hsked     = axi_wvalid & axi_wready;
+assign      axi_b_hsked     = axi_bvalid & axi_bready;
+assign      axi_r_hsked     = axi_rvalid & axi_rready;
 
 // 保存aw通道的握手信息
 assign      aw_hsked_set = axi_aw_hsked;
