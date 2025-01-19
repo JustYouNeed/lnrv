@@ -35,6 +35,10 @@ module lnrv_icb_slice#
     input[P_DATA_WIDTH - 1 : 0]         icb_cmd_wdata_m,
     input[(P_DATA_WIDTH/8) - 1 : 0]     icb_cmd_wstrb_m,
     input[2 : 0]                        icb_cmd_size_m,
+    input[1 : 0]                        icb_cmd_burst_m,
+    input[3 : 0]                        icb_cmd_len_m,
+    input[2 : 0]                        icb_cmd_prot_m,
+    input[3 : 0]                        icb_cmd_cache_m,
     output                              icb_rsp_vld_m,
     input                               icb_rsp_rdy_m,
     output[P_DATA_WIDTH - 1 : 0]        icb_rsp_rdata_m,
@@ -48,6 +52,10 @@ module lnrv_icb_slice#
     output[P_DATA_WIDTH - 1 : 0]        icb_cmd_wdata_s,
     output[(P_DATA_WIDTH/8) - 1 : 0]    icb_cmd_wstrb_s,
     output[2 : 0]                       icb_cmd_size_s,
+    output[1 : 0]                       icb_cmd_burst_s,
+    output[3 : 0]                       icb_cmd_len_s,
+    output[2 : 0]                       icb_cmd_prot_s,
+    output[3 : 0]                       icb_cmd_cahce_s,
     input                               icb_rsp_vld_s,
     output                              icb_rsp_rdy_s,
     input[P_DATA_WIDTH - 1 : 0]         icb_rsp_rdata_s,
@@ -57,7 +65,7 @@ module lnrv_icb_slice#
     input                               reset_n
 );
 localparam                              LP_CMD_WSTRB_WIDTH  = P_DATA_WIDTH/8;
-localparam                              LP_CMD_BUF_WIDTH    = P_ADDR_WIDTH + P_DATA_WIDTH + LP_CMD_WSTRB_WIDTH + 1 + 3;
+localparam                              LP_CMD_BUF_WIDTH    = P_ADDR_WIDTH + P_DATA_WIDTH + LP_CMD_WSTRB_WIDTH + 17;
 localparam                              LP_RSP_BUF_WIDTH    = P_DATA_WIDTH + 1;
 
 localparam                              LP_OTS_CNT_WIDTH  = $clog2(P_OTS_COUNT) + 1;
@@ -134,7 +142,11 @@ assign      cmd_buf_push_data = {
                                     icb_cmd_wdata_m,
                                     icb_cmd_size_m,
                                     icb_cmd_wstrb_m,
-                                    icb_cmd_write_m
+                                    icb_cmd_write_m,
+                                    icb_cmd_burst_m,
+                                    icb_cmd_len_m,
+                                    icb_cmd_prot_m,
+                                    icb_cmd_cache_m
                                 };
 
 // command buffer
@@ -168,7 +180,11 @@ assign      {
                 icb_cmd_wdata_s,
                 icb_cmd_size_s,
                 icb_cmd_wstrb_s,
-                icb_cmd_write_s
+                icb_cmd_write_s,
+                icb_cmd_burst_s,
+                icb_cmd_len_s,
+                icb_cmd_prot_s,
+                icb_cmd_cache_s
             } = cmd_buf_pop_data;
 assign      icb_cmd_vld_s = cmd_buf_pop_vld;
 assign      cmd_buf_pop_rdy = icb_cmd_rdy_s;
