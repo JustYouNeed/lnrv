@@ -69,8 +69,8 @@ wire                            any_irq_vld;
 wire                            dbg_msk_irq;
 wire                            pipe_flush_hsked;
 
-assign      clic_mode = 1'b1;//(mtvec[5 : 0] == 6'b00_0011);
-assign      clint_mode = ~clic_mode;
+assign      clic_mode   = (mtvec[5 : 0] == 6'b00_0011);
+assign      clint_mode  = ~clic_mode;
 
 assign      pipe_flush_hsked = pipe_flush_req & pipe_flush_ack;
 
@@ -84,11 +84,10 @@ assign      irq_req_raw =   irq_sft_vld |
                             irq_tmr_vld |
                             irq_clic_vld;
 
-assign      any_irq_vld =   mstatus_mie & irq_req_raw;
+assign      any_irq_vld = mstatus_mie & irq_req_raw;
 
 // 如果当前处于debug mode，或者单步调试模式且没有使能单步调试中断，则不会响应任何中断请求
-assign      dbg_msk_irq =   d_mode |
-                            (dcsr_step & (~dcsr_stepie));
+assign      dbg_msk_irq = d_mode | (dcsr_step & (~dcsr_stepie));
 
 // 生成流水线冲刷请求，前提条件如下:
 //      1、当前中断有效
@@ -120,6 +119,6 @@ assign      mcause_wdata[3 : 0]     = irq_sft_vld ? 4'd3 :
 assign      irq_taken       = pipe_flush_hsked;
 assign      clic_irq_ack    = pipe_flush_hsked;
 
-assign      vec_irq_taken   = irq_clic_vld & mstatus_mie;
+assign      vec_irq_taken   = clic_vec_irq & mstatus_mie;
 
 endmodule
