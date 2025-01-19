@@ -342,7 +342,7 @@ assign      csr_idx_is_MEDELEG      = (csr_idx == LP_MEDELEG_REG_ADDR);
 assign      csr_idx_is_MIDELEG      = (csr_idx == LP_MIDELEG_REG_ADDR);
 assign      csr_idx_is_MIE          = (csr_idx == LP_MIE_REG_ADDR);
 assign      csr_idx_is_MTVEC        = (csr_idx == LP_MTVEC_REG_ADDR);
-assign      csr_idx_is_MTVEC        = (csr_idx == LP_MTVT_REG_ADDR);
+assign      csr_idx_is_MTVT         = (csr_idx == LP_MTVT_REG_ADDR);
 assign      csr_idx_is_MCOUNTEREN   = (csr_idx == LP_MCOUNTEREN_REG_ADDR);
 assign      csr_idx_is_MSCRATCH     = (csr_idx == LP_MSCRATCH_REG_ADDR);
 assign      csr_idx_is_MEPC         = (csr_idx == LP_MEPC_REG_ADDR);
