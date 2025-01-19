@@ -46,17 +46,17 @@ module  lnrv_icb_mux#
     input[P_DATA_WIDTH - 1 : 0]                     icb_rsp_rdata_s,
     input                                           icb_rsp_err_s
 );
-localparam                                          LP_DISP_BUF_DATA_WIDTH  = P_ICB_COUNT;
-localparam                                          LP_DISP_BUF_DEEPTH      = P_OTS_COUNT;
+localparam                                          LP_MUX_BUF_DATA_WIDTH  = P_ICB_COUNT;
+localparam                                          LP_MUX_BUF_DEEPTH      = P_OTS_COUNT;
 
 // 分发信息fifo
-wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]                disp_buf_push_data;
-wire                                                disp_buf_push_vld;
-wire                                                disp_buf_push_rdy;
+wire[LP_MUX_BUF_DATA_WIDTH - 1 : 0]                 mux_buf_push_data;
+wire                                                mux_buf_push_vld;
+wire                                                mux_buf_push_rdy;
 
-wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]                disp_buf_pop_data;
-wire                                                disp_buf_pop_vld;
-wire                                                disp_buf_pop_rdy;
+wire[LP_MUX_BUF_DATA_WIDTH - 1 : 0]                 mux_buf_pop_data;
+wire                                                mux_buf_pop_vld;
+wire                                                mux_buf_pop_rdy;
 
 wire[P_ICB_COUNT - 1 : 0]                           icb_cmd_req_mn;
 wire[P_ICB_COUNT - 1 : 0]                           icb_cmd_grant_mn;
@@ -90,7 +90,7 @@ integer                                             j;
 
 
 // 只要command通道有效，就需要请求总线使用权限
-assign      icb_cmd_req_mn = icb_cmd_vld_mn & {P_ICB_COUNT{disp_buf_push_rdy}};
+assign      icb_cmd_req_mn = icb_cmd_vld_mn & {P_ICB_COUNT{mux_buf_push_rdy}};
 
 // 需要对多个master进行仲裁，以决定当前传输哪个master的数据
 lnrv_gnrl_arbiter#
@@ -118,7 +118,7 @@ generate
         assign      icb_cmd_wstrb_m_mux[i]  = {(P_DATA_WIDTH/8){icb_cmd_grant_mn[i]}} & icb_cmd_wstrb_mn[i * (P_DATA_WIDTH/8) +: (P_DATA_WIDTH/8)];
         assign      icb_cmd_size_m_mux[i]   = {3{icb_cmd_grant_mn[i]}} & icb_cmd_size_mn[i * 3 +: 3];
 
-        assign      icb_cmd_rdy_mn[i]       = icb_cmd_grant_mn[i] & icb_cmd_rdy_m & disp_buf_push_rdy;
+        assign      icb_cmd_rdy_mn[i]       = icb_cmd_grant_mn[i] & icb_cmd_rdy_m & mux_buf_push_rdy;
     end
 endgenerate
 
@@ -137,32 +137,31 @@ always@(*) begin
     end
 end
 
-// 需要在disp buffer就绪的时候才可以往下游发送命令
-assign      icb_cmd_vld_m   = (|icb_cmd_vld_m_mux) & disp_buf_push_rdy;
-assign      icb_cmd_write_m = |icb_cmd_write_m_mux;
+// 需要在mux buffer就绪的时候才可以往下游发送命令
+assign      icb_cmd_vld_m       = (|icb_cmd_vld_m_mux) & mux_buf_push_rdy;
+assign      icb_cmd_write_m     = |icb_cmd_write_m_mux;
 
-
-assign      icb_cmd_hsked_m = icb_cmd_vld_m & icb_cmd_rdy_m;
-assign      icb_rsp_hsked_m = icb_rsp_vld_m & icb_rsp_rdy_m;
+assign      icb_cmd_hsked_m     = icb_cmd_vld_m & icb_cmd_rdy_m;
+assign      icb_rsp_hsked_m     = icb_rsp_vld_m & icb_rsp_rdy_m;
 
 // command成功握手就将分发信息压入fifo
-assign      disp_buf_push_vld   = icb_cmd_hsked_m;
-assign      disp_buf_push_data  = icb_cmd_grant_mn;
+assign      mux_buf_push_vld    = icb_cmd_hsked_m;
+assign      mux_buf_push_data   = icb_cmd_grant_mn;
 
-assign      disp_buf_pop_rdy    = icb_rsp_hsked_m;
-assign      icb_rsp_grant       = {P_ICB_COUNT{disp_buf_pop_vld}} & disp_buf_pop_data;
+assign      mux_buf_pop_rdy     = icb_rsp_hsked_m;
+assign      icb_rsp_grant       = mux_buf_pop_data;
 
 // 将分发信息保存下来，用于rsp通道
 lnrv_gnrl_buf#
 (
-    .P_DATA_WIDTH           ( LP_DISP_BUF_DATA_WIDTH    ),
-    .P_DEEPTH               ( LP_DISP_BUF_DEEPTH        ),
+    .P_DATA_WIDTH           ( LP_MUX_BUF_DATA_WIDTH     ),
+    .P_DEEPTH               ( LP_MUX_BUF_DEEPTH         ),
 
-    .P_CUT_VALID            ( 1'b0                      ),
+    .P_CUT_VALID            ( 1'b1                      ),
     .P_CUT_READY            ( 1'b0                      ),
     .P_FLUSH_DELAY          ( 1'b0                      )
 )
-u_icb_disp_buf
+u_icb_mux_buf
 (
     .clk                    ( clk                       ),
     .reset_n                ( reset_n                   ),
@@ -170,13 +169,13 @@ u_icb_disp_buf
     .flush_req              ( 1'b0                      ),
     .flush_ack              (                           ),
 
-    .push_vld               ( disp_buf_push_vld         ),
-    .push_rdy               ( disp_buf_push_rdy         ),
-    .push_data              ( disp_buf_push_data        ),
+    .push_vld               ( mux_buf_push_vld          ),
+    .push_rdy               ( mux_buf_push_rdy          ),
+    .push_data              ( mux_buf_push_data         ),
 
-    .pop_vld                ( disp_buf_pop_vld          ),
-    .pop_rdy                ( disp_buf_pop_rdy          ),
-    .pop_data               ( disp_buf_pop_data         )
+    .pop_vld                ( mux_buf_pop_vld           ),
+    .pop_rdy                ( mux_buf_pop_rdy           ),
+    .pop_data               ( mux_buf_pop_data          )
 );
 
 
@@ -240,7 +239,7 @@ generate
     for(i = 0; i < P_ICB_COUNT; i = i + 1) begin
         assign      icb_rsp_vld_mn[i] = icb_rsp_grant[i] & icb_rsp_vld_m;
         assign      icb_rsp_err_mn[i] = icb_rsp_grant[i] & icb_rsp_err_m;
-        assign      icb_rsp_rdata_mn[i * P_DATA_WIDTH +: P_DATA_WIDTH] = {P_DATA_WIDTH{icb_rsp_grant[i]}} & icb_rsp_rdata_m;
+        assign      icb_rsp_rdata_mn[i * P_DATA_WIDTH +: P_DATA_WIDTH] = icb_rsp_rdata_m;
     end
 endgenerate
 
