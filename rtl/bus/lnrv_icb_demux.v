@@ -50,14 +50,14 @@ module lnrv_icb_demux#
     input[(P_ADDR_WIDTH * P_ICB_COUNT) - 1 : 0]         sn_region_end
 );
 
-localparam                                  LP_DISP_BUF_DATA_WIDTH  = P_ICB_COUNT;
-localparam                                  LP_DISP_BUF_DEEPTH      = P_OTS_COUNT;
+localparam                                  LP_DEMUX_BUF_DATA_WIDTH  = P_ICB_COUNT;
+localparam                                  LP_DEMUX_BUF_DEEPTH      = P_OTS_COUNT;
 
-wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]        demux_buf_push_data;
+wire[LP_DEMUX_BUF_DATA_WIDTH - 1 : 0]       demux_buf_push_data;
 wire                                        demux_buf_push_vld;
 wire                                        demux_buf_push_rdy;
 
-wire[LP_DISP_BUF_DATA_WIDTH - 1 : 0]        demux_buf_pop_data;
+wire[LP_DEMUX_BUF_DATA_WIDTH - 1 : 0]       demux_buf_pop_data;
 wire                                        demux_buf_pop_vld;
 wire                                        demux_buf_pop_rdy;
 
@@ -167,19 +167,19 @@ u_lnrv_icb_buf
 );
 
 // 指令通道握手成功后，将当前选择的通道信息推入demux_fifo中
-assign      demux_buf_push_vld       = icb_cmd_m_bufed_hsked;
-assign      demux_buf_push_data      = slv_region_match;
+assign      demux_buf_push_vld      = icb_cmd_m_bufed_hsked;
+assign      demux_buf_push_data     = slv_region_match;
 
 // 应答通道握手成功，表示已经完成一次通信，将保存的通道信息弹出
-assign      demux_buf_pop_rdy        = icb_rsp_m_bufed_hsked;
+assign      demux_buf_pop_rdy       = icb_rsp_m_bufed_hsked;
 assign      slv_region_match_bufed  = demux_buf_pop_data;
 assign      no_region_match_bufed   = ~(|slv_region_match_bufed);
 
 // 将分发信息保存下来，用于rsp通道
 lnrv_gnrl_buf#
 (
-    .P_DATA_WIDTH           ( LP_DISP_BUF_DATA_WIDTH    ),
-    .P_DEEPTH               ( LP_DISP_BUF_DEEPTH        ),
+    .P_DATA_WIDTH           ( LP_DEMUX_BUF_DATA_WIDTH   ),
+    .P_DEEPTH               ( LP_DEMUX_BUF_DEEPTH       ),
 
     .P_CUT_VALID            ( 1'b0                      ),
     .P_CUT_READY            ( 1'b1                      ),
@@ -231,12 +231,12 @@ generate
     // 分离slave port
     for(i = 0; i < P_ICB_COUNT; i = i + 1) begin
         assign      icb_cmd_vld_slv[i]      = slv_region_match[i] & icb_cmd_vld_m_bufed & demux_buf_push_rdy;
-        assign      icb_cmd_write_slv[i]    = slv_region_match[i] & icb_cmd_write_m_bufed;
-        assign      icb_cmd_addr_slv[i]     = {P_ADDR_WIDTH{slv_region_match[i]}} & icb_cmd_addr_m_bufed;
-        assign      icb_cmd_wdata_slv[i]    = {P_DATA_WIDTH{slv_region_match[i]}} & icb_cmd_wdata_m_bufed;
-        assign      icb_cmd_wstrb_slv[i]    = {(P_DATA_WIDTH/8){slv_region_match[i]}} & icb_cmd_wstrb_m_bufed;
-        assign      icb_cmd_size_slv[i]     = {3{slv_region_match[i]}} & icb_cmd_size_m_bufed;
         assign      icb_cmd_rdy_slv[i]      = slv_region_match[i] & icb_cmd_rdy_sn[i];
+        assign      icb_cmd_write_slv[i]    = icb_cmd_write_m_bufed;
+        assign      icb_cmd_addr_slv[i]     = icb_cmd_addr_m_bufed;
+        assign      icb_cmd_wdata_slv[i]    = icb_cmd_wdata_m_bufed;
+        assign      icb_cmd_wstrb_slv[i]    = icb_cmd_wstrb_m_bufed;
+        assign      icb_cmd_size_slv[i]     = icb_cmd_size_m_bufed;
 
         assign      icb_rsp_rdy_slv[i]      = slv_region_match_bufed[i] & icb_rsp_rdy_m_bufed;
         assign      icb_rsp_vld_slv[i]      = slv_region_match_bufed[i] & icb_rsp_vld_sn[i];
