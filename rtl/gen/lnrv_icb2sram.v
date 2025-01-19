@@ -16,8 +16,6 @@ module lnrv_icb2sram#
     input[P_ICB_ADDR_WIDTH - 1 : 0]     icb_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]         icb_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]     icb_cmd_wstrb,
-    input[2 : 0]                        icb_cmd_size,
-
     input                               icb_rsp_rdy,
     output                              icb_rsp_vld,
     output[P_DATA_WIDTH - 1 : 0]        icb_rsp_rdata,
@@ -87,18 +85,18 @@ always@(posedge clk or negedge reset_n) begin
     end
 end
 
-assign      icb_cmd_rdy = (~rsp_vld_q) | rsp_vld_clr;
+assign      icb_cmd_rdy     = (~rsp_vld_q) | rsp_vld_clr;
 
-assign      icb_rsp_vld = rsp_vld_q;
-assign      icb_rsp_rdata = rdata_vld_q ? rdata_q : ram_rdata;
-assign      icb_rsp_err = 1'b0;
+assign      icb_rsp_vld     = rsp_vld_q;
+assign      icb_rsp_rdata   = rdata_vld_q ? rdata_q : ram_rdata;
+assign      icb_rsp_err     = 1'b0;
 
-assign      ram_cs = icb_cmd_hsked;
-assign      ram_we = icb_cmd_write;
-assign      ram_wem = icb_cmd_wstrb;
-assign      ram_addr = icb_cmd_addr[LP_RAM_ADDR_LSB +: P_RAM_ADDR_WIDTH];
-assign      ram_wdata = icb_cmd_wdata;
-assign      ram_clk = clk;
+assign      ram_cs          = icb_cmd_hsked;
+assign      ram_we          = icb_cmd_write;
+assign      ram_wem         = icb_cmd_wstrb;
+assign      ram_addr        = icb_cmd_addr[LP_RAM_ADDR_LSB +: P_RAM_ADDR_WIDTH];
+assign      ram_wdata       = icb_cmd_wdata;
+assign      ram_clk         = clk;
 
 
 endmodule
