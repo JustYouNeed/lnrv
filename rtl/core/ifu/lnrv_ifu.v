@@ -113,7 +113,6 @@ wire                                    flush_ots_cnt_not_0;
 wire                                    flush_rsp_pending;
 wire                                    flush_rsp_not_pending;
 wire                                    flush_cmd_pending;
-wire                                    flush_cmd_not_pending;
 
 // 没有流水线暂停请求
 wire                                    no_pipe_halt_req;
@@ -171,12 +170,6 @@ wire                                    flush_rsp_pend_set;
 wire                                    flush_rsp_pend_clr;
 wire                                    flush_rsp_pend_rld;
 wire                                    flush_rsp_pend_d;
-
-reg                                     vec_irq_flush_pend_q;
-wire                                    vec_irq_flush_pend_set;
-wire                                    vec_irq_flush_pend_clr;
-wire                                    vec_irq_flush_pend_rld;
-wire                                    vec_irq_flush_pend_d;
 
 reg                                     vec_irq_wait_pc_q;
 wire                                    vec_irq_wait_pc_set;
