@@ -2,7 +2,6 @@ module  lnrv_icb2apb#
 (
     parameter                           P_ADDR_WIDTH        = 32,
     parameter                           P_DATA_WIDTH        = 32,
-    parameter                           P_SIZE_WIDTH        = 3,
     parameter                           P_LEN_WIDTH         = 4,
 
     parameter                           P_CMD_CUT_VALID     = 1'b1,
@@ -24,7 +23,7 @@ module  lnrv_icb2apb#
     input[(P_DATA_WIDTH/8) - 1 : 0]     icb_cmd_wstrb,
     input[P_ADDR_WIDTH - 1 : 0]         icb_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]         icb_cmd_wdata,
-    input[P_SIZE_WIDTH - 1 : 0]         icb_cmd_size,
+    input[2 : 0]                        icb_cmd_size,
     input[1 : 0]                        icb_cmd_burst,
     input[P_LEN_WIDTH - 1 : 0]          icb_cmd_len,
     input[2 : 0]                        icb_cmd_prot,
@@ -61,7 +60,7 @@ wire                                    icb_cmd_write_bufed;
 wire[P_ADDR_WIDTH - 1 : 0]              icb_cmd_addr_bufed;
 wire[P_DATA_WIDTH - 1 : 0]              icb_cmd_wdata_bufed;
 wire[(P_DATA_WIDTH/8) - 1 : 0]          icb_cmd_wstrb_bufed;
-wire[P_SIZE_WIDTH - 1 : 0]                             icb_cmd_size_bufed;
+wire[2 : 0]                             icb_cmd_size_bufed;
 wire                                    icb_rsp_vld_bufed;
 wire                                    icb_rsp_rdy_bufed;
 wire[P_DATA_WIDTH - 1 : 0]              icb_rsp_rdata_bufed;
@@ -71,8 +70,7 @@ wire                                    apb_hsked;
 
 assign      apb_hsked = psel & penable & pready;
 
-// 插入buff
-
+// 插入icb buff
 lnrv_icb_slice#
 (
     .P_ADDR_WIDTH                   ( P_ADDR_WIDTH              ),

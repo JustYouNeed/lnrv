@@ -1,6 +1,5 @@
 module lnrv_clmt#
 (
-    parameter                       P_SIZE_WIDTH = 3,
     parameter                       P_LEN_WIDTH = 4
 )
 (
@@ -27,7 +26,7 @@ module lnrv_clmt#
     input[15 : 0]                   icb_cmd_addr,
     input[31 : 0]                   icb_cmd_wdata,
     input[3 : 0]                    icb_cmd_wstrb,
-    input[P_SIZE_WIDTH - 1 : 0]     icb_cmd_size,
+    input[2 : 0]                    icb_cmd_size,
     input[1 : 0]                    icb_cmd_burst,
     input[P_LEN_WIDTH - 1 : 0]      icb_cmd_len,
     input[2 : 0]                    icb_cmd_prot,

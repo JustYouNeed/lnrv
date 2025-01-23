@@ -356,7 +356,7 @@ wire                                        icb_rsp_err_clic;
 // wire[LP_ICB_ADDR_WIDTH - 1 : 0]                    icb_cmd_addr_sys;
 // wire[LP_ICB_DATA_WIDTH - 1 : 0]                    icb_cmd_wdata_sys;
 // wire[3 : 0]                     icb_cmd_wstrb_sys;
-// wire[P_SIZE_WIDTH - 1 : 0]                     icb_cmd_size_sys;
+// wire[2 : 0]                     icb_cmd_size_sys;
 // wire                            icb_rsp_vld_sys;
 // wire                            icb_rsp_rdy_sys;
 // wire[LP_ICB_DATA_WIDTH - 1 : 0]                    icb_rsp_rdata_sys;
@@ -449,7 +449,6 @@ lnrv_biu#
 
     .P_ADDR_WIDTH           ( LP_ICB_ADDR_WIDTH         ),
     .P_DATA_WIDTH           ( LP_ICB_DATA_WIDTH         ),
-    .P_SIZE_WIDTH           ( LP_ICB_SIZE_WIDTH         ),
     .P_LEN_WIDTH            ( LP_ICB_LEN_WIDTH          ),
 
     // IFU接口配置参数

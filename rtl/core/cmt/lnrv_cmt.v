@@ -377,26 +377,26 @@ assign      vec_irq_taken = vec_irq_taken_raw &
 // 1、mepc
 // 2、mcause
 // 3、mtval(仅发生异常时需要更新)
-assign      mepc_wen      = irq_taken | excp_taken;
-assign      mepc_wdata    = irq_taken ? mepc_wdata_irq : mepc_wdata_excp;
-assign      mcause_wen    = mepc_wen;
-assign      mcause_wdata  = irq_taken ? mcause_wdata_irq : mcause_wdata_excp;
-assign      mtval_wen     = excp_taken;
-assign      mtval_wdata   = mtval_wdata_excp;
+assign      mepc_wen        = irq_taken | excp_taken;
+assign      mepc_wdata      = irq_taken ? mepc_wdata_irq : mepc_wdata_excp;
+assign      mcause_wen      = mepc_wen;
+assign      mcause_wdata    = irq_taken ? mcause_wdata_irq : mcause_wdata_excp;
+assign      mtval_wen       = excp_taken;
+assign      mtval_wdata     = mtval_wdata_excp;
 
 // 操作dcsr寄存器
-assign      dpc_wen = dbg_taken;
-assign      dpc_wdata = dpc_wdata_dbg;
+assign      dpc_wen         = dbg_taken;
+assign      dpc_wdata       = dpc_wdata_dbg;
 
-assign      dcause_wen = dbg_taken;
-assign      dcause_wdata = dcause_wdata_dbg;
+assign      dcause_wen      = dbg_taken;
+assign      dcause_wdata    = dcause_wdata_dbg;
 
 
-assign      cmted_mret = cmt_brch_mret & brch_taken;
-assign      cmted_dret = cmt_brch_dret & brch_taken;
+assign      cmted_mret      = cmt_brch_mret & brch_taken;
+assign      cmted_dret      = cmt_brch_dret & brch_taken;
 
 // 如果需要冲刷流水线，则需要等流水线冲刷完成，否则可以直接交付
-assign      cmt_rdy = pipe_flush_req ? pipe_flush_ack : cmt_vld;
+assign      cmt_rdy         = pipe_flush_req ? pipe_flush_ack : cmt_vld;
 
 endmodule
 

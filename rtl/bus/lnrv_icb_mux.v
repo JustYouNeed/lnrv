@@ -2,7 +2,6 @@ module  lnrv_icb_mux#
 (
     parameter                                       P_ADDR_WIDTH            = 32,
     parameter                                       P_DATA_WIDTH            = 32,
-    parameter                                       P_SIZE_WIDTH            = 3,
     parameter                                       P_LEN_WIDTH             = 4,
     parameter                                       P_ICB_COUNT             = 4,
 
@@ -27,7 +26,7 @@ module  lnrv_icb_mux#
     input[(P_ADDR_WIDTH * P_ICB_COUNT) - 1 : 0]     icb_cmd_addr_mn,
     input[(P_DATA_WIDTH * P_ICB_COUNT) - 1 : 0]     icb_cmd_wdata_mn,
     input[((P_DATA_WIDTH/8) * P_ICB_COUNT) - 1 : 0] icb_cmd_wstrb_mn,
-    input[(P_ICB_COUNT * P_SIZE_WIDTH) - 1 : 0]     icb_cmd_size_mn,
+    input[(P_ICB_COUNT * 3) - 1 : 0]                icb_cmd_size_mn,
     input[(P_ICB_COUNT * 2) - 1 : 0]                icb_cmd_burst_mn,
     input[(P_ICB_COUNT * P_LEN_WIDTH) - 1 : 0]      icb_cmd_len_mn,
     input[(P_ICB_COUNT * 3) - 1 : 0]                icb_cmd_prot_mn,
@@ -45,7 +44,7 @@ module  lnrv_icb_mux#
     output[P_ADDR_WIDTH - 1 : 0]                    icb_cmd_addr_s,
     output[P_DATA_WIDTH - 1 : 0]                    icb_cmd_wdata_s,
     output[(P_DATA_WIDTH / 8) - 1 : 0]              icb_cmd_wstrb_s,
-    output[P_SIZE_WIDTH - 1 : 0]                                   icb_cmd_size_s,
+    output[2 : 0]                                   icb_cmd_size_s,
     output[1 : 0]                                   icb_cmd_burst_s,
     output[P_LEN_WIDTH - 1 : 0]                                   icb_cmd_len_s,
     output[2 : 0]                                   icb_cmd_prot_s,
@@ -78,7 +77,7 @@ wire[P_ICB_COUNT - 1 : 0]                           icb_cmd_write_m_mux;
 wire[P_ADDR_WIDTH - 1 : 0]                          icb_cmd_addr_m_mux[P_ICB_COUNT - 1 : 0];
 wire[P_DATA_WIDTH - 1 : 0]                          icb_cmd_wdata_m_mux[P_ICB_COUNT - 1 : 0];
 wire[(P_DATA_WIDTH/8) - 1 : 0]                      icb_cmd_wstrb_m_mux[P_ICB_COUNT - 1 : 0];
-wire[P_SIZE_WIDTH - 1 : 0]                          icb_cmd_size_m_mux[P_ICB_COUNT - 1 : 0];
+wire[2 : 0]                                         icb_cmd_size_m_mux[P_ICB_COUNT - 1 : 0];
 wire[1 : 0]                                         icb_cmd_burst_m_mux[P_ICB_COUNT - 1 : 0];
 wire[P_LEN_WIDTH - 1 : 0]                           icb_cmd_len_m_mux[P_ICB_COUNT - 1 : 0];
 wire[2 : 0]                                         icb_cmd_prot_m_mux[P_ICB_COUNT - 1 : 0];
@@ -90,7 +89,7 @@ wire                                                icb_cmd_write_m;
 reg[P_ADDR_WIDTH - 1 : 0]                           icb_cmd_addr_m;
 reg[P_DATA_WIDTH - 1 : 0]                           icb_cmd_wdata_m;
 reg[(P_DATA_WIDTH/8) - 1 : 0]                       icb_cmd_wstrb_m;
-reg[P_SIZE_WIDTH - 1 : 0]                           icb_cmd_size_m;
+reg[2 : 0]                                          icb_cmd_size_m;
 reg[1 : 0]                                          icb_cmd_burst_m;
 reg[P_LEN_WIDTH - 1 : 0]                            icb_cmd_len_m;
 reg[2 : 0]                                          icb_cmd_prot_m;
@@ -134,7 +133,7 @@ generate
         assign      icb_cmd_addr_m_mux[i]   = {P_ADDR_WIDTH{icb_cmd_grant_mn[i]}} & icb_cmd_addr_mn[i * P_ADDR_WIDTH +: P_ADDR_WIDTH];
         assign      icb_cmd_wdata_m_mux[i]  = {P_DATA_WIDTH{icb_cmd_grant_mn[i]}} & icb_cmd_wdata_mn[i * P_DATA_WIDTH +: P_DATA_WIDTH];
         assign      icb_cmd_wstrb_m_mux[i]  = {(P_DATA_WIDTH/8){icb_cmd_grant_mn[i]}} & icb_cmd_wstrb_mn[i * (P_DATA_WIDTH/8) +: (P_DATA_WIDTH/8)];
-        assign      icb_cmd_size_m_mux[i]   = {3{icb_cmd_grant_mn[i]}} & icb_cmd_size_mn[i * P_SIZE_WIDTH +: P_SIZE_WIDTH];
+        assign      icb_cmd_size_m_mux[i]   = {3{icb_cmd_grant_mn[i]}} & icb_cmd_size_mn[i * 3 +: 3];
         assign      icb_cmd_burst_m_mux[i]  = {2{icb_cmd_grant_mn[i]}} & icb_cmd_burst_mn[i * 2 +: 2];
         assign      icb_cmd_len_m_mux[i]    = {4{icb_cmd_grant_mn[i]}} & icb_cmd_len_mn[i * P_LEN_WIDTH +: P_LEN_WIDTH];
         assign      icb_cmd_prot_m_mux[i]   = {3{icb_cmd_grant_mn[i]}} & icb_cmd_prot_mn[i * 3 +: 3];
@@ -149,7 +148,7 @@ always@(*) begin
     icb_cmd_addr_m      = {P_ADDR_WIDTH{1'b0}};
     icb_cmd_wdata_m     = {P_DATA_WIDTH{1'b0}};
     icb_cmd_wstrb_m     = {(P_DATA_WIDTH/8){1'b0}};
-    icb_cmd_size_m      = {P_SIZE_WIDTH{1'b0}};
+    icb_cmd_size_m      = {3{1'b0}};
     icb_cmd_burst_m     = 2'b00;
     icb_cmd_len_m       = {P_LEN_WIDTH{1'b0}};
     icb_cmd_prot_m      = 3'b000;
@@ -214,7 +213,6 @@ lnrv_icb_slice#
 (
     .P_ADDR_WIDTH           ( P_ADDR_WIDTH              ),
     .P_DATA_WIDTH           ( P_DATA_WIDTH              ),
-    .P_SIZE_WIDTH           ( P_SIZE_WIDTH              ),
     .P_LEN_WIDTH            ( P_LEN_WIDTH               ),
 
     .P_CMD_CUT_VALID        ( P_CMD_CUT_VALID           ),

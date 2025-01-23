@@ -4,7 +4,6 @@ module lnrv_icb2sram#
     parameter                           P_RAM_ADDR_WIDTH    = 17,
 
     parameter                           P_DATA_WIDTH        = 32,
-    parameter                           P_SIZE_WIDTH        = 3,
     parameter                           P_LEN_WIDTH         = 4
 )
 (
@@ -18,7 +17,7 @@ module lnrv_icb2sram#
     input[P_ICB_ADDR_WIDTH - 1 : 0]     icb_cmd_addr,
     input[P_DATA_WIDTH - 1 : 0]         icb_cmd_wdata,
     input[(P_DATA_WIDTH/8) - 1 : 0]     icb_cmd_wstrb,
-    input[P_SIZE_WIDTH - 1 : 0]         icb_cmd_size,
+    input[2 : 0]                        icb_cmd_size,
     input[1 : 0]                        icb_cmd_burst,
     input[P_LEN_WIDTH - 1 : 0]          icb_cmd_len,
     input[2 : 0]                        icb_cmd_prot,

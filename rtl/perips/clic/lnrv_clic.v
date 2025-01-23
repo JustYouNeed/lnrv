@@ -1,7 +1,6 @@
 // core local interrupt controller
 module lnrv_clic#
 (
-    parameter                       P_SIZE_WIDTH    = 3,
     parameter                       P_LEN_WIDTH     =4,
     // 中断个数，最大为248个
     parameter                       P_IRQ_COUNT     = 32
@@ -17,7 +16,7 @@ module lnrv_clic#
     input[15 : 0]                   icb_cmd_addr,
     input[31 : 0]                   icb_cmd_wdata,
     input[3 : 0]                    icb_cmd_wstrb,
-    input[P_SIZE_WIDTH - 1 : 0]     icb_cmd_size,
+    input[2 : 0]                    icb_cmd_size,
     input[1 : 0]                    icb_cmd_burst,
     input[P_LEN_WIDTH - 1 : 0]      icb_cmd_len,
     input[2 : 0]                    icb_cmd_prot,

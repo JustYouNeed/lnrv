@@ -106,24 +106,24 @@ assign      m_mode_ecall = m_mode & cmt_sys_ecall;
 // 如果是调试请求，则不需要更新csr寄存器
 assign      mepc_wdata = idu_pc;
 
-assign      illegal_ir = cmt_idu_excp_ilglir | cmt_csr_idx_err;
-assign      load_addr_misalgn = cmt_lsu_ld & cmt_lsu_misalgn;
-assign      load_access_error = cmt_lsu_ld & cmt_lsu_buserr;
-assign      store_addr_misalgn = cmt_lsu_st & cmt_lsu_misalgn;
-assign      store_access_error = cmt_lsu_st & cmt_lsu_buserr;
+assign      illegal_ir              = cmt_idu_excp_ilglir | cmt_csr_idx_err;
+assign      load_addr_misalgn       = cmt_lsu_ld & cmt_lsu_misalgn;
+assign      load_access_error       = cmt_lsu_ld & cmt_lsu_buserr;
+assign      store_addr_misalgn      = cmt_lsu_st & cmt_lsu_misalgn;
+assign      store_access_error      = cmt_lsu_st & cmt_lsu_buserr;
 
-assign      mcause_wdata[31] = 1'b0;
-assign      mcause_wdata[30 : 4] = 27'd0;
-assign      mcause_wdata[3 : 0] =   cmt_ifu_excp_misalgn ? 4'd0 :
-                                    cmt_ifu_excp_buserr ? 4'd1 :
-                                    illegal_ir ? 4'd2 :
-                                    ebreak4excp ? 4'd3 :
-                                    load_addr_misalgn ? 4'd4 :
-                                    load_access_error ? 4'd5 :
-                                    store_addr_misalgn ? 4'd6 :
-                                    store_access_error ? 4'd7 :
-                                    m_mode_ecall ? 4'd11 :
-                                    4'd14;
+assign      mcause_wdata[31]        = 1'b0;
+assign      mcause_wdata[30 : 4]    = 27'd0;
+assign      mcause_wdata[3 : 0]     =   cmt_ifu_excp_misalgn ? 4'd0 :
+                                        cmt_ifu_excp_buserr ? 4'd1 :
+                                        illegal_ir ? 4'd2 :
+                                        ebreak4excp ? 4'd3 :
+                                        load_addr_misalgn ? 4'd4 :
+                                        load_access_error ? 4'd5 :
+                                        store_addr_misalgn ? 4'd6 :
+                                        store_access_error ? 4'd7 :
+                                        m_mode_ecall ? 4'd11 :
+                                        4'd14;
 // 对于异常，还需要更新mtval寄存器，
 // 如果是取指时发生错误，则将错误pc更新到mtval寄存器
 // 如果是译码时发现是非法指令，则将指令本身更新到mtval寄存器
