@@ -218,7 +218,7 @@ lnrv_ifu#
 (
     .P_OTS_COUNT                ( P_IFU_OTS_COUNT           )
 )
-u_lnrv_ifu
+u_ifu
 (
     .clk                        ( clk                       ),
     .reset_n                    ( reset_n                   ),
@@ -267,7 +267,7 @@ u_lnrv_ifu
 );
 
 // 译码模块
-lnrv_idu u_lnrv_idu
+lnrv_idu u_idu
 (
     .idu_active                 ( idu_active                ),
 
@@ -316,7 +316,7 @@ lnrv_idu u_lnrv_idu
 );
 
 // 指令执行模块
-lnrv_exu u_lnrv_exu
+lnrv_exu u_exu
 (
     .exu_active                 ( exu_active                ),
 
@@ -403,7 +403,7 @@ lnrv_exu u_lnrv_exu
     .reset_n                    ( reset_n                   )
 );
 
-lnrv_cmt u_lnrv_cmt
+lnrv_cmt u_cmt
 (
     .ifu_vld                    ( ifu_vld                   ),
     .ifu_pc                     ( ifu_pc                    ),
@@ -511,7 +511,7 @@ lnrv_cmt u_lnrv_cmt
 lnrv_gpr#(
     .P_ADDR_WIDTH               ( 5                         )
 )
-u_lnrv_gpr
+u_gpr
 (
     .rs1_idx                    ( idu_rs1                   ),
     .rs1_rdata                  ( rs1_rdata                 ),
@@ -530,7 +530,7 @@ u_lnrv_gpr
 );
 
 // control and status regter
-lnrv_csr u_lnrv_csr
+lnrv_csr u_csr
 (
     .mepc                       ( mepc                      ),
     .mtvec                      ( mtvec                     ),

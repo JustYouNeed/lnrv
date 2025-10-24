@@ -147,7 +147,7 @@ wire                            vec_irq_taken_raw;
 assign      exu_idle = cmt_vld | (~idu_vld);
 
 // 中断处理模块
-lnrv_cmt_irq u_lnrv_cmt_irq
+lnrv_cmt_irq u_cmt_irq
 (
     .exu_idle               ( exu_idle                      ),
 
@@ -193,7 +193,7 @@ lnrv_cmt_irq u_lnrv_cmt_irq
 );
 
 // 异常处理模块
-lnrv_cmt_excp u_lnrv_cmt_excp
+lnrv_cmt_excp u_cmt_excp
 (
     .idu_pc                 ( idu_pc                        ),
     .idu_ir                 ( idu_ir                        ),
@@ -233,7 +233,7 @@ lnrv_cmt_excp u_lnrv_cmt_excp
 );
 
 // 调试相关请求处理模块
-lnrv_cmt_dbg u_lnrv_cmt_dbg
+lnrv_cmt_dbg u_cmt_dbg
 (
     .idu_pc                 ( idu_pc                        ),
 
@@ -269,7 +269,7 @@ lnrv_cmt_dbg u_lnrv_cmt_dbg
 );
 
 // 分支指令交付处理模块
-lnrv_cmt_brch u_lnrv_cmt_brch
+lnrv_cmt_brch u_cmt_brch
 (
     .cmt_vld                ( cmt_vld                       ),
     .cmt_rv32_ir            ( cmt_rv32_ir                   ),
@@ -299,7 +299,7 @@ lnrv_cmt_brch u_lnrv_cmt_brch
 );
 
 
-lnrv_cmt_wfi u_lnrv_cmt_wfi
+lnrv_cmt_wfi u_cmt_wfi
 (
     .clk                    ( clk                           ),      // I
     .reset_n                ( reset_n                       ),      // I

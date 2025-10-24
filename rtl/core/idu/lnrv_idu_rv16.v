@@ -493,7 +493,7 @@ assign      op_bus_rglr[`RGLR_ADD_LOC]      =   instr_c_add |
 assign      op_bus_lsu[`LSU_LOAD_LOC]   = instr_c_lwsp | instr_c_lw;
 assign      op_bus_lsu[`LSU_STORE_LOC]  = instr_c_swsp | instr_c_sw;
 assign      op_bus_lsu[`LSU_SIZE_LOC]   = 2'd2;
-assign      op_bus_lsu[`LSU_UEXT_LOC]   = 1'b0;
+assign      op_bus_lsu[`LSU_SEXT_LOC]   = 1'b0;
 
 
 // ===========================================================================

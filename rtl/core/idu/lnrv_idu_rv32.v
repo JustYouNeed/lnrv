@@ -1067,7 +1067,7 @@ assign      op_bus_lsu[`LSU_SIZE_LOC]   =   (instr_lb | instr_lbu | instr_sb) ? 
                                             2'd2;
 //  lbu指令和lhu指令需要无符号扩展，我们这里只判断funct3，不判断opcode，因为如果不是访存指令，
 //  我们这里拉高也没有问题，最终也不会选择lus_op_bus作为译码结果
-assign      op_bus_lsu[`LSU_UEXT_LOC]   = funct3_is_100 | funct3_is_101;
+assign      op_bus_lsu[`LSU_SEXT_LOC]   = ~(funct3_is_100 | funct3_is_101);
 
 // ===========================================================================
 //                                      分支指令

@@ -69,6 +69,8 @@ localparam                              LP_IFU_BUF_WIDTH = 32 + 32 + 1 + 1;
 
 localparam                              LP_OTS_CNT_WIDTH = $clog2(P_OTS_COUNT) + 1;
 
+wire                                    pipe_flush_req_bpu;
+// wire                                    LP_OTS_CNT_WIDTH;
 wire                                    pipe_flush_req;
 wire                                    pipe_flush_ack;
 wire[31 : 0]                            pipe_flush_pc_op1;
@@ -223,18 +225,14 @@ always@(posedge clk or negedge reset_n) begin
 end
 
 // 这里将指令地址分为两个操作数相加
-assign      fetch_addr_op1 =    pipe_flush_req ? pipe_flush_pc_op1 :
-                                (flush_cmd_pend_q) ? fetch_addr_q :     // 流水线冲刷请求并不一定能被立即处理
-                                reset_pend_q ? reset_vector :       // 复位时我们使用复位向量
-                                vec_irq_wait_pc_q ? icb_rsp_rdata :
-                                fetch_addr_q;
-
-assign      fetch_addr_op2 =    pipe_flush_req ? pipe_flush_pc_op2 :
-                                (flush_cmd_pend_q ) ? 32'd0 :
-                                reset_pend_q ? 32'd0 :
-                                vec_irq_wait_pc_q ? 32'd0 :
-                                32'd4;
-assign      fetch_addr_rld = icb_cmd_hsked | pipe_flush_hsked | vec_irq_wait_pc_clr;
+assign      {fetch_addr_op1, fetch_addr_op2} =  pipe_flush_req ? {pipe_flush_pc_op1, pipe_flush_pc_op2} :
+                                                flush_cmd_pend_q ? {fetch_addr_q, 32'd0} :
+                                                reset_pend_q ? {reset_vector, 32'd0} :
+                                                vec_irq_wait_pc_q ? {icb_rsp_rdata, 32'd0} : {fetch_addr_q, 32'd4};
+assign      fetch_addr_rld =    icb_cmd_hsked |
+                                pipe_flush_hsked |
+                                vec_irq_wait_pc_clr |
+                                1'b0;
 assign      fetch_addr_d = fetch_addr_op1 + fetch_addr_op2;
 always@(posedge clk or negedge reset_n) begin
     if(reset_n == 1'b0) begin
@@ -403,7 +401,7 @@ assign      fetch_addr_misalgn = 1'b0;
 assign      ifu_push_pc = ifu_pc_q;
 
 // 根据leftover_buf中是否有剩余数据来决定push_ir
-// 1、如果leftover_buf有效，则直接使用leftover_buf和icb_rsp_rdata[15 : 0]作为指令，同时将icb_rsp_rdata·31:16]保存到leftover_buf
+// 1、如果leftover_buf有效，则直接使用leftover_buf和icb_rsp_rdata[15 : 0]作为指令，同时将icb_rsp_rdata[31:16]保存到leftover_buf
 // 2、如果leftover_buf无效，则下列两种情况肯定有一种成立:
 //          a) 当前是复位后第一次取指
 //          b) 流水线被冲刷了

@@ -68,7 +68,7 @@ wire                                    instr_is_load;
 wire                                    instr_is_store;
 
 wire[1 : 0]                             ls_size;
-wire                                    ls_uext;
+wire                                    ls_sext;
 
 wire                                    addr_algn_byte;
 wire                                    addr_algn_half;
@@ -89,9 +89,9 @@ wire[31 : 0]                            sext_half;
 wire[31 : 0]                            uext_half;
 wire[31 : 0]                            ext_half;
 
-wire[31 : 0]                            store_byte;
-wire[31 : 0]                            store_half;
-wire[31 : 0]                            store_word;
+wire[31 : 0]                            store_byte_data;
+wire[31 : 0]                            store_half_data;
+wire[31 : 0]                            store_word_data;
 
 wire                                    no_excp;
 
@@ -106,7 +106,7 @@ assign       icb_rsp_hsked =  icb_rsp_vld &  icb_rsp_rdy;
 assign      instr_is_load   = op_bus[`LSU_LOAD_LOC];
 assign      instr_is_store  = op_bus[`LSU_STORE_LOC];
 assign      ls_size         = op_bus[`LSU_SIZE_LOC];
-assign      ls_uext         = op_bus[`LSU_UEXT_LOC];
+assign      ls_sext         = op_bus[`LSU_SEXT_LOC];
 
 // 需要ALU计算操作地址
 assign      alu_op_vld                          = op_vld;
@@ -161,13 +161,16 @@ end
 // 这里我们只使用寄存器输出，当cmd_ots_clr有效时，当前也不可以发出下一笔操作
 assign      no_ots_cmd = (~cmd_ots_q);
 
+assign      store_sel_byte0 = (alu_res[1 : 0] == 2'b00);
+assign      store_sel_byte1 = (alu_res[1 : 0] == 2'b01);
+assign      store_sel_byte2 = (alu_res[1 : 0] == 2'b10);
+// assign      store_sel_byte3 = (alu_res[1 : 0] == 2'b11);
 // 根据当前地址以及访问模式决定输出数据
-assign      store_byte =    (alu_res[1 : 0] == 2'b00) ? {24'd0, rs2_rdata[7 : 0]} :
-                            (alu_res[1 : 0] == 2'b01) ? {16'd0, rs2_rdata[7 : 0], 8'd0}:
-                            (alu_res[1 : 0] == 2'b10) ? {8'd0, rs2_rdata[7 : 0], 16'd0} :
-                            {rs2_rdata[7 : 0], 24'd0};
-assign      store_half = alu_res[1] ? {rs2_rdata[15 : 0], 16'd0} : {16'd0, rs2_rdata[15 : 0]};
-assign      store_word = rs2_rdata;
+assign      store_byte_data =   store_sel_byte0 ? {24'd0, rs2_rdata[7 : 0]} :
+                                store_sel_byte1 ? {16'd0, rs2_rdata[7 : 0], 8'd0} :
+                                store_sel_byte2 ? {8'd0, rs2_rdata[7 : 0], 16'd0} : {rs2_rdata[7 : 0], 24'd0};
+assign      store_half_data = alu_res[1] ? {rs2_rdata[15 : 0], 16'd0} : {16'd0, rs2_rdata[15 : 0]};
+assign      store_word_data = rs2_rdata;
 
 
 // 需要根据不同的访问以及地址来设置wstrb
@@ -178,19 +181,16 @@ assign      word_access_wstrb = 4'b1111;
 assign      icb_cmd_vld     = addr_algn & op_vld & no_ots_cmd & alu_op_rdy;
 assign      icb_cmd_write   = instr_is_store;
 assign      icb_cmd_addr    = alu_res[0 +: 32];
-assign      icb_cmd_wdata   =   byte_access ? store_byte :
-                                    half_access ? store_half :
-                                    store_word;
-// 如果是读操作，wstrb设置为0
-assign      icb_cmd_wstrb   =   instr_is_load ? 4'b0000 :
-                                byte_access ? byte_access_wstrb :
-                                half_access ? half_access_wstrb :
-                                4'b1111;
 assign      icb_cmd_size    = ls_size;
 assign      icb_cmd_burst   = 2'b01;
 assign      icb_cmd_len     = 4'b0000;
 assign      icb_cmd_prot    = 3'b001;
 assign      icb_cmd_cache   = 4'b0010;
+assign      icb_cmd_wstrb   =   instr_is_load ? 4'b0000 :   // 如果是读操作，wstrb设置为0
+                                byte_access ? byte_access_wstrb :
+                                half_access ? half_access_wstrb : word_access_wstrb;
+assign      icb_cmd_wdata   =   byte_access ? store_byte_data :
+                                half_access ? store_half_data : store_word_data;
 
 assign      icb_rsp_rdy = cmt_rdy;
 
@@ -200,16 +200,10 @@ assign      load_byte = ( icb_cmd_addr[1 : 0] == 2'b00) ?  icb_rsp_rdata[7 : 0] 
                          icb_rsp_rdata[31 : 24];
                         // ( icb_cmd_addr[1 : 0] == 2'b00) ?  icb_rsp_rdata[7 : 0] :
 
-assign      load_half =  icb_cmd_addr[1] ?  icb_rsp_rdata[31 : 16] :
-                         icb_rsp_rdata[15 : 0];
+assign      load_half =  icb_cmd_addr[1] ?  icb_rsp_rdata[31 : 16] : icb_rsp_rdata[15 : 0];
 
-assign      sext_byte   = {{24{load_byte[7]}}, load_byte};
-assign      uext_byte   = {{24{1'b0}}, load_byte};
-assign      ext_byte    = ls_uext ? uext_byte : sext_byte;
-
-assign      sext_half   = {{16{load_half[15]}}, load_half};
-assign      uext_half   = {{16{1'b0}}, load_half};
-assign      ext_half    = ls_uext ? uext_half : sext_half;
+assign      ext_byte    = {{24{load_byte[7] & ls_sext}}, load_byte};
+assign      ext_half    = {{16{load_half[15] & ls_sext}}, load_half};
 
 
 // 我们直接将lsu的resp接到异常处理模块
@@ -219,18 +213,16 @@ assign      ext_half    = ls_uext ? uext_half : sext_half;
 // 2、如果正常发出了访问操作，但是有错误，则产生总线错误异常
 assign      cmt_vld             = addr_misalgn ? op_vld :  icb_rsp_vld;
 assign      cmt_excp_misalgn    = addr_misalgn;
-assign      cmt_excp_buserr     =  icb_rsp_err;
+assign      cmt_excp_buserr     = icb_rsp_err;
 assign      cmt_ld              = instr_is_load;
 assign      cmt_st              = instr_is_store;
-assign      cmt_addr            =  icb_cmd_addr;
+assign      cmt_addr            = icb_cmd_addr;
 
-
-assign      no_excp = ~(addr_misalgn |  icb_rsp_err);
+assign      no_excp = ~(addr_misalgn | icb_rsp_err);
 
 assign      gpr_wen = instr_is_load & no_excp & cmt_rdy;
 assign      gpr_wdata = byte_access ? ext_byte :
-                        half_access ? ext_half :
-                         icb_rsp_rdata;
+                        half_access ? ext_half : icb_rsp_rdata;
 
 assign      op_rdy = cmt_rdy;
 

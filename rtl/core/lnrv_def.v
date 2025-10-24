@@ -184,7 +184,7 @@
 `define     LSU_LOAD_LOC                        0
 `define     LSU_STORE_LOC                       1
 `define     LSU_SIZE_LOC                        3:2
-`define     LSU_UEXT_LOC                        4
+`define     LSU_SEXT_LOC                        4
 `define     LSU_OP_BUS_WIDTH                    5
 
 // 整数乘除法指令
